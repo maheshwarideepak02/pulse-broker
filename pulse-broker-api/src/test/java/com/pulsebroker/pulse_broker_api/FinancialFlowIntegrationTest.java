@@ -141,15 +141,19 @@ class FinancialFlowIntegrationTest {
         loadedDeal.setItem(testItem);
         loadedDeal.setStatus(DealStatus.LOADED);
         loadedDeal.setDealDate(LocalDate.now());
+        loadedDeal.setPacketWeight(new BigDecimal("20.00"));
+        loadedDeal.setNumberOfPackets(500);
         dealRepository.save(loadedDeal);
 
         // Action: Generate Bill 1
         Bill firstBill = billingService.generateBill(testFirmPurchaser.getId(), null, null);
         assertThat(firstBill.getTotalAmount()).isEqualByComparingTo("1000.00");
 
-        // Proof: Deal is now BILLED
+        // Proof: Deal is now BILLED and packets are preserved
         Deal lockedDeal = dealRepository.findById(loadedDeal.getId()).orElseThrow();
         assertThat(lockedDeal.getStatus()).isEqualTo(DealStatus.BILLED);
+        assertThat(lockedDeal.getNumberOfPackets()).isEqualTo(500);
+        assertThat(lockedDeal.getPacketWeight()).isEqualByComparingTo("20.00");
 
         // Action: Generate Bill 2 immediately
         assertThatCode(() -> {
@@ -167,13 +171,15 @@ class FinancialFlowIntegrationTest {
         bill.setStatus(BillStatus.UNPAID);
         bill = billRepository.save(bill);
 
-        // Action: Clear the bill
+        // Action: Clear the bill with Kasar
         LocalDate clearanceDate = LocalDate.now().plusDays(2);
-        Bill clearedBill = billingService.clearBill(bill.getId(), clearanceDate, null);
+        BigDecimal kasar = new BigDecimal("150.00");
+        Bill clearedBill = billingService.clearBill(bill.getId(), clearanceDate, kasar);
 
-        // Proof: Status is PAID and date is set
+        // Proof: Status is PAID, date is set, and Kasar is saved
         assertThat(clearedBill.getStatus()).isEqualTo(BillStatus.PAID);
         assertThat(clearedBill.getClearanceDate()).isNotNull();
+        assertThat(clearedBill.getDiscountAmount()).isEqualByComparingTo("150.00");
 
         // Proof: Cannot clear an already cleared bill
         assertThatCode(() -> {

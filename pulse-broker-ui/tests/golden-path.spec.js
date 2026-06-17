@@ -98,6 +98,10 @@ test.describe('Golden Path E2E', () => {
     await page.fill('input[name="weight"]', '100');
     await page.fill('input[name="rate"]', '5000');
     
+    // Change packet weight and verify bags calculation
+    await page.fill('input[name="packetWeight"]', '25'); // 100 quintal * 100 kg / 25 kg = 400 bags
+    await expect(page.locator('input[name="numberOfPackets"]')).toHaveValue('400');
+    
     await page.click('button:has-text("Save New Deal")');
     
     // Should redirect to Dashboard
@@ -147,8 +151,15 @@ test.describe('Golden Path E2E', () => {
     await expect(page.locator(`text=${pFirm} >> visible=true`).first()).toBeVisible();
     
     // Mark as PAID
+    // Mark as PAID with Kasar
     const clearText = isMobile ? '✓ Pay' : 'Mark Cleared';
     await page.locator(`button:has-text("${clearText}") >> visible=true`).first().click();
-    await page.locator('button:has-text("Yes, Delete") >> visible=true').first().click();
+    
+    // Fill Kasar amount
+    await page.fill('input[placeholder="Optional"]', '150');
+    await page.locator('button:has-text("✓ Mark Paid") >> visible=true').first().click();
+    
+    // Verify Kasar badge is visible
+    await expect(page.locator('text=Kasar: ₹150 >> visible=true').first()).toBeVisible();
   });
 });

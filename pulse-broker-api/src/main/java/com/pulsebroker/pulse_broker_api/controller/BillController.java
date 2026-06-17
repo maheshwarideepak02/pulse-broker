@@ -65,6 +65,10 @@ public class BillController {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Bill not found"));
         
+        if (bill.getStatus() == com.pulsebroker.pulse_broker_api.entity.BillStatus.PAID) {
+            throw new IllegalStateException("Cannot delete a bill that has already been cleared.");
+        }
+        
         java.util.List<Deal> deals = dealRepository.findByPurchaserBillIdOrSellerBillId(id, id);
         for (Deal d : deals) {
             if (d.getPurchaserBill() != null && d.getPurchaserBill().getId().equals(id)) {

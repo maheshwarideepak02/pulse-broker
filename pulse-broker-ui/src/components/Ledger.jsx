@@ -59,11 +59,11 @@ const Ledger = () => {
         }
     };
 
-    // Auto-fetch when filters change
+    // Auto-fetch when filters change or tab changes
     useEffect(() => {
         if (filterFirm && activeTab === 'generate') fetchPreview();
         else setBillPreview(null);
-    }, [filterFirm, fromDate, toDate]);
+    }, [filterFirm, fromDate, toDate, activeTab]);
 
     const handleFinalize = async () => {
         setConfirmDialog({
@@ -532,13 +532,15 @@ const Ledger = () => {
                                                 {b.status === 'PAID' && (
                                                     <span className="text-xs text-gray-400 font-bold self-center mr-2">{b.clearanceDate}</span>
                                                 )}
-                                                <button 
-                                                    onClick={() => handleDeleteBill(b.id)}
-                                                    className="bg-white border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
-                                                    title="Cancel/Delete Bill"
-                                                >
-                                                    🗑️ Cancel
-                                                </button>
+                                                {b.status === 'UNPAID' && (
+                                                    <button 
+                                                        onClick={() => handleDeleteBill(b.id)}
+                                                        className="bg-white border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
+                                                        title="Cancel/Delete Bill"
+                                                    >
+                                                        🗑️ Cancel
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -578,9 +580,11 @@ const Ledger = () => {
                                     <div className="flex gap-2">
                                         <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">👁️</button>
                                         {b.status === 'UNPAID' && (
-                                            <button onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">✓ Pay</button>
+                                            <>
+                                                <button onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">✓ Pay</button>
+                                                <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">🗑️</button>
+                                            </>
                                         )}
-                                        <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">🗑️</button>
                                     </div>
                                 </div>
                             </div>

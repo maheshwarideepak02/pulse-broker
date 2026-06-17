@@ -68,7 +68,7 @@ const Navbar = () => {
                         <NavLink to="/app/new-deal" className="bg-secondary text-white px-3 py-2 rounded-lg font-bold text-xs uppercase tracking-wider shadow-lg" onClick={() => setMenuOpen(false)}>
                             ✍️ {t('New', 'नया')}
                         </NavLink>
-                        <button onClick={() => setMenuOpen(!menuOpen)} className="text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
+                        <button aria-label="Menu" onClick={() => setMenuOpen(!menuOpen)} className="text-white p-2 rounded-lg hover:bg-white/10 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 {menuOpen ? (
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />

@@ -17,6 +17,7 @@ const Ledger = () => {
     const [toDate, setToDate] = useState('');
     const [billPreview, setBillPreview] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [isProcessing, setIsProcessing] = useState(false);
     
     // History State
     const [billsHistory, setBillsHistory] = useState([]);
@@ -74,7 +75,7 @@ const Ledger = () => {
     };
 
     const executeFinalize = async () => {
-        
+        setIsProcessing(true);
         try {
             const bill = await generateBill(filterFirm, fromDate, toDate);
             // After generating, fetch the full bill detail for viewing
@@ -92,6 +93,8 @@ const Ledger = () => {
         } catch (e) {
             console.error(e);
             addToast(e.response?.data?.message || 'Failed to generate bill', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -137,7 +140,7 @@ const Ledger = () => {
     };
 
     const executeClearBill = async (billId) => {
-        
+        setIsProcessing(true);
         try {
             await clearBill(billId);
             addToast('Bill marked as Cleared successfully!', 'success');
@@ -145,6 +148,8 @@ const Ledger = () => {
         } catch (e) {
             console.error(e);
             addToast(e.response?.data?.message || 'Failed to clear bill', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -158,7 +163,7 @@ const Ledger = () => {
     };
 
     const executeDeleteBill = async (billId) => {
-        
+        setIsProcessing(true);
         try {
             await deleteBill(billId);
             addToast('Bill Deleted Successfully & deals unlocked!', 'success');
@@ -166,6 +171,8 @@ const Ledger = () => {
         } catch (e) {
             console.error(e);
             addToast(e.response?.data?.message || 'Failed to delete bill', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -309,7 +316,17 @@ const Ledger = () => {
     }
 
     return (
-        <div className="max-w-6xl mx-auto p-4 py-8">
+        <div className="max-w-6xl mx-auto p-4 py-8 relative">
+            {isProcessing && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">
+                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="text-primary font-bold text-lg">{t('Processing...', 'प्रक्रिया चल रही है...')}</p>
+                        <p className="text-xs text-gray-400 mt-2">Please do not close this window</p>
+                    </div>
+                </div>
+            )}
+            
             <div className="mb-8 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <span className="text-3xl">📒</span>

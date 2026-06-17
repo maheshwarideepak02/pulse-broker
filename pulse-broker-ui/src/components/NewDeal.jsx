@@ -10,6 +10,7 @@ const NewDeal = () => {
     const [firms, setFirms] = useState([]);
     const [items, setItems] = useState([]);
     const [markas, setMarkas] = useState([]);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const [formData, setFormData] = useState({
         dealDate: new Date().toISOString().split('T')[0],
@@ -68,6 +69,8 @@ const NewDeal = () => {
     const saveDeal = async (e) => {
         e.preventDefault();
         
+        if (isProcessing) return;
+
         if (formData.purchaserId === formData.sellerId) {
             addToast('Purchaser and Seller cannot be the same firm', 'error');
             return;
@@ -85,6 +88,7 @@ const NewDeal = () => {
             return;
         }
 
+        setIsProcessing(true);
         try {
             await createDeal({
                 dealDate: formData.dealDate,
@@ -105,6 +109,7 @@ const NewDeal = () => {
         } catch (err) {
             console.error(err);
             addToast('Failed to save deal', 'error');
+            setIsProcessing(false);
         }
     };
 
@@ -225,8 +230,15 @@ const NewDeal = () => {
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full bg-primary hover:bg-red-800 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1 text-lg uppercase tracking-wider">
-                        {t('Save New Deal', 'नया सौदा सहेजें')}
+                    <button type="submit" disabled={isProcessing} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all transform text-lg uppercase tracking-wider flex justify-center items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800 hover:shadow-xl hover:-translate-y-1'}`}>
+                        {isProcessing ? (
+                            <>
+                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                {t('Processing...', 'प्रक्रिया चल रही है...')}
+                            </>
+                        ) : (
+                            t('Save New Deal', 'नया सौदा सहेजें')
+                        )}
                     </button>
                 </form>
             </div>

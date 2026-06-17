@@ -10,6 +10,7 @@ const Pending = () => {
     const { t } = useLanguage();
     const { addToast } = useToast();
     const [deals, setDeals] = useState([]);
+    const [isProcessing, setIsProcessing] = useState(false);
     
     // Load Action State
     const [selectedDeal, setSelectedDeal] = useState(null);
@@ -58,6 +59,7 @@ const Pending = () => {
             addToast('Cannot load more than pending weight.', 'error');
             return;
         }
+        setIsProcessing(true);
         try {
             await loadDeal(selectedDeal.id, weightToLoad, loadData.date);
             addToast('Deal Loaded Successfully!', 'success');
@@ -65,6 +67,8 @@ const Pending = () => {
             fetchDeals(); // refresh list
         } catch (e) {
             addToast(e.response?.data?.message || 'Failed to load deal', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -75,12 +79,15 @@ const Pending = () => {
     const executeDelete = async () => {
         const id = confirmDialog.id;
         setConfirmDialog({ isOpen: false, id: null });
+        setIsProcessing(true);
         try {
             await deleteDeal(id);
             addToast('Deal Deleted Successfully!', 'success');
             fetchDeals();
         } catch (e) {
             addToast(e.response?.data?.message || 'Failed to delete deal', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -119,6 +126,7 @@ const Pending = () => {
                 addToast('Brokerage values cannot be negative', 'error');
                 return;
             }
+            setIsProcessing(true);
             await updateDeal(editDeal.id, {
                 dealDate: editData.dealDate || null,
                 purchaser: editData.purchaser.id ? { id: editData.purchaser.id } : null,
@@ -136,6 +144,8 @@ const Pending = () => {
             fetchDeals();
         } catch (e) {
             addToast(e.response?.data?.message || 'Failed to update deal', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -150,7 +160,17 @@ const Pending = () => {
     });
 
     return (
-        <div className="max-w-6xl mx-auto p-4 py-8">
+        <div className="max-w-6xl mx-auto p-4 py-8 relative">
+            {isProcessing && (
+                <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
+                    <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">
+                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="text-primary font-bold text-lg">{t('Processing...', 'प्रक्रिया चल रही है...')}</p>
+                        <p className="text-xs text-gray-400 mt-2">Please do not close this window</p>
+                    </div>
+                </div>
+            )}
+            
             <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <h1 className="text-3xl font-bold text-secondary tracking-tight">{t('Pending Loading Dates', 'लंबित लोडिंग तारीख')}</h1>
                 <div className="relative w-full md:w-72">

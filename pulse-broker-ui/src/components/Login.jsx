@@ -59,47 +59,7 @@ const Login = () => {
         }
     };
 
-    const doBiometricLogin = async () => {
-        // Native Biometric Simulation for Mobile
-        try {
-            // Check if WebAuthn is available
-            if (window.PublicKeyCredential) {
-                // For a real production app, we would use real server challenges.
-                // Here we just trigger a dummy passkey check to prompt the device's native FaceID / Fingerprint UI.
-                
-                // Note: The below create() might fail if not properly configured on a secure context with a real RP ID.
-                // But we wrap it in try-catch to simulate the experience or fall back.
-                const publicKeyCredentialCreationOptions = {
-                    challenge: new Uint8Array(16),
-                    rp: { name: "Pulse Broker" },
-                    user: {
-                        id: new Uint8Array(16),
-                        name: "broker@pulse",
-                        displayName: "Pulse Broker User"
-                    },
-                    pubKeyCredParams: [{alg: -7, type: "public-key"}],
-                    authenticatorSelection: { authenticatorAttachment: "platform" },
-                    timeout: 60000
-                };
-                
-                await navigator.credentials.create({
-                    publicKey: publicKeyCredentialCreationOptions
-                });
-                
-                login();
-                navigate('/app/dashboard');
-            } else {
-                alert("Biometrics not supported on this device/browser.");
-            }
-        } catch (e) {
-            console.log("Biometric error or fallback:", e);
-            // If the fake passkey fails (which it might on localhost without proper setup),
-            // just let them in as a fallback demonstration for the user.
-            alert("Biometric matched! (Simulation)");
-            login();
-            navigate('/app/dashboard');
-        }
-    };
+
 
     const handleReset = () => {
         const masterCode = window.prompt(
@@ -166,15 +126,7 @@ const Login = () => {
                             {num}
                         </button>
                     ))}
-                    {!isSetupMode ? (
-                        <button 
-                            onClick={doBiometricLogin}
-                            className="bg-primary/10 hover:bg-primary/20 text-primary text-3xl flex items-center justify-center py-4 rounded-2xl shadow-sm border border-primary/20 active:scale-95 transition-all"
-                            title="Fingerprint / FaceID"
-                        >
-                            <span role="img" aria-label="fingerprint">👆</span>
-                        </button>
-                    ) : <div></div>}
+                    <div></div>
                     <button 
                         onClick={() => handlePinPress('0')}
                         className="bg-white hover:bg-gray-100 text-gray-800 text-2xl font-bold py-4 rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-all"

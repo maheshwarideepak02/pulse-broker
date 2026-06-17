@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, getBillDetail } from '../api';
+import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
+import { formatDate } from '../utils/dateUtils';
 
 const Ledger = () => {
     const { t } = useLanguage();
@@ -66,6 +67,20 @@ const Ledger = () => {
         else setBillPreview(null);
     }, [filterFirm, fromDate, toDate, activeTab]);
 
+    const handleRevertDeal = async (dealId) => {
+        setIsProcessing(true);
+        try {
+            await revertDeal(dealId);
+            addToast('Deal reverted to Pending status successfully.', 'success');
+            fetchPreview();
+        } catch (e) {
+            console.error(e);
+            addToast(e.response?.data?.message || 'Failed to revert deal', 'error');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     const handleFinalize = async () => {
         setConfirmDialog({
             isOpen: true,
@@ -103,7 +118,7 @@ const Ledger = () => {
         if (!billPreview) return;
         setInvoiceData({
             billNumber: 'PREVIEW',
-            billDate: new Date().toLocaleDateString('en-GB'),
+            billDate: new Date().toISOString().split('T')[0],
             firmName: billPreview.firmName,
             totalAmount: billPreview.totalAmount,
             items: billPreview.items,
@@ -248,7 +263,7 @@ const Ledger = () => {
                         </span>
                         <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', display: 'inline-block' }}>बिल दलाली</h2>
                         <span style={{ position: 'absolute', right: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
-                            दिनांक <span className="bill-line" style={{ minWidth: '100px' }}>{invoiceData.billDate}</span>
+                            दिनांक <span className="bill-line" style={{ minWidth: '100px' }}>{formatDate(invoiceData.billDate)}</span>
                         </span>
                     </div>
                     <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '15px' }}>
@@ -278,8 +293,8 @@ const Ledger = () => {
                                 return (
                                     <React.Fragment key={d.dealId || i}>
                                         <tr>
-                                            <td>{d.dealDate}</td>
-                                            <td>{d.loadDate}</td>
+                                            <td>{formatDate(d.dealDate)}</td>
+                                            <td>{formatDate(d.loadDate)}</td>
                                             <td>{d.oppositePartyName}</td>
                                             <td>{d.itemMarka}</td>
                                             <td>{d.weight}</td>
@@ -398,27 +413,33 @@ const Ledger = () => {
                                     <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
                                     <th className="px-6 py-4 font-bold text-right">{t('Bags', 'बोरा')}</th>
                                     <th className="px-6 py-4 font-bold text-right">{t('Brokerage', 'दलाली')}</th>
+                                    <th className="px-6 py-4 font-bold text-center w-10"></th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {isLoading ? (
-                                    <tr><td colSpan="5" className="p-8 text-center text-gray-500 animate-pulse">Calculating via secure server...</td></tr>
+                                    <tr><td colSpan="7" className="p-8 text-center text-gray-500 animate-pulse">Calculating via secure server...</td></tr>
                                 ) : !billPreview || billPreview.items.length === 0 ? (
-                                    <tr><td colSpan="5" className="p-12 text-center text-gray-500 font-medium">{filterFirm ? 'No unbilled deals match the selected filter.' : 'Please select a firm to view their ledger.'}</td></tr>
+                                    <tr><td colSpan="7" className="p-12 text-center text-gray-500 font-medium">{filterFirm ? 'No unbilled deals match the selected filter.' : 'Please select a firm to view their ledger.'}</td></tr>
                                 ) : billPreview.items.map(d => (
                                     <tr key={d.dealId} className="hover:bg-red-50/30 transition-colors">
-                                        <td className="px-6 py-4 text-gray-500">{d.dealDate}</td>
+                                        <td className="px-6 py-4 text-gray-500">{formatDate(d.dealDate)}</td>
                                         <td className="px-6 py-4 font-bold text-primary">{d.oppositePartyName}</td>
                                         <td className="px-6 py-4"><span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span></td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-600">{d.weight}</td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-500">{d.numberOfPackets || '-'}</td>
                                         <td className="px-6 py-4 text-right">{renderBrokerageCell(d)}</td>
+                                        <td className="px-4 py-4 text-center">
+                                            <button onClick={() => handleRevertDeal(d.dealId)} className="text-gray-400 hover:text-red-500 transition-colors" title="Undo Load / Revert to Pending">
+                                                ↩️
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
                                 <tr>
-                                    <td colSpan="4" className="px-6 py-4">
+                                    <td colSpan="5" className="px-6 py-4">
                                         {billPreview && billPreview.items.length > 0 && (
                                             <div className="flex gap-4">
                                                 <button onClick={handleViewPreview} className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
@@ -455,7 +476,12 @@ const Ledger = () => {
                                             <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span>
                                             <span className="font-bold text-gray-600">{d.weight} qtl {d.numberOfPackets ? `(${d.numberOfPackets} Bags)` : ''}</span>
                                         </div>
-                                        <div className="text-xs text-gray-500 mt-2">{d.dealDate}</div>
+                                        <div className="flex justify-between items-center mt-2">
+                                            <div className="text-xs text-gray-500">{formatDate(d.dealDate)}</div>
+                                            <button onClick={() => handleRevertDeal(d.dealId)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
+                                                ↩️ Revert
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                                 <div className="p-4 bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
@@ -587,7 +613,7 @@ const Ledger = () => {
                                 </div>
                                 <div className="flex justify-between items-end mt-4">
                                     <div className="flex flex-col gap-1">
-                                        <div className="text-xs text-gray-500">{b.billDate}</div>
+                                        <div className="text-xs text-gray-500">{formatDate(b.billDate)}</div>
                                         {b.status === 'PAID' && b.discountAmount > 0 && (
                                             <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 inline-block w-max">Kasar: ₹{b.discountAmount}</span>
                                         )}

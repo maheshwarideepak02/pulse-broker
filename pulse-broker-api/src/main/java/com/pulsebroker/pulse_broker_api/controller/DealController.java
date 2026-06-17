@@ -69,6 +69,29 @@ public class DealController {
         return dealRepository.save(deal);
     }
 
+    @PostMapping("/{id}/revert")
+    @org.springframework.transaction.annotation.Transactional
+    public Deal revertDeal(@PathVariable Long id) {
+        Deal deal = dealRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Deal not found"));
+        if (deal.getStatus() == DealStatus.BILLED || deal.getPurchaserBill() != null || deal.getSellerBill() != null) {
+            throw new IllegalArgumentException("Cannot revert a billed deal.");
+        }
+        
+        if (deal.getParentDeal() != null) {
+            Deal parent = deal.getParentDeal();
+            parent.setWeight(parent.getWeight().add(deal.getWeight()));
+            parent.setPBrokerage(parent.getPBrokerage().add(deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO));
+            parent.setSBrokerage(parent.getSBrokerage().add(deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO));
+            dealRepository.save(parent);
+            dealRepository.delete(deal);
+            return parent;
+        } else {
+            deal.setStatus(DealStatus.PENDING);
+            deal.setLoadDate(null);
+            return dealRepository.save(deal);
+        }
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @org.springframework.transaction.annotation.Transactional

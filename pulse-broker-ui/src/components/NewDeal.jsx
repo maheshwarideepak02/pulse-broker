@@ -14,7 +14,7 @@ const NewDeal = () => {
 
     const [formData, setFormData] = useState({
         dealDate: new Date().toISOString().split('T')[0],
-        loadDate: '',
+        loadDates: [''],
         purchaserId: '',
         sellerId: '',
         itemId: '',
@@ -117,11 +117,13 @@ const NewDeal = () => {
             return;
         }
 
+        const finalLoadDate = formData.loadDates.filter(d => d).join(', ') || null;
+
         setIsProcessing(true);
         try {
             await createDeal({
                 dealDate: formData.dealDate,
-                loadDate: formData.loadDate || null,
+                loadDate: finalLoadDate,
                 purchaser: { id: formData.purchaserId },
                 seller: { id: formData.sellerId },
                 item: { id: formData.itemId },
@@ -133,7 +135,7 @@ const NewDeal = () => {
                 pBrokerage: pBrokerage,
                 sBrokerage: sBrokerage,
                 brokeragePayer: formData.brokeragePayer,
-                status: formData.loadDate ? 'LOADED' : 'PENDING'
+                status: finalLoadDate ? 'LOADED' : 'PENDING'
             });
             addToast('Deal Saved Successfully!', 'success');
             setTimeout(() => { window.location.href='/app/dashboard'; }, 1000);
@@ -163,13 +165,39 @@ const NewDeal = () => {
                             variant="deal"
                             required
                         />
-                        <DateInput
-                            label={t('Loading Date', 'लोडिंग की तारीख')}
-                            value={formData.loadDate}
-                            onChange={e => setFormData(prev => ({...prev, loadDate: e.target.value}))}
-                            variant="load"
-                            isMulti={true}
-                        />
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                {t('Loading Dates', 'लोडिंग की तारीख')}
+                            </label>
+                            {formData.loadDates.map((date, idx) => (
+                                <div key={idx} className="flex items-center gap-2 mb-2">
+                                    <div className="flex-1">
+                                        <DateInput
+                                            value={date}
+                                            onChange={e => {
+                                                const newDates = [...formData.loadDates];
+                                                newDates[idx] = e.target.value;
+                                                setFormData(prev => ({...prev, loadDates: newDates}));
+                                            }}
+                                            variant="load"
+                                        />
+                                    </div>
+                                    {idx > 0 && (
+                                        <button type="button" onClick={() => {
+                                            const newDates = formData.loadDates.filter((_, i) => i !== idx);
+                                            setFormData(prev => ({...prev, loadDates: newDates}));
+                                        }} className="text-gray-400 hover:text-red-500 font-bold p-2 text-xl" title="Remove Date">
+                                            🗑️
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => {
+                                setFormData(prev => ({...prev, loadDates: [...prev.loadDates, '']}));
+                            }} className="text-secondary hover:text-yellow-600 font-bold text-xs uppercase flex items-center gap-1 mt-1 transition-colors">
+                                <span>➕ Add Date</span>
+                            </button>
+                        </div>
                     </div>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8 relative">

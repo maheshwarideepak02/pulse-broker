@@ -364,7 +364,7 @@ const Ledger = () => {
                 </div>
 
                 <div className="bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden mb-8 animate-fade-in">
-                    <div className="overflow-x-auto">
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left text-sm text-textMain">
                             <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200">
                                 <tr>
@@ -410,6 +410,47 @@ const Ledger = () => {
                             </tfoot>
                         </table>
                     </div>
+
+                    {/* Mobile Card Layout for Generate Bill */}
+                    <div className="md:hidden divide-y divide-gray-100">
+                        {isLoading ? (
+                            <div className="p-8 text-center text-gray-500 animate-pulse">Calculating via secure server...</div>
+                        ) : !billPreview || billPreview.items.length === 0 ? (
+                            <div className="p-12 text-center text-gray-500 font-medium">{filterFirm ? 'No unbilled deals match the selected filter.' : 'Please select a firm to view their ledger.'}</div>
+                        ) : (
+                            <>
+                                {billPreview.items.map(d => (
+                                    <div key={d.dealId} className="p-4 hover:bg-red-50/30 transition-colors">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <span className="font-bold text-primary text-lg">{d.oppositePartyName}</span>
+                                            <div className="text-right">{renderBrokerageCell(d)}</div>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span>
+                                            <span className="font-bold text-gray-600">{d.weight} qtl</span>
+                                        </div>
+                                        <div className="text-xs text-gray-500 mt-2">{d.dealDate}</div>
+                                    </div>
+                                ))}
+                                <div className="p-4 bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="font-bold uppercase text-gray-500 tracking-wider text-sm">{t('Total to Bill:', 'कुल बिल:')}</span>
+                                        <span className="font-black text-moneyGreen text-2xl">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</span>
+                                    </div>
+                                    {billPreview && billPreview.items.length > 0 && (
+                                        <div className="flex flex-col gap-3">
+                                            <button onClick={handleViewPreview} className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all px-4 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2">
+                                                <span>👀</span> {t('Preview PDF', 'पूर्वावलोकन')}
+                                            </button>
+                                            <button onClick={handleFinalize} className="w-full bg-primary hover:bg-red-800 transition-all text-white px-4 py-3 rounded-lg font-bold shadow-lg flex items-center justify-center gap-2">
+                                                <span>🔒</span> {t('Finalize & Lock Bill', 'बिल पक्का करें')}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </>
             )}
@@ -421,71 +462,111 @@ const Ledger = () => {
                         <span>📜</span> {t('All Generated Invoices', 'सभी बिल')}
                     </h2>
                 </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-textMain">
-                        <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200">
-                            <tr>
-                                <th className="px-6 py-4 font-bold">{t('Bill No.', 'बिल नंबर')}</th>
-                                <th className="px-6 py-4 font-bold">{t('Firm', 'फर्म')}</th>
-                                <th className="px-6 py-4 font-bold">{t('Date', 'तारीख')}</th>
-                                <th className="px-6 py-4 font-bold text-right">{t('Amount', 'रकम')}</th>
-                                <th className="px-6 py-4 font-bold text-center">{t('Status', 'स्थिति')}</th>
-                                <th className="px-6 py-4 font-bold text-right">{t('Action', 'कार्य')}</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {billsHistory.length === 0 ? (
-                                <tr><td colSpan="6" className="p-12 text-center text-gray-500 font-medium">No invoices generated yet.</td></tr>
-                            ) : billsHistory.map(b => (
-                                <tr key={b.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-6 py-4 font-bold text-gray-600">{b.billNumber}</td>
-                                    <td className="px-6 py-4 font-bold text-primary">{b.firm?.name}</td>
-                                    <td className="px-6 py-4 text-gray-500">{b.billDate}</td>
-                                    <td className="px-6 py-4 text-right font-black text-moneyGreen">₹ {b.totalAmount?.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-center">
-                                        {b.status === 'PAID' ? (
-                                            <span className="inline-flex items-center gap-1 bg-moneyGreen/10 text-moneyGreen border border-moneyGreen/20 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
-                                                <span>✓</span> CLEARED
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border border-yellow-200 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
-                                                <span>⏳</span> UNPAID
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex gap-2 justify-end">
-                                            <button 
-                                                onClick={() => handleViewBillDetail(b.id)}
-                                                className="bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
-                                            >
-                                                👁️ View
-                                            </button>
-                                            {b.status === 'UNPAID' && (
-                                                <button 
-                                                    onClick={() => handleClearBill(b.id)}
-                                                    className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
-                                                >
-                                                    {t('Mark Cleared', 'भुगतान प्राप्त')}
-                                                </button>
-                                            )}
-                                            {b.status === 'PAID' && (
-                                                <span className="text-xs text-gray-400 font-bold self-center mr-2">{b.clearanceDate}</span>
-                                            )}
-                                            <button 
-                                                onClick={() => handleDeleteBill(b.id)}
-                                                className="bg-white border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
-                                                title="Cancel/Delete Bill"
-                                            >
-                                                🗑️ Cancel
-                                            </button>
-                                        </div>
-                                    </td>
+                    <div className="hidden md:block overflow-x-auto">
+                        <table className="w-full text-left text-sm text-textMain">
+                            <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200">
+                                <tr>
+                                    <th className="px-6 py-4 font-bold">{t('Bill No.', 'बिल नंबर')}</th>
+                                    <th className="px-6 py-4 font-bold">{t('Firm', 'फर्म')}</th>
+                                    <th className="px-6 py-4 font-bold">{t('Date', 'तारीख')}</th>
+                                    <th className="px-6 py-4 font-bold text-right">{t('Amount', 'रकम')}</th>
+                                    <th className="px-6 py-4 font-bold text-center">{t('Status', 'स्थिति')}</th>
+                                    <th className="px-6 py-4 font-bold text-right">{t('Action', 'कार्य')}</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {billsHistory.length === 0 ? (
+                                    <tr><td colSpan="6" className="p-12 text-center text-gray-500 font-medium">No invoices generated yet.</td></tr>
+                                ) : billsHistory.map(b => (
+                                    <tr key={b.id} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-6 py-4 font-bold text-gray-600">{b.billNumber}</td>
+                                        <td className="px-6 py-4 font-bold text-primary">{b.firm?.name}</td>
+                                        <td className="px-6 py-4 text-gray-500">{b.billDate}</td>
+                                        <td className="px-6 py-4 text-right font-black text-moneyGreen">₹ {b.totalAmount?.toFixed(2)}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            {b.status === 'PAID' ? (
+                                                <span className="inline-flex items-center gap-1 bg-moneyGreen/10 text-moneyGreen border border-moneyGreen/20 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                                                    <span>✓</span> CLEARED
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border border-yellow-200 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider">
+                                                    <span>⏳</span> UNPAID
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <div className="flex gap-2 justify-end">
+                                                <button 
+                                                    onClick={() => handleViewBillDetail(b.id)}
+                                                    className="bg-white border-2 border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-primary hover:text-primary transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
+                                                >
+                                                    👁️ View
+                                                </button>
+                                                {b.status === 'UNPAID' && (
+                                                    <button 
+                                                        onClick={() => handleClearBill(b.id)}
+                                                        className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
+                                                    >
+                                                        {t('Mark Cleared', 'भुगतान प्राप्त')}
+                                                    </button>
+                                                )}
+                                                {b.status === 'PAID' && (
+                                                    <span className="text-xs text-gray-400 font-bold self-center mr-2">{b.clearanceDate}</span>
+                                                )}
+                                                <button 
+                                                    onClick={() => handleDeleteBill(b.id)}
+                                                    className="bg-white border-2 border-red-200 text-red-600 hover:bg-red-50 transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
+                                                    title="Cancel/Delete Bill"
+                                                >
+                                                    🗑️ Cancel
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Card Layout for History */}
+                    <div className="md:hidden divide-y divide-gray-100">
+                        {billsHistory.length === 0 ? (
+                            <div className="p-12 text-center text-gray-500 font-medium">No invoices generated yet.</div>
+                        ) : billsHistory.map(b => (
+                            <div key={b.id} className="p-4 hover:bg-gray-50 transition-colors">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div>
+                                        <div className="font-bold text-gray-600 text-xs mb-1">{b.billNumber}</div>
+                                        <div className="font-bold text-primary text-lg">{b.firm?.name}</div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="font-black text-moneyGreen text-xl">₹ {b.totalAmount?.toFixed(2)}</div>
+                                        <div className="mt-1">
+                                            {b.status === 'PAID' ? (
+                                                <span className="inline-flex items-center gap-1 bg-moneyGreen/10 text-moneyGreen border border-moneyGreen/20 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                    ✓ CLEARED
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                    ⏳ UNPAID
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-end mt-4">
+                                    <div className="text-xs text-gray-500">{b.billDate}</div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">👁️</button>
+                                        {b.status === 'UNPAID' && (
+                                            <button onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">✓ Pay</button>
+                                        )}
+                                        <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">🗑️</button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
             </div>
             )}
 

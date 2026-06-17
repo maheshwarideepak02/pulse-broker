@@ -123,9 +123,9 @@ const Settings = () => {
             <div className="bg-white border border-border rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-primary relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-primary">🌾</span> {t('Manage Pulse Categories (Items)', 'आइटम प्रबंधित करें')}</h2>
-                <div className="flex gap-4 mb-6 relative z-10">
-                    <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Item Name (e.g. Masoor, Toor)" className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-64" />
-                    <button onClick={handleSaveItem} className="bg-primary hover:bg-red-800 transition-colors text-white font-bold px-5 py-2.5 rounded-lg shadow-md">{t('+ Add Item', '+ आइटम जोड़ें')}</button>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">
+                    <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Item Name (e.g. Masoor, Toor)" className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-full sm:w-64" />
+                    <button onClick={handleSaveItem} className="bg-primary hover:bg-red-800 transition-colors text-white font-bold px-5 py-2.5 rounded-lg shadow-md w-full sm:w-auto">{t('+ Add Item', '+ आइटम जोड़ें')}</button>
                 </div>
                 <div className="flex flex-wrap gap-3 relative z-10">
                     {items.map(i => (
@@ -141,9 +141,9 @@ const Settings = () => {
             <div className="bg-yellow-50 border border-yellow-100 rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-secondary relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-secondary">🏷️</span> {t('Manage Marka (Brands)', 'मार्का प्रबंधित करें')}</h2>
-                <div className="flex gap-4 mb-6 relative z-10">
-                    <input type="text" value={newMarka} onChange={e => setNewMarka(e.target.value)} placeholder="Marka Name (e.g. Navkar)" className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-64 bg-white" />
-                    <button onClick={handleSaveMarka} className="bg-secondary hover:bg-yellow-600 transition-colors text-white font-bold px-5 py-2.5 rounded-lg shadow-md">{t('+ Add Marka', '+ मार्का जोड़ें')}</button>
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">
+                    <input type="text" value={newMarka} onChange={e => setNewMarka(e.target.value)} placeholder="Marka Name (e.g. Navkar)" className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full sm:w-64 bg-white" />
+                    <button onClick={handleSaveMarka} className="bg-secondary hover:bg-yellow-600 transition-colors text-white font-bold px-5 py-2.5 rounded-lg shadow-md w-full sm:w-auto">{t('+ Add Marka', '+ मार्का जोड़ें')}</button>
                 </div>
                 <div className="flex flex-wrap gap-3 relative z-10">
                     {markas.map(m => (

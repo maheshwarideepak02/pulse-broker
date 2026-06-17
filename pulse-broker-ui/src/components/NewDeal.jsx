@@ -119,7 +119,7 @@ const NewDeal = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 
                 <form onSubmit={saveDeal} className="relative z-10">
-                    <div className="grid grid-cols-2 gap-8 mb-8">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8">
                         <DateInput
                             label={t('Dealing Date', 'सौदे की तारीख')}
                             value={formData.dealDate}
@@ -135,8 +135,8 @@ const NewDeal = () => {
                         />
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-8 mb-8 relative">
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-400 font-bold z-20 border-2 border-white shadow-sm">VS</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8 relative">
+                        <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gray-100 rounded-full items-center justify-center text-gray-400 font-bold z-20 border-2 border-white shadow-sm">VS</div>
                         <div className="bg-red-50/50 p-5 rounded-xl border border-red-100">
                             <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('Purchaser Firm', 'खरीदार फर्म')}</label>
                             <select name="purchaserId" value={formData.purchaserId} onChange={(e) => handleFirmChange(e, 'purchaser')} className="w-full bg-white border-2 border-red-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm">
@@ -151,7 +151,7 @@ const NewDeal = () => {
                         </div>
                     </div>
 
-                    <div className="bg-gray-50/80 border border-gray-200 p-6 rounded-xl mb-8 grid grid-cols-4 gap-6 shadow-inner">
+                    <div className="bg-gray-50/80 border border-gray-200 p-4 sm:p-6 rounded-xl mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 shadow-inner">
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Item', 'आइटम')}</label>
                             <select name="itemId" value={formData.itemId} onChange={handleChange} className="w-full border-2 border-gray-300 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-white">
@@ -178,7 +178,7 @@ const NewDeal = () => {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full pointer-events-none"></div>
                         <h3 className="text-sm font-bold text-secondary uppercase tracking-widest mb-4">{t('Brokerage Setup', 'दलाली दर्ज करें')}</h3>
                         
-                        <div className="grid grid-cols-2 gap-8 mb-6 relative z-10">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 relative z-10">
                             <div className="bg-white p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                                 <label className="text-xs font-bold text-primary uppercase tracking-wider block mb-3">{t('Purchaser Pays', 'खरीदार की दलाली')}</label>
                                 <div className="flex gap-3 items-center">
@@ -209,7 +209,7 @@ const NewDeal = () => {
                             </div>
                         </div>
                         
-                        <div className="flex justify-between items-center bg-white p-4 rounded-lg border border-gray-200 shadow-sm relative z-10">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-lg border border-gray-200 shadow-sm relative z-10">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Brokerage Billed To:', 'दलाली का भुगतान:')}</label>
                                 <select name="brokeragePayer" value={formData.brokeragePayer} onChange={handleChange} className="bg-gray-50 border-2 border-gray-200 rounded-lg p-2 font-bold text-textMain shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all">

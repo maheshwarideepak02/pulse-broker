@@ -306,15 +306,15 @@ const Ledger = () => {
                         </span>
                     </div>
                     <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '15px' }}>
-                        भै० <span className="bill-line" style={{ minWidth: '300px' }}>{invoiceData.firmName}</span>
+                        <span className="bill-line" style={{ minWidth: '300px' }}>{invoiceData.firmName}</span>
                     </div>
                     {invoiceData.items && (
                     <div className="overflow-x-auto w-full pb-2">
                     <table style={{ minWidth: '600px' }}>
                         <thead>
                             <tr>
-                                <th style={{ width: '11%' }}>दिनांक</th>
-                                <th style={{ width: '11%' }}>लोडिंग<br/>दिनांक</th>
+                                <th style={{ width: '11%' }}>सौदे की तारीख</th>
+                                <th style={{ width: '11%' }}>लोडिंग<br/>तारीख</th>
                                 <th style={{ width: '23%' }}>फर्म का नाम</th>
                                 <th style={{ width: '15%' }}>जिन्स का नाम</th>
                                 <th style={{ width: '10%' }}>वजन (कु.मे.)</th>

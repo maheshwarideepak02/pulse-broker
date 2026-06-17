@@ -140,13 +140,13 @@ const Dashboard = () => {
                     <table className="w-full text-left text-sm text-textMain">
                         <thead className="bg-white text-xs uppercase text-gray-500 border-b border-gray-200">
                             <tr>
-                                <th className="px-6 py-4 font-bold">{t('Date', 'तारीख')}</th>
-                                <th className="px-6 py-4 font-bold">{t('Load Date', 'लोडिंग')}</th>
+                                <th className="px-6 py-4 font-bold">{t('Dealing Date', 'सौदे की तारीख')}</th>
+                                <th className="px-6 py-4 font-bold">{t('Loading Date', 'लोडिंग की तारीख')}</th>
                                 <th className="px-6 py-4 font-bold">{t('Purchaser', 'खरीदार')}</th>
                                 <th className="px-6 py-4 font-bold">{t('Seller', 'विक्रेता')}</th>
                                 <th className="px-6 py-4 font-bold">{t('Item (Marka)', 'आइटम (मार्का)')}</th>
-                                <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Bags', 'बोरा')}</th>
+                                <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Rate', 'भाव')}</th>
                                 <th className="px-6 py-4 font-bold text-center"></th>
                             </tr>
@@ -172,8 +172,8 @@ const Dashboard = () => {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight}</td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-500">{deal.numberOfPackets || '-'}</td>
+                                        <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight}</td>
                                         <td className="px-6 py-4 text-right text-secondary font-bold">₹{deal.rate}</td>
                                         <td className="px-4 py-4 text-center">
                                             {deal.status === 'LOADED' && (
@@ -217,7 +217,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                     <span>{formatDate(deal.dealDate)} {deal.loadDate ? `→ ${formatDate(deal.loadDate)}` : ''}</span>
-                                    <span className="font-bold text-gray-700">{deal.weight} qtl {deal.numberOfPackets ? `(${deal.numberOfPackets} Bags)` : ''}</span>
+                                    <span className="font-bold text-gray-700">{deal.numberOfPackets ? `${deal.numberOfPackets} Bags / ` : ''}{deal.weight} qtl</span>
                                 </div>
                                 {deal.status === 'LOADED' && (
                                     <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">

@@ -1,10 +1,18 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Navbar = () => {
     const { toggleLang, lang, t } = useLanguage();
+    const { logout } = useAuth();
+    const navigate = useNavigate();
     const [menuOpen, setMenuOpen] = useState(false);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const navLinkClasses = ({ isActive }) =>
         `px-4 py-2.5 rounded-lg font-bold text-sm transition-all duration-200 border-2 shadow-sm whitespace-nowrap ${
@@ -55,6 +63,9 @@ const Navbar = () => {
                     <button onClick={toggleLang} className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-3 py-2.5 rounded-lg font-bold text-sm ml-4 shadow-sm transition-all hover:scale-105 whitespace-nowrap backdrop-blur-sm">
                         {lang === 'en' ? '🌐 Hindi (अ)' : '🌐 Eng (A)'}
                     </button>
+                    <button onClick={handleLogout} className="bg-red-800 hover:bg-red-700 text-white border border-red-600 px-3 py-2.5 rounded-lg font-bold text-sm shadow-sm transition-all hover:scale-105 whitespace-nowrap">
+                        {t('Logout', 'लॉग आउट')}
+                    </button>
                 </div>
             </div>
 
@@ -92,6 +103,9 @@ const Navbar = () => {
                         <div className="border-t border-white/10 pt-2 mt-2">
                             <button onClick={() => { toggleLang(); setMenuOpen(false); }} className="w-full text-left px-4 py-3 text-white/80 hover:text-white rounded-lg font-bold text-sm hover:bg-white/10 transition-all">
                                 {lang === 'en' ? '🌐 Switch to Hindi (अ)' : '🌐 Switch to English (A)'}
+                            </button>
+                            <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="w-full text-left px-4 py-3 text-red-300 hover:text-red-100 rounded-lg font-bold text-sm hover:bg-red-900/50 transition-all">
+                                🚪 {t('Logout', 'लॉग आउट')}
                             </button>
                         </div>
                     </div>

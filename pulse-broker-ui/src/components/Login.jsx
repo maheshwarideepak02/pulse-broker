@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
     const { toggleLang, lang, t } = useLanguage();
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const [savedPin, setSavedPin] = useState(null);
     const [inputPin, setInputPin] = useState('');
@@ -44,9 +46,11 @@ const Login = () => {
             setSavedPin(pinStr);
             setIsSetupMode(false);
             setInputPin('');
+            login();
             navigate('/app/dashboard');
         } else {
             if (pinStr === savedPin) {
+                login();
                 navigate('/app/dashboard');
             } else {
                 setError(t('Incorrect PIN', 'गलत पिन'));
@@ -82,6 +86,7 @@ const Login = () => {
                     publicKey: publicKeyCredentialCreationOptions
                 });
                 
+                login();
                 navigate('/app/dashboard');
             } else {
                 alert("Biometrics not supported on this device/browser.");
@@ -91,6 +96,7 @@ const Login = () => {
             // If the fake passkey fails (which it might on localhost without proper setup),
             // just let them in as a fallback demonstration for the user.
             alert("Biometric matched! (Simulation)");
+            login();
             navigate('/app/dashboard');
         }
     };

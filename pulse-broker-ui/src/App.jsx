@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { ToastProvider } from './context/ToastContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
@@ -18,16 +19,26 @@ const Layout = ({ children }) => (
     </div>
 );
 
+const ProtectedRoute = ({ children }) => {
+    const { isAuthenticated } = useAuth();
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+    return children;
+};
+
 function App() {
   return (
     <LanguageProvider>
       <ToastProvider>
-        <Router>
+        <AuthProvider>
+          <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/app/*" element={
-                <Layout>
-                    <Routes>
+                <ProtectedRoute>
+                  <Layout>
+                      <Routes>
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="parties" element={<Parties />} />
                         <Route path="ledger" element={<Ledger />} />
@@ -35,12 +46,14 @@ function App() {
                         <Route path="settings" element={<Settings />} />
                         <Route path="new-deal" element={<NewDeal />} />
                         <Route path="*" element={<Navigate to="dashboard" replace />} />
-                    </Routes>
-                </Layout>
+                      </Routes>
+                  </Layout>
+                </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Router>
+        </AuthProvider>
       </ToastProvider>
     </LanguageProvider>
   );

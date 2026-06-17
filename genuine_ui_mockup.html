@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Brokerage - Interactive Prototype</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        primary: '#991B1B', secondary: '#D97706', background: '#FFFBEB',
+                        card: '#FFFFFF', border: '#E5E7EB', textMain: '#111827', textMuted: '#4B5563', moneyGreen: '#059669',
+                        billRed: '#9e1b22'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #FFFBEB; color: #111827; margin: 0; padding: 0; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .invoice-preview { background: white; color: #9e1b22; max-width: 800px; margin: 0 auto; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); font-family: 'Arial', sans-serif;}
+        .invoice-preview table { border-collapse: collapse; width: 100%; border: 1px solid #9e1b22; }
+        .invoice-preview th, .invoice-preview td { border: 1px solid #9e1b22; padding: 6px; text-align: center; }
+        .invoice-preview th { font-weight: bold; }
+        .invoice-preview .bill-line { border-bottom: 1px dashed #9e1b22; display: inline-block; min-width: 150px; text-align: center;}
+
+        /* Modal Overlay CSS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 1000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+        }
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px;
+            max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+    </style>
+</head>
+<body class="bg-background text-textMain min-h-screen pb-12">
+
+    <!-- ==================== LOGIN SCREEN ==================== -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 relative">
+        <div class="absolute top-4 right-4 z-50">
+            <button onclick="toggleLanguage()" class="bg-white text-primary border-2 border-primary hover:bg-gray-50 px-4 py-2 rounded-full font-bold shadow-md transition-colors text-sm" id="login-lang-btn">
+                अ / A (Switch to Hindi)
+            </button>
+        </div>
+        <div class="bg-white p-8 rounded-xl shadow-xl max-w-md w-full border-t-8 border-primary">
+            <div class="text-center mb-8">
+                <h2 class="text-secondary font-bold text-lg mb-1">ॐ</h2>
+                <h1 class="text-3xl font-bold text-primary lang" data-en="Pulse Broker" data-hi="पल्स ब्रोकर">Pulse Broker</h1>
+            </div>
+            <form onsubmit="event.preventDefault(); doLogin();">
+                <button type="submit" class="w-full bg-primary hover:bg-red-800 text-white font-bold py-3.5 rounded-md transition-all shadow-md text-lg lang" data-en="Secure Login" data-hi="सुरक्षित लॉगिन">
+                    Secure Login
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ==================== MAIN APP ==================== -->
+    <div id="app-container" style="display: none;">
+        <nav class="bg-primary border-b-4 border-secondary p-4 sticky top-0 z-10 overflow-x-auto shadow-md">
+            <div class="max-w-7xl mx-auto flex justify-between items-center min-w-max gap-4">
+                <div class="font-bold text-2xl text-white tracking-tight flex items-center gap-2">
+                    <span class="text-secondary text-xl">ॐ</span> <span class="lang" data-en="Pulse Broker" data-hi="पल्स ब्रोकर">Pulse Broker</span>
+                </div>
+                <div class="flex space-x-1 md:space-x-2 items-center">
+                    <button onclick="showTab('dashboard', this)" class="nav-btn bg-white text-primary px-3 py-2 rounded-md font-bold text-sm border-2 border-white shadow-sm lang" data-en="Dashboard" data-hi="डैशबोर्ड">Dashboard</button>
+                    <button onclick="showTab('parties', this)" class="nav-btn text-white hover:bg-red-800 px-3 py-2 rounded-md font-medium text-sm border-2 border-transparent lang" data-en="Parties & Firms" data-hi="पार्टियां और फर्में">Parties & Firms</button>
+                    <button onclick="showTab('ledger', this)" class="nav-btn text-white hover:bg-red-800 px-3 py-2 rounded-md font-medium text-sm border-2 border-transparent lang" data-en="Ledger & Bills" data-hi="खाता बही और बिल">Ledger & Bills</button>
+                    <button onclick="showTab('pending', this)" class="nav-btn text-yellow-300 hover:text-white hover:bg-red-800 px-3 py-2 rounded-md font-medium text-sm border-2 border-transparent lang" data-en="Pending Deals (0)" data-hi="लंबित सौदे (0)" id="nav-pending-tab">Pending Deals (0)</button>
+                    <button onclick="showTab('settings', this)" class="nav-btn text-white hover:bg-red-800 px-3 py-2 rounded-md font-medium text-sm border-2 border-transparent lang" data-en="Settings" data-hi="सेटिंग्स">Settings</button>
+                    <div class="w-px h-6 bg-red-800 mx-1"></div>
+                    <button onclick="showTab('new-deal', this)" class="bg-secondary hover:bg-yellow-600 text-white px-5 py-2 rounded-md font-bold text-sm shadow-lg border border-yellow-500 lang" data-en="+ New Deal" data-hi="+ नया सौदा">+ New Deal</button>
+                    <button onclick="toggleLanguage()" class="bg-white text-primary hover:bg-gray-100 px-3 py-2 rounded-md font-bold text-xs ml-2 shadow-sm border border-gray-200" id="nav-lang-btn">
+                        अ/A
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="max-w-7xl mx-auto p-4 py-8">
+            
+            <!-- ==================== DASHBOARD TAB ==================== -->
+            <div id="dashboard" class="tab-content active">
+                <div class="mb-8 flex justify-between items-end">
+                    <div><h1 class="text-3xl font-bold text-primary tracking-tight lang" data-en="Daily Overview" data-hi="दैनिक अवलोकन">Daily Overview</h1></div>
+                    <button onclick="location.reload()" class="text-primary text-sm font-medium underline lang" data-en="Logout" data-hi="लॉग आउट">Logout</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-5 mb-10">
+                    <div class="bg-white border-l-4 border-red-600 p-5 rounded shadow">
+                        <p class="text-textMuted text-sm font-semibold uppercase lang" data-en="Total Outstanding" data-hi="कुल बकाया">Total Outstanding</p>
+                        <p class="text-3xl font-bold text-primary mt-2">₹45,200</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-moneyGreen p-5 rounded shadow">
+                        <p class="text-textMuted text-sm font-semibold uppercase lang" data-en="Unbilled Brokerage" data-hi="बिना बिल की दलाली">Unbilled Brokerage</p>
+                        <p class="text-3xl font-bold text-moneyGreen mt-2" id="dash-unbilled-amt">₹0</p>
+                    </div>
+                    <div class="bg-white border-l-4 border-blue-600 p-5 rounded shadow">
+                        <p class="text-textMuted text-sm font-semibold uppercase lang" data-en="Deals This Month" data-hi="इस महीने के सौदे">Deals This Month</p>
+                        <p class="text-3xl font-bold text-textMain mt-2" id="dash-deal-count">0</p>
+                    </div>
+                    <div class="bg-yellow-50 border-l-4 border-secondary p-5 rounded shadow cursor-pointer hover:bg-yellow-100 transition-colors" onclick="showTab('pending', document.querySelector('#nav-pending-tab'))">
+                        <p class="text-secondary text-sm font-semibold uppercase lang" data-en="Pending Loading" data-hi="लंबित लोडिंग">Pending Loading</p>
+                        <p class="text-3xl font-bold text-secondary mt-2"><span id="dash-pending-count">0</span> <span class="lang" data-en="Deals" data-hi="सौदे">Deals</span></p>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-border rounded-lg shadow overflow-hidden">
+                    <div class="bg-gray-50 px-5 py-4 border-b border-border"><h2 class="font-bold text-lg text-primary lang" data-en="Recent Loaded Deals" data-hi="हाल के सौदे">Recent Loaded Deals</h2></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-textMain">
+                            <thead class="bg-gray-100 text-xs uppercase text-textMuted border-b border-border">
+                                <tr>
+                                    <th class="px-5 py-3 font-semibold lang" data-en="Date" data-hi="तारीख">Date</th>
+                                    <th class="px-5 py-3 font-semibold lang" data-en="Load Date" data-hi="लोडिंग">Load Date</th>
+                                    <th class="px-5 py-3 font-semibold lang" data-en="Purchaser" data-hi="खरीदार">Purchaser</th>
+                                    <th class="px-5 py-3 font-semibold lang" data-en="Seller" data-hi="विक्रेता">Seller</th>
+                                    <th class="px-5 py-3 font-semibold lang" data-en="Item (Marka)" data-hi="आइटम (मार्का)">Item (Marka)</th>
+                                    <th class="px-5 py-3 font-semibold text-right lang" data-en="Loaded Weight" data-hi="लोड किया वजन">Loaded Weight</th>
+                                    <th class="px-5 py-3 font-semibold text-right lang" data-en="Rate" data-hi="भाव">Rate</th>
+                                    <th class="px-5 py-3 font-semibold text-center lang" data-en="Actions" data-hi="क्रियाएं">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border" id="dashboard-deals-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PENDING LOADING TAB ==================== -->
+            <div id="pending" class="tab-content max-w-6xl mx-auto">
+                <div class="mb-6"><h1 class="text-3xl font-bold text-secondary tracking-tight lang" data-en="Pending Loading Dates" data-hi="लंबित लोडिंग तारीख">Pending Loading Dates</h1></div>
+                <div class="bg-white border border-secondary rounded-lg shadow-md overflow-hidden mb-6 relative">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
+                    <div class="overflow-x-auto p-1 pl-2">
+                        <table class="w-full text-left text-sm text-textMain">
+                            <thead class="bg-yellow-50 text-xs uppercase text-secondary border-b border-border">
+                                <tr>
+                                    <th class="px-5 py-3 font-bold lang" data-en="Deal Date" data-hi="तारीख">Deal Date</th>
+                                    <th class="px-5 py-3 font-bold lang" data-en="Purchaser" data-hi="खरीदार">Purchaser</th>
+                                    <th class="px-5 py-3 font-bold lang" data-en="Seller" data-hi="विक्रेता">Seller</th>
+                                    <th class="px-5 py-3 font-bold lang" data-en="Item & Marka" data-hi="आइटम और मार्का">Item & Marka</th>
+                                    <th class="px-5 py-3 font-bold text-right lang" data-en="Actions (Partial Load Supported)" data-hi="क्रियाएं (आंशिक लोड)">Actions (Partial Load Supported)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border" id="pending-deals-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== SETTINGS TAB ==================== -->
+            <div id="settings" class="tab-content max-w-5xl mx-auto">
+                <div class="mb-6"><h1 class="text-3xl font-bold text-primary tracking-tight lang" data-en="Settings & Master Data" data-hi="सेटिंग्स और मास्टर डेटा">Settings & Master Data</h1></div>
+                
+                <div class="bg-white border border-border rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-primary">
+                    <h2 class="text-xl font-bold text-textMain mb-4 lang" data-en="Manage Pulse Categories (Items)" data-hi="आइटम प्रबंधित करें">Manage Pulse Categories (Items)</h2>
+                    <div class="flex gap-4 mb-6">
+                        <input type="text" id="new-item-name" placeholder="Item Name (e.g. Masoor, Toor)" class="border-2 border-gray-300 p-2 rounded focus:border-primary w-64">
+                        <button onclick="saveItem()" class="bg-primary hover:bg-red-800 text-white font-bold px-4 py-2 rounded shadow lang" data-en="+ Add Item" data-hi="+ आइटम जोड़ें">+ Add Item</button>
+                    </div>
+                    <div class="flex flex-wrap gap-3" id="items-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <div class="bg-white border border-border rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-secondary">
+                    <h2 class="text-xl font-bold text-textMain mb-4 lang" data-en="Manage Marka (Brands)" data-hi="मार्का प्रबंधित करें">Manage Marka (Brands)</h2>
+                    <div class="flex gap-4 mb-6">
+                        <input type="text" id="new-marka-name" placeholder="Marka Name (e.g. Navkar)" class="border-2 border-gray-300 p-2 rounded focus:border-secondary w-64">
+                        <button onclick="saveMarka()" class="bg-secondary hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded shadow lang" data-en="+ Add Marka" data-hi="+ मार्का जोड़ें">+ Add Marka</button>
+                    </div>
+                    <div class="flex flex-wrap gap-3" id="markas-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== PARTIES & FIRMS TAB ==================== -->
+            <div id="parties" class="tab-content max-w-5xl mx-auto">
+                <div class="mb-6 flex justify-between items-end">
+                    <h1 class="text-3xl font-bold text-primary tracking-tight lang" data-en="Directory" data-hi="डायरेक्टरी (पार्टियां)">Directory</h1>
+                    <button onclick="document.getElementById('add-contact-form').style.display='block'" class="bg-white border-2 border-primary text-primary px-4 py-2 rounded-md font-bold text-sm shadow-sm lang" data-en="+ Add New Party" data-hi="+ नई पार्टी जोड़ें">+ Add New Party</button>
+                </div>
+
+                <div id="add-contact-form" style="display:none;" class="bg-white border border-primary rounded-lg shadow-md p-6 mb-8 border-l-8 border-l-primary">
+                    <h3 class="font-bold text-primary mb-4 uppercase tracking-wide lang" data-en="Add New Contact Person" data-hi="नया संपर्क व्यक्ति जोड़ें">Add New Contact Person</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <input type="text" id="nc-name" placeholder="Contact Name" class="border-2 border-gray-300 p-2 rounded focus:border-primary">
+                        <input type="text" id="nc-phone" placeholder="Phone Number" class="border-2 border-gray-300 p-2 rounded focus:border-primary">
+                        <input type="text" id="nc-city" placeholder="City / Address" class="border-2 border-gray-300 p-2 rounded focus:border-primary">
+                        <button onclick="saveContact()" class="bg-primary hover:bg-red-800 text-white font-bold px-4 py-2 rounded lang" data-en="Save Contact" data-hi="सहेजें">Save Contact</button>
+                    </div>
+                    <button onclick="document.getElementById('add-contact-form').style.display='none'" class="text-sm text-textMuted underline lang" data-en="Cancel" data-hi="रद्द करें">Cancel</button>
+                </div>
+
+                <div id="add-firm-form" style="display:none;" class="bg-yellow-50 border border-secondary rounded-lg shadow-md p-6 mb-8 border-l-8 border-l-secondary">
+                    <h3 class="font-bold text-secondary mb-4 uppercase tracking-wide lang" data-en="Add Firm for Contact" data-hi="संपर्क के लिए फर्म जोड़ें">Add Firm for Contact</h3>
+                    <input type="hidden" id="fc-contact-id">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <input type="text" id="fc-name" placeholder="Firm Name (e.g. Ramesh Traders)" class="border-2 border-gray-300 p-2 rounded col-span-2">
+                        <select id="fc-brokType" class="border-2 border-gray-300 p-2 rounded">
+                            <option value="percent">% Percent (प्रतिशत)</option>
+                            <option value="fixed">₹ Fixed/Qtl (निश्चित दर)</option>
+                        </select>
+                        <input type="number" id="fc-brokVal" placeholder="Default Rate (e.g. 1.00)" class="border-2 border-gray-300 p-2 rounded">
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="saveFirm()" class="bg-secondary hover:bg-yellow-600 text-white font-bold px-6 py-2 rounded lang" data-en="Save Firm" data-hi="फर्म सहेजें">Save Firm</button>
+                        <button onclick="document.getElementById('add-firm-form').style.display='none'" class="text-sm text-textMuted underline px-4 py-2 lang" data-en="Cancel" data-hi="रद्द करें">Cancel</button>
+                    </div>
+                </div>
+
+                <div id="contacts-container"></div>
+            </div>
+
+            <!-- ==================== NEW DEAL TAB ==================== -->
+            <div id="new-deal" class="tab-content max-w-4xl mx-auto">
+                <div class="mb-6"><h1 class="text-3xl font-bold text-primary tracking-tight lang" data-en="Enter New Deal" data-hi="नया सौदा दर्ज करें">Enter New Deal</h1></div>
+                <div class="bg-white border border-border rounded-lg shadow-lg p-8 border-t-8 border-primary">
+                    <form id="new-deal-form" onsubmit="event.preventDefault(); saveDeal();">
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            <div><label class="block text-sm font-bold text-textMain uppercase tracking-wider mb-2 lang" data-en="Dealing Date *" data-hi="सौदे की तारीख *">Dealing Date *</label><input type="date" id="deal-date" class="w-full bg-white border-2 border-gray-300 rounded-md px-4 py-2.5 text-lg font-medium" required></div>
+                            <div><label class="block text-sm font-bold text-textMain uppercase tracking-wider mb-2 lang" data-en="Loading Date (Optional)" data-hi="लोडिंग की तारीख (वैकल्पिक)">Loading Date (Optional)</label><input type="date" id="load-date" class="w-full bg-white border-2 border-gray-300 rounded-md px-4 py-2.5 text-lg font-medium"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            <div><label class="block text-sm font-bold text-primary uppercase tracking-wider mb-2 lang" data-en="Purchaser Firm" data-hi="खरीदार फर्म">Purchaser Firm</label><select id="deal-purchaser" onchange="autoFillBrokerage()" class="w-full bg-gray-50 border-2 border-gray-300 rounded-md px-4 py-2.5 text-lg font-bold text-textMain"></select></div>
+                            <div><label class="block text-sm font-bold text-primary uppercase tracking-wider mb-2 lang" data-en="Seller Firm" data-hi="विक्रेता फर्म">Seller Firm</label><select id="deal-seller" onchange="autoFillBrokerage()" class="w-full bg-gray-50 border-2 border-gray-300 rounded-md px-4 py-2.5 text-lg font-bold text-textMain"></select></div>
+                        </div>
+                        
+                        <div class="bg-gray-50 border border-gray-200 p-4 rounded-md mb-6">
+                            <div class="grid grid-cols-4 gap-4">
+                                <div><label class="block text-sm font-bold text-textMain uppercase mb-2 lang" data-en="Item" data-hi="आइटम">Item</label><select id="deal-item" class="w-full bg-white border-2 border-gray-300 rounded-md px-3 py-2.5 font-bold"></select></div>
+                                <div><label class="block text-sm font-bold text-secondary uppercase mb-2 lang" data-en="Marka (Brand)" data-hi="मार्का">Marka (Brand)</label><select id="deal-marka" class="w-full bg-white border-2 border-yellow-300 rounded-md px-3 py-2.5 font-bold focus:border-secondary"></select></div>
+                                <div><label class="block text-sm font-bold text-textMain uppercase mb-2 lang" data-en="Weight (Qtl)" data-hi="कुल वजन (क्विंटल)">Total Weight (Qtl)</label><input type="number" id="deal-weight" oninput="manualBrokerageCalc()" class="w-full bg-white border-2 border-gray-300 rounded-md px-3 py-2.5 font-bold" value="50"></div>
+                                <div><label class="block text-sm font-bold text-textMain uppercase mb-2 lang" data-en="Rate (₹)" data-hi="भाव (₹)">Rate (₹)</label><input type="number" id="deal-rate" oninput="manualBrokerageCalc()" class="w-full bg-white border-2 border-gray-300 rounded-md px-3 py-2.5 font-bold" value="8000"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 border-2 border-secondary rounded-md p-5 mb-8">
+                            <h3 class="text-base font-bold text-secondary uppercase tracking-wider mb-2 lang" data-en="Brokerage Setup For This Deal" data-hi="इस सौदे के लिए दलाली दर्ज करें">Brokerage Setup For This Deal</h3>
+                            <p class="text-sm text-textMuted mb-4 italic lang" data-en="Enter the exact brokerage rate negotiated for Purchaser and Seller. These inputs are pre-filled with the firm's default but you can change them freely." data-hi="खरीदार और विक्रेता के लिए दलाली दर दर्ज करें।">Enter the exact brokerage rate negotiated for Purchaser and Seller. These inputs are pre-filled with the firm's default but you can change them freely.</p>
+                            
+                            <div class="grid grid-cols-2 gap-8 mb-4">
+                                <div class="bg-white p-4 border rounded shadow-sm">
+                                    <label class="text-sm font-bold text-primary uppercase block mb-2 lang" data-en="Purchaser Pays" data-hi="खरीदार की दलाली">Purchaser Pays</label>
+                                    <div class="flex gap-2 items-center">
+                                        <input type="number" id="deal-p-brokVal" oninput="manualBrokerageCalc()" class="w-24 border-2 border-gray-300 p-2.5 rounded font-bold text-lg" step="0.01">
+                                        <select id="deal-p-brokType" onchange="manualBrokerageCalc()" class="border-2 border-gray-300 p-2.5 rounded font-bold text-lg flex-1"><option value="percent">% Percent</option><option value="fixed">₹ Fixed/Qtl</option></select>
+                                    </div>
+                                    <div class="mt-3 text-right"><span class="text-textMuted font-semibold lang" data-en="Calculated:" data-hi="राशि:">Calculated:</span> <span class="p-2 font-bold text-xl text-primary" id="calc-purchaser">₹ 0</span></div>
+                                </div>
+                                <div class="bg-white p-4 border rounded shadow-sm">
+                                    <label class="text-sm font-bold text-primary uppercase block mb-2 lang" data-en="Seller Pays" data-hi="विक्रेता की दलाली">Seller Pays</label>
+                                    <div class="flex gap-2 items-center">
+                                        <input type="number" id="deal-s-brokVal" oninput="manualBrokerageCalc()" class="w-24 border-2 border-gray-300 p-2.5 rounded font-bold text-lg" step="0.01">
+                                        <select id="deal-s-brokType" onchange="manualBrokerageCalc()" class="border-2 border-gray-300 p-2.5 rounded font-bold text-lg flex-1"><option value="percent">% Percent</option><option value="fixed">₹ Fixed/Qtl</option></select>
+                                    </div>
+                                    <div class="mt-3 text-right"><span class="text-textMuted font-semibold lang" data-en="Calculated:" data-hi="राशि:">Calculated:</span> <span class="p-2 font-bold text-xl text-primary" id="calc-seller">₹ 0</span></div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex justify-between items-end border-t-2 border-gray-200 pt-4 mt-4">
+                                <div>
+                                    <label class="block text-sm font-bold text-primary uppercase mb-1 lang" data-en="Brokerage Billed To:" data-hi="दलाली का भुगतान:">Brokerage Billed To:</label>
+                                    <select id="deal-brok-payer" class="bg-white border-2 border-primary rounded p-2 font-bold text-textMain w-64 shadow-sm">
+                                        <option value="separate" class="lang" data-en="Separate (Individual)" data-hi="अलग-अलग">Separate (Individual)</option>
+                                        <option value="purchaser_both" class="lang" data-en="Purchaser Pays Both" data-hi="खरीदार दोनों देगा">Purchaser Pays Both</option>
+                                        <option value="seller_both" class="lang" data-en="Seller Pays Both" data-hi="विक्रेता दोनों देगा">Seller Pays Both</option>
+                                    </select>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-textMain font-bold text-xl uppercase mr-4 lang" data-en="Total Deal Brokerage:" data-hi="कुल दलाली:">Total Deal Brokerage:</span>
+                                    <span class="text-moneyGreen font-black text-4xl" id="calc-total">₹ 0</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full bg-secondary hover:bg-yellow-600 text-white font-bold py-4 rounded-md shadow-lg text-xl uppercase tracking-wide lang" data-en="Save Deal" data-hi="सौदा सहेजें">Save Deal</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ==================== LEDGER & BILLS TAB ==================== -->
+            <div id="ledger" class="tab-content max-w-6xl mx-auto">
+                <div class="mb-6"><h1 class="text-3xl font-bold text-primary tracking-tight lang" data-en="Ledger & Billing" data-hi="खाता बही और बिलिंग">Ledger & Billing</h1></div>
+                
+                <div class="bg-white border-2 border-gray-200 p-6 rounded-lg shadow mb-8 border-l-8 border-l-primary">
+                    <h2 class="font-bold text-primary uppercase tracking-wider mb-4 text-sm lang" data-en="Filter & Generate Bill for Firm" data-hi="फर्म के लिए बिल फ़िल्टर करें">Filter & Generate Bill for Firm</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-textMuted uppercase mb-2 lang" data-en="Select Firm" data-hi="फर्म चुनें">Select Firm</label>
+                            <select id="ledger-firm-filter" class="w-full bg-gray-50 border-2 border-gray-300 rounded-md px-4 py-2.5 text-textMain font-bold"></select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-textMuted uppercase mb-2 lang" data-en="From Date" data-hi="से (तारीख)">From Date</label>
+                            <input type="date" id="ledger-from-date" class="w-full bg-white border-2 border-gray-300 rounded-md px-4 py-2.5 font-medium">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-textMuted uppercase mb-2 lang" data-en="To Date" data-hi="तक (तारीख)">To Date</label>
+                            <input type="date" id="ledger-to-date" class="w-full bg-white border-2 border-gray-300 rounded-md px-4 py-2.5 font-medium">
+                        </div>
+                    </div>
+                    <div class="mt-4 flex gap-4">
+                        <button onclick="renderLedgerAndInvoice()" class="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-md font-bold shadow-sm lang" data-en="Apply Filter" data-hi="फ़िल्टर लागू करें">Apply Filter</button>
+                        <button onclick="showTab('invoice-preview', null)" class="bg-primary hover:bg-red-800 text-white px-6 py-2 rounded-md font-bold shadow-md flex items-center gap-2 lang" data-en="Preview & Generate Exact Bill &rarr;" data-hi="बिल देखें और बनाएं &rarr;">Preview & Generate Exact Bill &rarr;</button>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-border rounded-lg shadow-md overflow-hidden mb-8">
+                    <table class="w-full text-left text-sm text-textMain">
+                        <thead class="bg-gray-100 text-xs uppercase text-textMuted border-b border-border">
+                            <tr>
+                                <th class="px-5 py-3 lang" data-en="Date" data-hi="तारीख">Date</th>
+                                <th class="px-5 py-3 lang" data-en="Opposite Party" data-hi="दूसरी फर्म">Opposite Party</th>
+                                <th class="px-5 py-3 lang" data-en="Item (Marka)" data-hi="आइटम (मार्का)">Item (Marka)</th>
+                                <th class="px-5 py-3 text-right lang" data-en="Weight" data-hi="वजन">Weight</th>
+                                <th class="px-5 py-3 text-right lang" data-en="Brokerage" data-hi="दलाली">Brokerage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ledger-deals-body" class="divide-y divide-gray-200"></tbody>
+                        <tfoot class="bg-gray-50 border-t-2 border-gray-300">
+                            <tr><td colspan="4" class="text-right font-bold uppercase py-4 lang" data-en="Total to Bill:" data-hi="कुल बिल:">Total to Bill:</td><td class="text-right font-bold text-moneyGreen text-xl" id="ledger-total-brokerage">₹ 0</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ==================== INVOICE PREVIEW TAB ==================== -->
+            <div id="invoice-preview" class="tab-content max-w-5xl mx-auto">
+                <div class="mb-6 flex justify-between items-center bg-white p-4 rounded-lg shadow border border-gray-200">
+                    <button onclick="showTab('ledger', document.querySelector('.nav-btn:nth-child(3)'))" class="text-textMuted hover:text-primary font-bold flex items-center gap-2 lang" data-en="&larr; Back to Filters" data-hi="&larr; वापस">&larr; Back to Filters</button>
+                    <button onclick="window.print()" class="bg-primary hover:bg-red-800 text-white px-8 py-2 rounded font-bold shadow-md uppercase lang" data-en="Print / Download PDF" data-hi="प्रिंट करें">Print / Download PDF</button>
+                </div>
+                
+                <div class="invoice-preview relative" id="print-area">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: bold; margin-bottom: 5px;"><span>Pan No. ANOPM1632M</span><span>📞 9837052398</span></div>
+                    <div style="text-align: center; margin-bottom: 10px;">
+                        <div style="font-size: 24px; color: #9e1b22; margin-bottom: -5px;">ॐ</div>
+                        <div style="font-size: 13px; font-weight: bold;" class="lang" data-en="Shree Gurucharan Kamlebhyo Namah" data-hi="श्री गुरुचरण कमलेभ्यो: नम:">श्री गुरुचरण कमलेभ्यो: नम:</div>
+                        <h1 style="font-size: 26px; font-weight: bold; margin: 4px 0;" class="lang" data-en="SANJEEV KUMAR MAHESHWARI" data-hi="सजीव कुमार माहेश्वरी">सजीव कुमार माहेश्वरी</h1>
+                        <div style="font-size: 14px; font-weight: bold;" class="lang" data-en="Broker: Pulses, Grains, Rice etc." data-hi="ब्रोकर: दलहन, गल्ला, चावल आदि">ब्रोकर: दलहन, गल्ला, चावल आदि</div>
+                    </div>
+                    <div style="text-align: center; border-top: 1px solid #9e1b22; border-bottom: 1px solid #9e1b22; padding: 4px 0; margin-bottom: 10px; position: relative;">
+                        <span style="position: absolute; left: 0; bottom: 4px; font-weight: bold; font-size: 14px;"><span class="lang" data-en="S.No." data-hi="क्रमांक">क्रमांक</span> <span class="bill-line" style="min-width: 80px;">260416</span></span>
+                        <h2 style="margin: 0; font-size: 18px; font-weight: bold; display: inline-block;" class="lang" data-en="BROKERAGE BILL" data-hi="बिल दलाली">बिल दलाली</h2>
+                        <span style="position: absolute; right: 0; bottom: 4px; font-weight: bold; font-size: 14px;"><span class="lang" data-en="Date" data-hi="दिनांक">दिनांक</span> <span class="bill-line" style="min-width: 100px;" id="inv-gen-date">16-04-26</span></span>
+                    </div>
+                    <div style="text-align: center; font-size: 18px; font-weight: bold; margin-bottom: 15px;">
+                        <span class="lang" data-en="M/s" data-hi="भै०">भै०</span> <span class="bill-line" style="min-width: 300px;" id="invoice-firm-name">राम प्रकाश राम किशोर</span>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 12%;" class="lang" data-en="Date" data-hi="दिनांक">दिनांक</th>
+                                <th style="width: 12%;" class="lang" data-en="Load Date" data-hi="लोडिंग<br>दिनांक">लोडिंग<br>दिनांक</th>
+                                <th style="width: 25%;" class="lang" data-en="Firm Name" data-hi="फर्म का नाम">फर्म का नाम</th>
+                                <th style="width: 15%;" class="lang" data-en="Item Name" data-hi="जिन्स का नाम">जिन्स का नाम</th>
+                                <th style="width: 12%;" class="lang" data-en="Weight" data-hi="वजन (कु.मे.)">वजन (कु.मे.)</th>
+                                <th style="width: 12%;" class="lang" data-en="Rate" data-hi="दर">दर</th>
+                                <th style="width: 12%;" class="lang" data-en="Brokerage" data-hi="दलाली">दलाली</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-body"></tbody>
+                    </table>
+                    <div style="margin-top: 15px; position: relative; height: 100px;">
+                        <div style="text-align: center; font-size: 13px; font-weight: bold; width: 100%;">
+                            <div style="margin-bottom: 2px;" class="lang" data-en="Office & Residence" data-hi="कार्यालय एवं निवास">कार्यालय एवं निवास</div>
+                            <div class="lang" data-en="Kamla Mansion, Flat 104, Alakhnath Mandir Rd, Bareilly" data-hi="कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003">कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
+                            <div style="margin-top: 15px; text-align: left; padding-left: 20px;">(<span class="lang" data-en="Rupees ................. Only" data-hi="रुपये ................. मात्र" id="invoice-words">रुपये ................. मात्र</span>)</div>
+                        </div>
+                        <div style="position: absolute; right: 0; bottom: 20px; border: 1px solid #9e1b22; padding: 2px 10px; font-weight: bold; font-size: 14px;">
+                            <span class="lang" data-en="Total:" data-hi="कुल दलाली:">कुल दलाली:</span> <span id="invoice-total" class="bill-line" style="min-width: 80px;">4575</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ==================== LOAD DEAL MODAL ==================== -->
+    <div id="load-deal-modal" class="modal-overlay">
+        <div class="modal-content border-t-8 border-secondary">
+            <h2 class="text-2xl font-bold mb-4 lang" data-en="Load Item / Dispatch" data-hi="लोडिंग दर्ज करें">Load Item / Dispatch</h2>
+            <input type="hidden" id="ld-deal-id">
+            
+            <div class="mb-4">
+                <label class="block text-sm font-bold text-textMain mb-1 lang" data-en="Loading Date" data-hi="लोडिंग की तारीख">Loading Date</label>
+                <input type="date" id="ld-date" class="w-full border-2 border-gray-300 p-2.5 rounded font-medium focus:border-secondary">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-bold text-textMain mb-1 lang" data-en="Loaded Weight (Qtl)" data-hi="लोड किया गया वजन (क्विंटल)">Loaded Weight (Qtl)</label>
+                <input type="number" id="ld-weight" class="w-full border-2 border-gray-300 p-2.5 rounded font-bold text-lg focus:border-secondary" step="0.01">
+                <div class="flex justify-between items-center mt-1">
+                    <p class="text-xs text-textMuted"><span class="lang" data-en="Total Pending Weight:" data-hi="कुल बकाया वजन:">Total Pending Weight:</span> <span id="ld-max-weight" class="font-bold text-secondary">0</span> Qtl</p>
+                    <p class="text-xs text-moneyGreen italic lang" data-en="* Will automatically split if partial weight entered" data-hi="* यदि आंशिक वजन दर्ज किया गया, तो स्वचालित रूप से विभाजित हो जाएगा">* Will automatically split if partial weight entered</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="document.getElementById('load-deal-modal').style.display='none'" class="px-5 py-2.5 bg-gray-200 font-bold rounded lang" data-en="Cancel" data-hi="रद्द करें">Cancel</button>
+                <button onclick="saveLoadDeal()" class="px-5 py-2.5 bg-secondary hover:bg-yellow-600 text-white font-bold rounded shadow-md lang" data-en="Confirm Loading" data-hi="लोडिंग पक्की करें">Confirm Loading</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        let currentLang = 'en';
+        
+        let items = ['Toor', 'Moong', 'Masoor', 'Urad'];
+        let markas = ['नवकार', 'गोल्ड फिश', 'अनमोल'];
+        
+        let contacts = [{ id: 1, name: 'Sanjeev Maheshwari', phone: '+91 9837052398', city: 'Bareilly' }];
+        
+        let firms = [
+            { id: 1, contactId: 1, name: 'राम प्रकाश राम किशोर', brokType: 'fixed', brokVal: 15 },
+            { id: 2, contactId: 1, name: 'नवकार एग्रो (इन्दौर)', brokType: 'percent', brokVal: 1 },
+            { id: 3, contactId: 1, name: 'पुखराज मोहन लाल जैन', brokType: 'percent', brokVal: 1 }
+        ];
+        
+        let deals = [
+            { id: 1, dealDate: '2025-12-25', loadDate: '2026-01-13', purchaser: 'राम प्रकाश राम किशोर', seller: 'नवकार एग्रो (इन्दौर)', item: 'Toor', marka: 'नवकार', weight: 15, rate: 6050, pBrokerage: 150, sBrokerage: 225, status: 'LOADED', brokeragePayer: 'separate' },
+            { id: 2, dealDate: '2025-12-31', loadDate: '', purchaser: 'राम प्रकाश राम किशोर', seller: 'पुखराज मोहन लाल जैन', item: 'Toor', marka: 'गोल्ड फिश', weight: 100, rate: 6050, pBrokerage: 1000, sBrokerage: 6050, status: 'PENDING', brokeragePayer: 'separate' }
+        ];
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'hi' : 'en';
+            document.getElementById('nav-lang-btn').innerText = currentLang === 'en' ? 'अ/A' : 'A/अ';
+            document.getElementById('login-lang-btn').innerText = currentLang === 'en' ? 'अ / A (Switch to Hindi)' : 'A / अ (Switch to English)';
+            document.querySelectorAll('.lang').forEach(el => {
+                const newText = el.getAttribute('data-' + currentLang);
+                if (newText) el.innerHTML = newText; 
+            });
+        }
+
+        function doLogin() { document.getElementById('login-screen').style.display='none'; document.getElementById('app-container').style.display='block'; renderApp(); showTab('dashboard', document.querySelector('.nav-btn:first-child')); }
+        function showTab(tabId, btn) { document.querySelectorAll('.tab-content').forEach(e=>e.classList.remove('active')); document.getElementById(tabId).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(b=>{b.classList.remove('bg-white','text-primary','border-white');b.classList.add('text-white','border-transparent');}); if(btn){btn.classList.remove('text-white','border-transparent');btn.classList.add('bg-white','text-primary','border-white');} }
+
+        // ==============================================================
+
+        function saveItem() { 
+            const name = document.getElementById('new-item-name').value; 
+            if(name) { items.push(name); document.getElementById('new-item-name').value=''; renderApp(); } 
+        }
+        function saveMarka() { 
+            const name = document.getElementById('new-marka-name').value; 
+            if(name) { markas.push(name); document.getElementById('new-marka-name').value=''; renderApp(); } 
+        }
+        
+        function saveContact() { const name = document.getElementById('nc-name').value; const phone = document.getElementById('nc-phone').value; const city = document.getElementById('nc-city').value; if(name) { contacts.push({ id: Date.now(), name, phone, city }); document.getElementById('add-contact-form').style.display='none'; renderApp(); } }
+        function saveFirm() { const cId = parseInt(document.getElementById('fc-contact-id').value); const name = document.getElementById('fc-name').value; const bType = document.getElementById('fc-brokType').value; const bVal = parseFloat(document.getElementById('fc-brokVal').value); if(name && !isNaN(bVal)) { firms.push({ id: Date.now(), contactId: cId, name, brokType: bType, brokVal: bVal }); document.getElementById('add-firm-form').style.display='none'; renderApp(); } }
+        function showAddFirmForm(cId, cNameRaw) { document.getElementById('fc-contact-id').value=cId; document.getElementById('add-firm-form').style.display='block'; }
+        
+        function getFirmBrokConfig(name) { return firms.find(f=>f.name===name) || { brokType:'percent', brokVal:1 }; }
+
+        function autoFillBrokerage() {
+            const pName = document.getElementById('deal-purchaser').value;
+            const sName = document.getElementById('deal-seller').value;
+            
+            const pConf = getFirmBrokConfig(pName);
+            const sConf = getFirmBrokConfig(sName);
+
+            document.getElementById('deal-p-brokVal').value = pConf.brokVal;
+            document.getElementById('deal-p-brokType').value = pConf.brokType;
+            document.getElementById('deal-s-brokVal').value = sConf.brokVal;
+            document.getElementById('deal-s-brokType').value = sConf.brokType;
+            
+            manualBrokerageCalc();
+        }
+
+        function manualBrokerageCalc() {
+            const w = parseFloat(document.getElementById('deal-weight').value)||0; const r = parseFloat(document.getElementById('deal-rate').value)||0;
+            const tv = w * r;
+
+            const pVal = parseFloat(document.getElementById('deal-p-brokVal').value)||0;
+            const pType = document.getElementById('deal-p-brokType').value;
+            const sVal = parseFloat(document.getElementById('deal-s-brokVal').value)||0;
+            const sType = document.getElementById('deal-s-brokType').value;
+
+            const pb = pType==='percent' ? tv*(pVal/100) : w*pVal;
+            const sb = sType==='percent' ? tv*(sVal/100) : w*sVal;
+
+            document.getElementById('calc-purchaser').innerText=`₹ ${pb.toFixed(2)}`; 
+            document.getElementById('calc-seller').innerText=`₹ ${sb.toFixed(2)}`; 
+            document.getElementById('calc-total').innerText=`₹ ${(pb+sb).toFixed(2)}`;
+            return {pb, sb, total: pb+sb};
+        }
+
+        function saveDeal() {
+            const b = manualBrokerageCalc();
+            const rawDDate = document.getElementById('deal-date').value;
+            const rawLDate = document.getElementById('load-date').value;
+
+            deals.unshift({
+                id: Date.now(), dealDate: rawDDate, loadDate: rawLDate,
+                purchaser: document.getElementById('deal-purchaser').value, seller: document.getElementById('deal-seller').value,
+                item: document.getElementById('deal-item').value, marka: document.getElementById('deal-marka').value, 
+                weight: parseFloat(document.getElementById('deal-weight').value), rate: parseFloat(document.getElementById('deal-rate').value),
+                pBrokerage: b.pb, sBrokerage: b.sb, status: rawLDate ? 'LOADED' : 'PENDING',
+                brokeragePayer: document.getElementById('deal-brok-payer').value || 'separate'
+            });
+            document.getElementById('deal-weight').value=''; document.getElementById('deal-rate').value=''; 
+            renderApp(); showTab('dashboard', document.querySelector('.nav-btn:first-child'));
+        }
+
+        // --- PARTIAL LOADING LOGIC (MODAL VERSION) ---
+        function updateLoadDate(id) {
+            const deal = deals.find(d => String(d.id) === String(id));
+            if(deal) {
+                document.getElementById('ld-deal-id').value = deal.id;
+                document.getElementById('ld-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('ld-weight').value = deal.weight;
+                document.getElementById('ld-max-weight').innerText = deal.weight;
+                document.getElementById('load-deal-modal').style.display = 'flex';
+            } else {
+                alert("Could not find this deal.");
+            }
+        }
+
+        function saveLoadDeal() {
+            const id = document.getElementById('ld-deal-id').value;
+            const date = document.getElementById('ld-date').value;
+            const loadW = parseFloat(document.getElementById('ld-weight').value);
+            const deal = deals.find(d => String(d.id) === String(id));
+            
+            if(!deal) {
+                alert("System Error: Deal not found.");
+                return;
+            }
+            if(!date || isNaN(loadW) || loadW <= 0 || loadW > deal.weight) {
+                alert(currentLang === 'en' ? "Invalid Date or Weight entered! Make sure weight is not zero and does not exceed pending weight." : "अमान्य तारीख या वजन दर्ज किया गया!");
+                return;
+            }
+
+            if(loadW < deal.weight) {
+                // Partial Load: Split the Deal
+                const ratio = loadW / deal.weight;
+                
+                // Create loaded child deal
+                deals.unshift({
+                    id: Date.now(), 
+                    dealDate: deal.dealDate, loadDate: date,
+                    purchaser: deal.purchaser, seller: deal.seller,
+                    item: deal.item, marka: deal.marka,
+                    weight: loadW, rate: deal.rate,
+                    pBrokerage: deal.pBrokerage * ratio, 
+                    sBrokerage: deal.sBrokerage * ratio, 
+                    status: 'LOADED',
+                    brokeragePayer: deal.brokeragePayer
+                });
+                
+                // Update original pending deal
+                deal.weight = deal.weight - loadW;
+                deal.pBrokerage = deal.pBrokerage * (1 - ratio);
+                deal.sBrokerage = deal.sBrokerage * (1 - ratio);
+                
+                alert(currentLang === 'en' ? `Successfully loaded ${loadW} Qtl. Remaining ${deal.weight} Qtl is still pending.` : `${loadW} क्विंटल सफलतापूर्वक लोड किया गया। शेष ${deal.weight} क्विंटल अभी भी बकाया है।`);
+            } else {
+                // Full Load
+                deal.loadDate = date; 
+                deal.status = 'LOADED'; 
+                alert(currentLang === 'en' ? "Deal fully loaded and moved to Ledger!" : "सौदा पूरी तरह से लोड हो गया और लेजर में भेज दिया गया!");
+            }
+            
+            document.getElementById('load-deal-modal').style.display = 'none';
+            renderApp();
+        }
+
+        function deleteDeal(id) { if(confirm("Delete this deal?")) { deals = deals.filter(d => String(d.id) !== String(id)); renderApp(); } }
+
+        function renderLedgerAndInvoice() {
+            const filterFirm = document.getElementById('ledger-firm-filter').value;
+            const fromD = document.getElementById('ledger-from-date').value;
+            const toD = document.getElementById('ledger-to-date').value;
+            
+            let filtered = deals.filter(d => d.status === 'LOADED' && (d.purchaser === filterFirm || d.seller === filterFirm));
+            if(fromD) filtered = filtered.filter(d => d.dealDate >= fromD);
+            if(toD) filtered = filtered.filter(d => d.dealDate <= toD);
+
+            let totalBrok = 0;
+            const h = filtered.map(d => {
+                let isPurchaser = d.purchaser === filterFirm;
+                let oppParty = isPurchaser ? d.seller : d.purchaser;
+                let payerFlag = d.brokeragePayer || 'separate';
+                
+                let mainBrok = isPurchaser ? d.pBrokerage : d.sBrokerage;
+                let otherBrok = isPurchaser ? d.sBrokerage : d.pBrokerage;
+                
+                let showMain = false;
+                let showOther = false;
+                
+                if (payerFlag === 'separate') {
+                    showMain = true;
+                } else if (payerFlag === 'purchaser_both') {
+                    if (isPurchaser) { showMain = true; showOther = true; }
+                } else if (payerFlag === 'seller_both') {
+                    if (!isPurchaser) { showMain = true; showOther = true; }
+                }
+                
+                let rows = '';
+                let fullItem = d.marka ? `${d.item} (${d.marka})` : d.item;
+
+                if (showMain && mainBrok > 0) {
+                    totalBrok += mainBrok;
+                    rows += `<tr class="hover:bg-gray-50"><td class="px-5 py-4 text-textMuted">${d.dealDate}</td><td class="px-5 py-4 font-bold">${oppParty}</td><td class="px-5 py-4">${fullItem}</td><td class="px-5 py-4 text-right">${d.weight}</td><td class="px-5 py-4 text-right font-bold text-moneyGreen">₹${mainBrok.toFixed(2)}</td></tr>`;
+                }
+                if (showOther && otherBrok > 0) {
+                    totalBrok += otherBrok;
+                    let bkwalText = isPurchaser ? (currentLang === 'en' ? 'Seller Brokerage' : 'बिकवाल की दलाली') : (currentLang === 'en' ? 'Purchaser Brokerage' : 'खरीददार की दलाली');
+                    rows += `<tr class="hover:bg-gray-50 bg-red-50"><td class="px-5 py-4 text-center text-textMuted text-lg">"</td><td class="px-5 py-4 font-bold text-center text-lg text-textMuted">"</td><td class="px-5 py-4 font-bold text-red-700">${bkwalText}</td><td class="px-5 py-4 text-center text-textMuted">-</td><td class="px-5 py-4 text-right font-bold text-moneyGreen">₹${otherBrok.toFixed(2)}</td></tr>`;
+                }
+                return rows;
+            }).join('');
+            
+            let invH = '';
+            filtered.forEach(d => {
+                let isPurchaser = d.purchaser === filterFirm;
+                let oppParty = isPurchaser ? d.seller : d.purchaser;
+                let payerFlag = d.brokeragePayer || 'separate';
+                
+                let mainBrok = isPurchaser ? d.pBrokerage : d.sBrokerage;
+                let otherBrok = isPurchaser ? d.sBrokerage : d.pBrokerage;
+                
+                let showMain = false;
+                let showOther = false;
+                
+                if (payerFlag === 'separate') {
+                    showMain = true;
+                } else if (payerFlag === 'purchaser_both') {
+                    if (isPurchaser) { showMain = true; showOther = true; }
+                } else if (payerFlag === 'seller_both') {
+                    if (!isPurchaser) { showMain = true; showOther = true; }
+                }
+                
+                const fmtD = new Date(d.dealDate).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'2-digit'}).replace(/\//g,'-');
+                const fmtL = d.loadDate ? new Date(d.loadDate).toLocaleDateString('en-GB', {day:'2-digit',month:'2-digit',year:'2-digit'}).replace(/\//g,'-') : '';
+                
+                if (showMain && mainBrok > 0) {
+                    let fullItem = d.marka ? `${d.item} <br><span style="font-size:10px;color:#555;">(${d.marka})</span>` : d.item;
+                    invH += `<tr><td>${fmtD}</td><td>${fmtL}</td><td>${oppParty}</td><td>${fullItem}</td><td>${d.weight}</td><td>${d.rate}</td><td>${mainBrok.toFixed(0)}</td></tr>`;
+                }
+                
+                if (showOther && otherBrok > 0) {
+                    let bkwalText = isPurchaser ? (currentLang === 'en' ? 'Seller Brokerage' : 'बिकवाल की दलाली') : (currentLang === 'en' ? 'Purchaser Brokerage' : 'खरीददार की दलाली');
+                    invH += `<tr><td style="color:#777; font-size: 16px;">"</td><td style="color:#777; font-size: 16px;">"</td><td style="color:#777; font-size: 16px;">"</td><td style="font-weight:bold; color:#9e1b22;">${bkwalText}</td><td style="color:#777;">-</td><td style="color:#777;">-</td><td>${otherBrok.toFixed(0)}</td></tr>`;
+                }
+            });
+
+            document.getElementById('ledger-deals-body').innerHTML = h || `<tr><td colspan="5" class="text-center py-4">No deals found.</td></tr>`;
+            document.getElementById('invoice-body').innerHTML = invH || `<tr><td colspan="7" class="text-center py-4">No deals found.</td></tr>`;
+            document.getElementById('ledger-total-brokerage').innerText = `₹ ${totalBrok.toFixed(0)}`;
+            document.getElementById('invoice-total').innerText = `${totalBrok.toFixed(0)}/-`;
+            document.getElementById('invoice-firm-name').innerText = filterFirm;
+        }
+
+        function renderApp() {
+            document.getElementById('items-container').innerHTML = items.map(i=>`<span class="bg-gray-100 border border-gray-300 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">${i} <button onclick="items=items.filter(x=>x!=='${i}');renderApp()" class="text-red-500 font-normal">x</button></span>`).join('');
+            document.getElementById('deal-item').innerHTML = items.map(i=>`<option value="${i}">${i}</option>`).join('');
+
+            document.getElementById('markas-container').innerHTML = markas.map(m=>`<span class="bg-yellow-50 border border-yellow-300 px-3 py-1 rounded text-sm font-bold flex items-center gap-2">${m} <button onclick="markas=markas.filter(x=>x!=='${m}');renderApp()" class="text-red-500 font-normal">x</button></span>`).join('');
+            document.getElementById('deal-marka').innerHTML = markas.map(m=>`<option value="${m}">${m}</option>`).join('');
+
+            document.getElementById('contacts-container').innerHTML = contacts.map(c => {
+                const fs = firms.filter(f=>f.contactId===c.id);
+                return `<div class="bg-white border border-border rounded-lg shadow-md p-6 mb-6"><div class="flex justify-between mb-4"><div><h2 class="text-xl font-bold flex gap-2 items-center">${c.name} <span class="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full ml-2">${fs.length} Firms</span></h2><p class="text-textMuted text-sm">📞 ${c.phone} | 📍 ${c.city||'N/A'}</p></div>
+                <div class="flex gap-3"><button onclick="showAddFirmForm(${c.id}, '${escape(c.name)}')" class="text-secondary font-bold text-sm underline lang" data-en="+ Add Firm" data-hi="+ फर्म जोड़ें">+ Add Firm</button></div></div>
+                <ul class="border-t pt-4 space-y-2">${fs.map(f=>`<li class="bg-gray-50 p-2 rounded border flex justify-between items-center"><span class="font-bold">${f.name}</span>
+                <span class="text-moneyGreen font-bold text-sm">Default: ${f.brokVal} ${f.brokType==='percent'?'%':'₹/Qtl'}</span></li>`).join('')}</ul></div>`;
+            }).join('');
+
+            const allFirmsOpts = firms.map(f=>`<option value="${f.name}">${f.name}</option>`).join('');
+            document.getElementById('deal-purchaser').innerHTML = allFirmsOpts;
+            document.getElementById('deal-seller').innerHTML = allFirmsOpts;
+            document.getElementById('ledger-firm-filter').innerHTML = allFirmsOpts;
+
+            autoFillBrokerage();
+
+            const lDeals = deals.filter(d=>d.status==='LOADED'); const pDeals = deals.filter(d=>d.status==='PENDING');
+            document.getElementById('dash-pending-count').innerText = pDeals.length;
+            document.querySelector('#nav-pending-tab').innerHTML = currentLang==='en' ? `Pending Deals (${pDeals.length})` : `लंबित सौदे (${pDeals.length})`;
+            
+            document.getElementById('dashboard-deals-body').innerHTML = lDeals.slice(0,5).map(d=>{
+                const fullItem = d.marka ? `${d.item} (${d.marka})` : d.item;
+                return `<tr class="hover:bg-gray-50"><td class="px-5 py-4">${d.dealDate}</td><td class="px-5 py-4 font-bold text-moneyGreen">${d.loadDate}</td><td class="px-5 py-4 font-bold">${d.purchaser}</td><td class="px-5 py-4">${d.seller}</td><td class="px-5 py-4"><span class="bg-orange-100 text-orange-800 px-2 rounded text-xs font-bold">${fullItem}</span></td><td class="px-5 py-4 text-right font-bold text-moneyGreen">${d.weight}</td><td class="px-5 py-4 text-right">${d.rate}</td>
+                <td class="px-5 py-4 text-center"><button onclick="deleteDeal(${d.id})" class="text-red-500 lang font-bold" data-en="Del" data-hi="हटाएं">Del</button></td></tr>`;
+            }).join('');
+            
+            document.getElementById('pending-deals-body').innerHTML = pDeals.map(d=>{
+                const fullItem = d.marka ? `${d.item} (${d.marka})` : d.item;
+                return `<tr class="hover:bg-gray-50 border-l-4 border-yellow-400"><td class="px-5 py-4">${d.dealDate}</td><td class="px-5 py-4 font-bold">${d.purchaser}</td><td class="px-5 py-4">${d.seller}</td><td class="px-5 py-4">${fullItem} <br><span class="text-secondary font-bold">Total: ${d.weight} Qtl</span></td>
+                <td class="px-5 py-4 text-right"><button onclick="updateLoadDate(${d.id})" class="bg-secondary hover:bg-yellow-600 text-white font-bold px-4 py-2 rounded shadow-sm mr-2 lang" data-en="Load Item" data-hi="लोड दर्ज करें">Load Item</button><button onclick="deleteDeal(${d.id})" class="text-red-500 font-bold text-xs ml-3 lang" data-en="Del" data-hi="हटाएं">Del</button></td></tr>`;
+            }).join('');
+            
+            renderLedgerAndInvoice();
+            
+            document.querySelectorAll('.lang').forEach(el => { const n = el.getAttribute('data-' + currentLang); if(n) el.innerHTML = n; });
+        }
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('deal-date').value = today;
+        document.getElementById('ledger-from-date').value = '2025-12-01';
+        document.getElementById('ledger-to-date').value = '2026-06-30';
+        
+        setTimeout(renderApp, 100);
+    </script>
+</body>
+</html>

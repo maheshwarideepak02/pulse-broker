@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", sans-serif;
+  --color-primary: #991B1B;
+  --color-secondary: #D97706;
+  --color-background: #FFFBEB;
+  --color-card: #FFFFFF;
+  --color-border: #E5E7EB;
+  --color-textMain: #111827;
+  --color-textMuted: #4B5563;
+  --color-moneyGreen: #059669;
+  --color-billRed: #9e1b22;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-background);
+  color: var(--color-textMain);
+  margin: 0;
+  padding: 0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-background); }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Modal Overlay CSS */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6); z-index: 1000;
+    display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+}
+.modal-content {
+    background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
+/* ===== REACT DATEPICKER ENHANCEMENT ===== */
+.date-input-wrapper .react-datepicker-wrapper {
+    width: 100%;
+}
+.date-input-wrapper .react-datepicker__input-container {
+    width: 100%;
+}
+.date-input-wrapper input {
+    background: linear-gradient(135deg, #ffffff 0%, #fefce8 100%);
+}
+.date-input-wrapper input:hover {
+    border-color: var(--color-secondary);
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.12);
+}
+.date-input-wrapper input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(153, 27, 27, 0.1), 0 2px 8px rgba(153, 27, 27, 0.08);
+    background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+}
+.react-datepicker {
+    font-family: var(--font-sans) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+}
+.react-datepicker__header {
+    background-color: var(--color-background) !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+.react-datepicker__day--selected, .react-datepicker__day--keyboard-selected {
+    background-color: var(--color-primary) !important;
+    color: white !important;
+}
+
+/* Date label chip */
+.date-label-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-top: 6px;
+}
+
+.date-label-chip.deal-date {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    color: var(--color-primary);
+    border: 1px solid #fecaca;
+}
+
+.date-label-chip.load-date {
+    background: linear-gradient(135deg, #fefce8, #fef3c7);
+    color: var(--color-secondary);
+    border: 1px solid #fde68a;
+}
+
+.date-label-chip.filter-date {
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+    color: var(--color-moneyGreen);
+    border: 1px solid #bbf7d0;
+}
+
+/* Invoice Print Styles */
+.invoice-preview { background: white; color: var(--color-billRed); max-width: 800px; margin: 0 auto; padding: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); font-family: 'Arial', sans-serif;}
+.invoice-preview table { border-collapse: collapse; width: 100%; border: 1px solid var(--color-billRed); }
+.invoice-preview th, .invoice-preview td { border: 1px solid var(--color-billRed); padding: 6px; text-align: center; }
+.invoice-preview th { font-weight: bold; }
+.invoice-preview .bill-line { border-bottom: 1px dashed var(--color-billRed); display: inline-block; min-width: 150px; text-align: center;}
+
+/* Ditto mark row (sub-row for seller brokerage) */
+.invoice-preview tr.sub-row td {
+    border-top: none;
+    padding-top: 0;
+}
+
+/* Page Transition Animation */
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Print-specific styles */
+@media print {
+    body {
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    .print\:hidden {
+        display: none !important;
+    }
+    .invoice-preview {
+        box-shadow: none !important;
+        border: none !important;
+        max-width: 100% !important;
+        padding: 10px !important;
+    }
+    nav, .modal-overlay {
+        display: none !important;
+    }
+}
+
+

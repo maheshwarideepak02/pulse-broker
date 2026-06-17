@@ -61,7 +61,12 @@ const NewDeal = () => {
                 const pkts = parseInt(updated.numberOfPackets, 10);
                 const pw = parseFloat(updated.packetWeight);
                 if (!isNaN(pkts) && !isNaN(pw) && pw > 0) {
-                    updated.weight = ((pkts * pw) / 100).toFixed(2);
+                    const calcW = (pkts * pw) / 100;
+                    const currW = parseFloat(updated.weight);
+                    // Only overwrite weight if it differs by more than 0.5 qtl (meaning it's not just a rounding difference)
+                    if (isNaN(currW) || Math.abs(calcW - currW) > 0.5) {
+                        updated.weight = calcW.toFixed(2);
+                    }
                 } else if (value === '') {
                     updated.weight = '';
                 }

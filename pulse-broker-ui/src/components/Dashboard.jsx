@@ -1,17 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { getDeals, getDashboardSummary } from '../api';
+import { useToast } from '../context/ToastContext';
+import { getDeals, getDashboardSummary, revertDeal } from '../api';
+import { formatDate } from '../utils/dateUtils';
 
 const Dashboard = () => {
     const { t } = useLanguage();
+    const { addToast } = useToast();
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
     const [searchQuery, setSearchQuery] = useState('');
 
-    useEffect(() => {
+    const fetchData = () => {
         getDeals().then(setDeals).catch(console.error);
         getDashboardSummary().then(setSummary).catch(console.error);
+    };
+
+    useEffect(() => {
+        fetchData();
     }, []);
+
+    const handleRevertDeal = async (dealId) => {
+        try {
+            await revertDeal(dealId);
+            addToast('Deal reverted to Pending status successfully.', 'success');
+            fetchData();
+        } catch (e) {
+            console.error(e);
+            addToast(e.response?.data?.message || 'Failed to revert deal', 'error');
+        }
+    };
 
     const loadedDeals = deals.filter(d => d.status === 'LOADED' || d.status === 'BILLED').reverse();
     
@@ -90,7 +108,9 @@ const Dashboard = () => {
                                 <th className="px-6 py-4 font-bold">{t('Seller', 'विक्रेता')}</th>
                                 <th className="px-6 py-4 font-bold">{t('Item (Marka)', 'आइटम (मार्का)')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
+                                <th className="px-6 py-4 font-bold text-right">{t('Bags', 'बोरा')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Rate', 'भाव')}</th>
+                                <th className="px-6 py-4 font-bold text-center"></th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -99,16 +119,24 @@ const Dashboard = () => {
                             ) : (
                                 filteredLoadedDeals.map(deal => (
                                     <tr key={deal.id} className="hover:bg-red-50/30 transition-colors">
-                                        <td className="px-6 py-4 text-gray-500 font-medium">{deal.dealDate}</td>
-                                        <td className="px-6 py-4 text-gray-500 font-medium">{deal.loadDate}</td>
+                                        <td className="px-6 py-4 text-gray-500 font-medium">{formatDate(deal.dealDate)}</td>
+                                        <td className="px-6 py-4 text-gray-500 font-medium">{formatDate(deal.loadDate)}</td>
                                         <td className="px-6 py-4 font-bold text-textMain">{deal.purchaser?.name}</td>
                                         <td className="px-6 py-4 font-bold text-textMain">{deal.seller?.name}</td>
                                         <td className="px-6 py-4">
                                             <span className="bg-gray-100 px-2 py-1 rounded font-bold text-xs border border-gray-200">{deal.item?.name}</span>
                                             <span className="text-secondary font-bold text-xs ml-1.5">{deal.marka?.name}</span>
                                         </td>
-                                        <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight} qtl</td>
+                                        <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight}</td>
+                                        <td className="px-6 py-4 text-right font-bold text-gray-500">{deal.numberOfPackets || '-'}</td>
                                         <td className="px-6 py-4 text-right text-secondary font-bold">₹{deal.rate}</td>
+                                        <td className="px-4 py-4 text-center">
+                                            {deal.status === 'LOADED' && (
+                                                <button onClick={() => handleRevertDeal(deal.id)} className="text-gray-400 hover:text-red-500 transition-colors" title="Undo Load / Revert to Pending">
+                                                    ↩️
+                                                </button>
+                                            )}
+                                        </td>
                                     </tr>
                                 ))
                             )}
@@ -135,10 +163,17 @@ const Dashboard = () => {
                                     <span className="text-gray-400 text-xs">→</span>
                                     <span className="font-bold text-sm text-textMain">{deal.seller?.name}</span>
                                 </div>
-                                <div className="flex justify-between items-center text-xs text-gray-500">
-                                    <span>{deal.dealDate} {deal.loadDate ? `→ ${deal.loadDate}` : ''}</span>
-                                    <span className="font-bold text-gray-700">{deal.weight} qtl</span>
+                                <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                                    <span>{formatDate(deal.dealDate)} {deal.loadDate ? `→ ${formatDate(deal.loadDate)}` : ''}</span>
+                                    <span className="font-bold text-gray-700">{deal.weight} qtl {deal.numberOfPackets ? `(${deal.numberOfPackets} Bags)` : ''}</span>
                                 </div>
+                                {deal.status === 'LOADED' && (
+                                    <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">
+                                        <button onClick={() => handleRevertDeal(deal.id)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
+                                            ↩️ Undo Load
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))
                     )}

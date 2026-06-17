@@ -31,7 +31,12 @@ const Dashboard = () => {
         }
     };
 
-    const loadedDeals = deals.filter(d => d.status === 'LOADED' || d.status === 'BILLED').reverse();
+    const loadedDeals = [...deals]
+        .filter(d => d.status === 'LOADED' || d.status === 'BILLED')
+        .sort((a, b) => {
+            const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
+            return dateDiff !== 0 ? dateDiff : b.id - a.id;
+        });
     
     const filteredLoadedDeals = loadedDeals.filter(deal => {
         const q = searchQuery.toLowerCase();

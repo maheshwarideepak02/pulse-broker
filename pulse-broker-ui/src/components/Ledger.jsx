@@ -51,6 +51,9 @@ const Ledger = () => {
         setIsLoading(true);
         try {
             const data = await previewBill(filterFirm, fromDate, toDate);
+            if (data.items) {
+                data.items.sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+            }
             setBillPreview(data);
         } catch (e) {
             console.error(e);
@@ -96,6 +99,9 @@ const Ledger = () => {
             const bill = await generateBill(filterFirm, fromDate, toDate);
             // After generating, fetch the full bill detail for viewing
             const detail = await getBillDetail(bill.id);
+            if (detail.items) {
+                detail.items.sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+            }
             setInvoiceData({
                 billNumber: detail.billNumber,
                 billDate: detail.billDate,
@@ -130,6 +136,9 @@ const Ledger = () => {
     const handleViewBillDetail = async (billId) => {
         try {
             const detail = await getBillDetail(billId);
+            if (detail.items) {
+                detail.items.sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+            }
             setInvoiceData({
                 billNumber: detail.billNumber,
                 billDate: detail.billDate,

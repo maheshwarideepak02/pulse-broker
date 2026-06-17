@@ -28,6 +28,8 @@ const Pending = () => {
         item: { id: '' },
         marka: { id: '' },
         weight: '',
+        packetWeight: 30,
+        numberOfPackets: '',
         rate: '',
         pBrokerage: '',
         sBrokerage: '',
@@ -100,6 +102,8 @@ const Pending = () => {
             item: deal.item ? { id: deal.item.id } : { id: '' },
             marka: deal.marka ? { id: deal.marka.id } : { id: '' },
             weight: deal.weight || '',
+            packetWeight: deal.packetWeight || 30,
+            numberOfPackets: deal.numberOfPackets || '',
             rate: deal.rate || '',
             pBrokerage: deal.pBrokerage || '',
             sBrokerage: deal.sBrokerage || '',
@@ -134,6 +138,8 @@ const Pending = () => {
                 item: editData.item.id ? { id: editData.item.id } : null,
                 marka: editData.marka.id ? { id: editData.marka.id } : null,
                 weight: parseFloat(editData.weight),
+                packetWeight: editData.packetWeight ? parseFloat(editData.packetWeight) : null,
+                numberOfPackets: editData.numberOfPackets ? parseInt(editData.numberOfPackets) : null,
                 rate: parseFloat(editData.rate),
                 pBrokerage: editData.pBrokerage ? parseFloat(editData.pBrokerage) : null,
                 sBrokerage: editData.sBrokerage ? parseFloat(editData.sBrokerage) : null,
@@ -218,7 +224,7 @@ const Pending = () => {
                                         <span className="bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200 font-bold shadow-sm">{deal.item?.name}</span> 
                                         <span className="text-secondary font-bold ml-1.5">{deal.marka?.name}</span>
                                         <div className="mt-1.5 text-xs text-textMuted font-bold uppercase flex items-center gap-2">
-                                            <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">{deal.weight} QTL</span> 
+                                            <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">{deal.weight} QTL {deal.numberOfPackets ? `(${deal.numberOfPackets} Bags)` : ''}</span> 
                                             <span>@ ₹{deal.rate}</span>
                                         </div>
                                     </td>
@@ -269,7 +275,7 @@ const Pending = () => {
                             </div>
 
                             <div className="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">{deal.weight} QTL</span>
+                                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">{deal.weight} QTL {deal.numberOfPackets ? `(${deal.numberOfPackets} Bags)` : ''}</span>
                                 <span className="text-gray-600 font-bold text-sm">₹{deal.rate}</span>
                             </div>
 
@@ -347,11 +353,33 @@ const Pending = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Weight (Qtl)</label>
-                                        <input type="number" value={editData.weight} onChange={e => setEditData({...editData, weight: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                        <input type="number" value={editData.weight} onChange={e => {
+                                            const w = parseFloat(e.target.value);
+                                            const pw = parseFloat(editData.packetWeight);
+                                            let np = editData.numberOfPackets;
+                                            if (!isNaN(w) && !isNaN(pw) && pw > 0) np = Math.round((w * 100) / pw);
+                                            setEditData({...editData, weight: e.target.value, numberOfPackets: np});
+                                        }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Rate (₹)</label>
                                         <input type="number" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Packet (kg)</label>
+                                        <input type="number" value={editData.packetWeight} onChange={e => {
+                                            const pw = parseFloat(e.target.value);
+                                            const w = parseFloat(editData.weight);
+                                            let np = editData.numberOfPackets;
+                                            if (!isNaN(w) && !isNaN(pw) && pw > 0) np = Math.round((w * 100) / pw);
+                                            setEditData({...editData, packetWeight: e.target.value, numberOfPackets: np});
+                                        }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="1" step="0.5" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-secondary uppercase mb-1">Total Bags</label>
+                                        <input type="number" value={editData.numberOfPackets} onChange={e => setEditData({...editData, numberOfPackets: e.target.value})} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
                                     </div>
                                 </div>
                                 

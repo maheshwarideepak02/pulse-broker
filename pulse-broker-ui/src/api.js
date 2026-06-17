@@ -40,7 +40,12 @@ export const generateBill = (firmId, fromDate, toDate) => {
 
 export const getAllBills = () => api.get('/billing').then(res => res.data);
 export const getBillDetail = (billId) => api.get(`/billing/${billId}/detail`).then(res => res.data);
-export const clearBill = (billId) => api.post(`/billing/${billId}/clear`).then(res => res.data);
+export const clearBill = (billId, clearanceDate, discountAmount) => {
+    let url = `/billing/${billId}/clear?`;
+    if (clearanceDate) url += `clearanceDate=${clearanceDate}&`;
+    if (discountAmount) url += `discountAmount=${discountAmount}`;
+    return api.post(url).then(res => res.data);
+};
 
 export const deleteContact = (id) => api.delete(`/contacts/${id}`);
 export const deleteFirm = (id) => api.delete(`/firms/${id}`);

@@ -122,13 +122,16 @@ public class BillingService {
     }
 
     @Transactional
-    public Bill clearBill(Long billId, LocalDate clearanceDate) {
+    public Bill clearBill(Long billId, LocalDate clearanceDate, BigDecimal discountAmount) {
         Bill bill = billRepository.findById(billId).orElseThrow(() -> new RuntimeException("Bill not found"));
         if (bill.getStatus() == BillStatus.PAID) {
             throw new IllegalArgumentException("Bill is already cleared.");
         }
         bill.setStatus(BillStatus.PAID);
         bill.setClearanceDate(clearanceDate != null ? clearanceDate : LocalDate.now());
+        if (discountAmount != null) {
+            bill.setDiscountAmount(discountAmount);
+        }
         return billRepository.save(bill);
     }
 
@@ -156,6 +159,7 @@ public class BillingService {
         detail.setBillDate(bill.getBillDate());
         detail.setFirmName(bill.getFirm().getName());
         detail.setTotalAmount(bill.getTotalAmount());
+        detail.setDiscountAmount(bill.getDiscountAmount());
         detail.setStatus(bill.getStatus() != null ? bill.getStatus().name() : "UNPAID");
         detail.setClearanceDate(bill.getClearanceDate());
         detail.setItems(items);
@@ -175,6 +179,7 @@ public class BillingService {
         String markaName = d.getMarka() != null ? d.getMarka().getName() : "Unknown Marka";
         dto.setItemMarka(itemName + " (" + markaName + ")");
         dto.setWeight(d.getWeight());
+        dto.setNumberOfPackets(d.getNumberOfPackets());
         dto.setRate(d.getRate());
         dto.setComputedBrokerage(computedBrokerage);
         

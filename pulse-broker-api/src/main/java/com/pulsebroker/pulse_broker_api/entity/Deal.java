@@ -58,6 +58,11 @@ public class Deal {
     @JsonProperty("sBrokerage")
     private BigDecimal sBrokerage; // Seller brokerage calculated
 
+    @Column(precision = 19, scale = 2)
+    private BigDecimal packetWeight;
+    
+    private Integer numberOfPackets;
+
     @Enumerated(EnumType.STRING)
     private DealStatus status;
 

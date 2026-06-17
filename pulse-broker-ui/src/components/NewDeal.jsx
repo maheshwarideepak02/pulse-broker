@@ -20,6 +20,8 @@ const NewDeal = () => {
         itemId: '',
         markaId: '',
         weight: '',
+        packetWeight: 30,
+        numberOfPackets: '',
         rate: '',
         pBrokVal: '',
         pBrokType: 'PERCENT',
@@ -43,7 +45,21 @@ const NewDeal = () => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        setFormData(prev => {
+            const updated = { ...prev, [name]: value };
+            
+            // Auto-calculate packets if weight or packetWeight changes
+            if (name === 'weight' || name === 'packetWeight') {
+                const w = parseFloat(updated.weight);
+                const pw = parseFloat(updated.packetWeight);
+                if (!isNaN(w) && !isNaN(pw) && pw > 0) {
+                    updated.numberOfPackets = Math.round((w * 100) / pw);
+                } else {
+                    updated.numberOfPackets = '';
+                }
+            }
+            return updated;
+        });
     };
 
     const handleFirmChange = (e, type) => {
@@ -98,6 +114,8 @@ const NewDeal = () => {
                 item: { id: formData.itemId },
                 marka: { id: formData.markaId },
                 weight: formData.weight,
+                packetWeight: formData.packetWeight,
+                numberOfPackets: formData.numberOfPackets,
                 rate: formData.rate,
                 pBrokerage: pBrokerage,
                 sBrokerage: sBrokerage,
@@ -176,6 +194,14 @@ const NewDeal = () => {
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Rate (₹)', 'भाव (₹)')}</label>
                             <input type="number" name="rate" value={formData.rate} onChange={handleChange} min="0.01" step="0.01" className="w-full border-2 border-gray-300 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-white text-right" required />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Packet Weight (kg)', 'बोरे का वजन')}</label>
+                            <input type="number" name="packetWeight" value={formData.packetWeight} onChange={handleChange} min="1" step="0.5" className="w-full border-2 border-gray-200 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-gray-50 text-right text-gray-600" required />
+                        </div>
+                        <div className="col-span-2 md:col-span-1">
+                            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">{t('Total Bags/Packets', 'कुल बोरे/कट्टे')}</label>
+                            <input type="number" name="numberOfPackets" value={formData.numberOfPackets} onChange={handleChange} min="1" className="w-full border-2 border-yellow-200 rounded-lg px-3 py-3 font-black focus:ring-2 focus:ring-secondary outline-none transition-all shadow-sm bg-yellow-50 text-right text-secondary" placeholder="Auto-calculated" required />
                         </div>
                     </div>
 

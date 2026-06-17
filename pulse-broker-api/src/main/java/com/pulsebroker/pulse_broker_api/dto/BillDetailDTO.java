@@ -12,6 +12,7 @@ public class BillDetailDTO {
     private LocalDate billDate;
     private String firmName;
     private BigDecimal totalAmount;
+    private BigDecimal discountAmount;
     private String status;
     private LocalDate clearanceDate;
     private List<DealBillItemDTO> items;

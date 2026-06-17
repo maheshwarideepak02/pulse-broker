@@ -60,6 +60,8 @@ public class DealController {
         deal.setItem(dealDetails.getItem());
         deal.setMarka(dealDetails.getMarka());
         deal.setWeight(dealDetails.getWeight());
+        deal.setPacketWeight(dealDetails.getPacketWeight());
+        deal.setNumberOfPackets(dealDetails.getNumberOfPackets());
         deal.setRate(dealDetails.getRate());
         deal.setPBrokerage(dealDetails.getPBrokerage());
         deal.setSBrokerage(dealDetails.getSBrokerage());

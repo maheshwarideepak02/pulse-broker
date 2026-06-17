@@ -12,6 +12,7 @@ public class DealBillItemDTO {
     private String oppositePartyName;
     private String itemMarka;
     private BigDecimal weight;
+    private Integer numberOfPackets;
     private BigDecimal rate;
     private BigDecimal computedBrokerage;
     

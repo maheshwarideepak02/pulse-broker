@@ -28,6 +28,9 @@ public class Bill {
     @Column(precision = 19, scale = 2)
     private BigDecimal totalAmount;
 
+    @Column(precision = 19, scale = 2)
+    private BigDecimal discountAmount;
+
     @Enumerated(EnumType.STRING)
     private BillStatus status = BillStatus.UNPAID;
 

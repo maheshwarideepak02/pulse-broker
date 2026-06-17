@@ -48,8 +48,9 @@ public class BillController {
     @PostMapping("/{billId}/clear")
     public Bill clearBill(
             @PathVariable Long billId,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate clearanceDate) {
-        return billingService.clearBill(billId, clearanceDate);
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate clearanceDate,
+            @RequestParam(required = false) java.math.BigDecimal discountAmount) {
+        return billingService.clearBill(billId, clearanceDate, discountAmount);
     }
 
     @Autowired

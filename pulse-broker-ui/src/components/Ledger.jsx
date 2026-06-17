@@ -25,7 +25,8 @@ const Ledger = () => {
     // Invoice View State
     const [showInvoice, setShowInvoice] = useState(false);
     const [invoiceData, setInvoiceData] = useState(null);
-    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' }); // { billNumber, billDate, firmName, totalAmount, items, status }
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' }); 
+    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: new Date().toISOString().split('T')[0], discountAmount: '' });
 
     useEffect(() => {
         getFirms().then(setFirms).catch(console.error);
@@ -131,18 +132,20 @@ const Ledger = () => {
     };
 
     const handleClearBill = (billId) => {
-        setConfirmDialog({
+        setClearBillDialog({
             isOpen: true,
-            type: 'clear',
             id: billId,
-            message: 'Are you sure you want to mark this bill as CLEARED? This will update your outstanding balance.'
+            clearanceDate: new Date().toISOString().split('T')[0],
+            discountAmount: ''
         });
     };
 
-    const executeClearBill = async (billId) => {
+    const executeClearBill = async () => {
         setIsProcessing(true);
+        const { id, clearanceDate, discountAmount } = clearBillDialog;
+        setClearBillDialog({ isOpen: false, id: null, clearanceDate: '', discountAmount: '' });
         try {
-            await clearBill(billId);
+            await clearBill(id, clearanceDate, discountAmount || null);
             addToast('Bill marked as Cleared successfully!', 'success');
             loadHistory(); // refresh list
         } catch (e) {
@@ -178,7 +181,6 @@ const Ledger = () => {
 
     const executeConfirmAction = async () => {
         if (confirmDialog.type === 'finalize') await executeFinalize();
-        if (confirmDialog.type === 'clear') await executeClearBill(confirmDialog.id);
         if (confirmDialog.type === 'delete') await executeDeleteBill(confirmDialog.id);
         setConfirmDialog({ isOpen: false, type: '', id: null, message: '' });
     };
@@ -257,13 +259,14 @@ const Ledger = () => {
                     <table style={{ minWidth: '600px' }}>
                         <thead>
                             <tr>
-                                <th style={{ width: '12%' }}>दिनांक</th>
-                                <th style={{ width: '12%' }}>लोडिंग<br/>दिनांक</th>
-                                <th style={{ width: '25%' }}>फर्म का नाम</th>
+                                <th style={{ width: '11%' }}>दिनांक</th>
+                                <th style={{ width: '11%' }}>लोडिंग<br/>दिनांक</th>
+                                <th style={{ width: '23%' }}>फर्म का नाम</th>
                                 <th style={{ width: '15%' }}>जिन्स का नाम</th>
-                                <th style={{ width: '12%' }}>वजन (कु.मे.)</th>
-                                <th style={{ width: '12%' }}>दर</th>
-                                <th style={{ width: '12%' }}>दलाली</th>
+                                <th style={{ width: '10%' }}>वजन (कु.मे.)</th>
+                                <th style={{ width: '10%' }}>बोरा/कट्टा</th>
+                                <th style={{ width: '10%' }}>दर</th>
+                                <th style={{ width: '10%' }}>दलाली</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -280,6 +283,7 @@ const Ledger = () => {
                                             <td>{d.oppositePartyName}</td>
                                             <td>{d.itemMarka}</td>
                                             <td>{d.weight}</td>
+                                            <td>{d.numberOfPackets || '-'}</td>
                                             <td>{d.rate}</td>
                                             <td>{isBothMode ? `₹ ${pBrok.toFixed(0)}` : `₹ ${d.computedBrokerage?.toFixed(2)}`}</td>
                                         </tr>
@@ -289,6 +293,7 @@ const Ledger = () => {
                                             <td>"</td>
                                             <td>"</td>
                                             <td style={{ fontWeight: 'bold' }}>विक्रेता की दलाली</td>
+                                            <td>---</td>
                                             <td>---</td>
                                             <td>---</td>
                                             <td>₹ {sBrok.toFixed(0)}</td>
@@ -530,7 +535,10 @@ const Ledger = () => {
                                                     </button>
                                                 )}
                                                 {b.status === 'PAID' && (
-                                                    <span className="text-xs text-gray-400 font-bold self-center mr-2">{b.clearanceDate}</span>
+                                                    <div className="flex flex-col items-end mr-2 text-xs">
+                                                        <span className="text-gray-400 font-bold">{b.clearanceDate}</span>
+                                                        {b.discountAmount > 0 && <span className="text-red-500 font-bold bg-red-50 px-1 mt-0.5 rounded border border-red-100">Kasar: ₹{b.discountAmount}</span>}
+                                                    </div>
                                                 )}
                                                 {b.status === 'UNPAID' && (
                                                     <button 
@@ -576,7 +584,12 @@ const Ledger = () => {
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-end mt-4">
-                                    <div className="text-xs text-gray-500">{b.billDate}</div>
+                                    <div className="flex flex-col gap-1">
+                                        <div className="text-xs text-gray-500">{b.billDate}</div>
+                                        {b.status === 'PAID' && b.discountAmount > 0 && (
+                                            <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 inline-block w-max">Kasar: ₹{b.discountAmount}</span>
+                                        )}
+                                    </div>
                                     <div className="flex gap-2">
                                         <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">👁️</button>
                                         {b.status === 'UNPAID' && (
@@ -600,6 +613,32 @@ const Ledger = () => {
                 onConfirm={executeConfirmAction}
                 onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
             />
+
+            {/* Clear Bill Modal (Kasar) */}
+            {clearBillDialog.isOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-slide-in border-t-8 border-t-green-500">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Clear Bill</h3>
+                        <p className="text-gray-500 text-sm mb-6">Mark this bill as paid and apply any Kasar (discount) if necessary.</p>
+                        
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Clearance Date</label>
+                                <input type="date" value={clearBillDialog.clearanceDate} onChange={e => setClearBillDialog({...clearBillDialog, clearanceDate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Kasar / Discount (₹)</label>
+                                <input type="number" placeholder="Optional" value={clearBillDialog.discountAmount} onChange={e => setClearBillDialog({...clearBillDialog, discountAmount: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" min="0" step="0.01" />
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3">
+                            <button onClick={() => setClearBillDialog({ ...clearBillDialog, isOpen: false })} className="px-5 py-2.5 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-colors">Cancel</button>
+                            <button onClick={executeClearBill} className="px-5 py-2.5 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md transition-colors">✓ Mark Paid</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

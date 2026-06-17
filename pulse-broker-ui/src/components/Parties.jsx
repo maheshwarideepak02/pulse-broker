@@ -191,7 +191,7 @@ const Parties = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full"></div>
                     <h3 className="font-bold text-secondary mb-5 uppercase tracking-wide text-lg">{editFirm ? t('Edit Firm', 'फर्म संपादित करें') : t('Add Firm for', 'फर्म जोड़ें')} <span className="text-primary">{selectedContact?.name}</span></h3>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5 relative z-10">
-                        <input type="text" placeholder="Firm Name *" value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all col-span-2 bg-white" />
+                        <input type="text" placeholder="Firm Name *" value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all md:col-span-2 bg-white" />
                         <select value={fc.defaultBrokType} onChange={e => setFc({...fc, defaultBrokType: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all bg-white font-bold text-textMain">
                             <option value="PERCENT">% Percent</option>
                             <option value="FIXED">₹ Fixed/Qtl</option>

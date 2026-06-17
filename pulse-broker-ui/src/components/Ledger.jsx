@@ -337,7 +337,7 @@ const Ledger = () => {
                         <span>🔍</span> {t('Filter & Generate Bill for Firm', 'फर्म के लिए बिल फ़िल्टर करें')}
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end relative z-10">
-                        <div className="col-span-2">
+                        <div className="md:col-span-2">
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Select Firm', 'फर्म चुनें')}</label>
                             <select value={filterFirm} onChange={e => setFilterFirm(e.target.value)} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
                                 <option value="">-- Select Firm --</option>

@@ -129,7 +129,7 @@ public class ControllerIntegrationTest {
 
         // Delete Contact (should delete tempFirm too)
         mockMvc.perform(delete("/api/contacts/" + tempContact.getId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         assertThat(contactRepository.findById(tempContact.getId())).isEmpty();
         assertThat(firmRepository.findById(tempFirm.getId())).isEmpty();
@@ -152,7 +152,7 @@ public class ControllerIntegrationTest {
 
         // Test DELETE (success since no deals exist)
         mockMvc.perform(delete("/api/firms/" + purchaser.getId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
         assertThat(firmRepository.findById(purchaser.getId())).isEmpty();
     }
 
@@ -164,7 +164,7 @@ public class ControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].name").value("Chana"));
 
         mockMvc.perform(delete("/api/items/" + item.getId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
         assertThat(itemRepository.findById(item.getId())).isEmpty();
 
         // Test Marka Endpoints
@@ -173,7 +173,7 @@ public class ControllerIntegrationTest {
                 .andExpect(jsonPath("$[0].name").value("A-One"));
 
         mockMvc.perform(delete("/api/markas/" + marka.getId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
         assertThat(markaRepository.findById(marka.getId())).isEmpty();
     }
 
@@ -228,7 +228,7 @@ public class ControllerIntegrationTest {
 
         // Delete Bill (should revert deal back to LOADED and remove bill link)
         mockMvc.perform(delete("/api/billing/" + bill.getId()))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
 
         loadedDeal = dealRepository.findById(deal.getId()).orElseThrow();
         assertThat(loadedDeal.getStatus()).isEqualTo(DealStatus.LOADED);

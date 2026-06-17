@@ -181,9 +181,9 @@ const NewDeal = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-6 relative z-10">
                             <div className="bg-white p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                                 <label className="text-xs font-bold text-primary uppercase tracking-wider block mb-3">{t('Purchaser Pays', 'खरीदार की दलाली')}</label>
-                                <div className="flex gap-3 items-center">
-                                    <input type="number" name="pBrokVal" value={formData.pBrokVal} onChange={handleChange} min="0" className="w-24 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50" step="0.01" />
-                                    <select name="pBrokType" value={formData.pBrokType} onChange={handleChange} className="border-2 border-gray-200 p-2.5 rounded-lg font-bold flex-1 focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                                    <input type="number" name="pBrokVal" value={formData.pBrokVal} onChange={handleChange} min="0" className="w-full sm:w-24 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50" step="0.01" />
+                                    <select name="pBrokType" value={formData.pBrokType} onChange={handleChange} className="w-full sm:flex-1 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50">
                                         <option value="PERCENT">% Percent</option>
                                         <option value="FIXED">₹ Fixed/Qtl</option>
                                     </select>
@@ -195,9 +195,9 @@ const NewDeal = () => {
                             </div>
                             <div className="bg-white p-5 border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
                                 <label className="text-xs font-bold text-primary uppercase tracking-wider block mb-3">{t('Seller Pays', 'विक्रेता की दलाली')}</label>
-                                <div className="flex gap-3 items-center">
-                                    <input type="number" name="sBrokVal" value={formData.sBrokVal} onChange={handleChange} min="0" className="w-24 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50" step="0.01" />
-                                    <select name="sBrokType" value={formData.sBrokType} onChange={handleChange} className="border-2 border-gray-200 p-2.5 rounded-lg font-bold flex-1 focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                                    <input type="number" name="sBrokVal" value={formData.sBrokVal} onChange={handleChange} min="0" className="w-full sm:w-24 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50" step="0.01" />
+                                    <select name="sBrokType" value={formData.sBrokType} onChange={handleChange} className="w-full sm:flex-1 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50">
                                         <option value="PERCENT">% Percent</option>
                                         <option value="FIXED">₹ Fixed/Qtl</option>
                                     </select>

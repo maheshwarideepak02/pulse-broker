@@ -164,6 +164,13 @@ const Dashboard = () => {
                                         <td className="px-6 py-4">
                                             <span className="bg-gray-100 px-2 py-1 rounded font-bold text-xs border border-gray-200">{deal.item?.name}</span>
                                             <span className="text-secondary font-bold text-xs ml-1.5">{deal.marka?.name}</span>
+                                            {deal.brokeragePayer && (
+                                                <div className="mt-1">
+                                                    <span className="text-[10px] uppercase font-bold text-gray-400">
+                                                        {deal.brokeragePayer === 'PURCHASER_BOTH' ? 'Buyer Pays Brokerage' : deal.brokeragePayer === 'SELLER_BOTH' ? 'Seller Pays Brokerage' : 'Separate Brokerage'}
+                                                    </span>
+                                                </div>
+                                            )}
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight}</td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-500">{deal.numberOfPackets || '-'}</td>
@@ -196,6 +203,13 @@ const Dashboard = () => {
                                     </div>
                                     <span className="text-secondary font-bold text-sm">₹{deal.rate}</span>
                                 </div>
+                                {deal.brokeragePayer && (
+                                    <div className="mb-2">
+                                        <span className="text-[10px] uppercase font-bold text-gray-400">
+                                            {deal.brokeragePayer === 'PURCHASER_BOTH' ? 'Buyer Pays Brokerage' : deal.brokeragePayer === 'SELLER_BOTH' ? 'Seller Pays Brokerage' : 'Separate Brokerage'}
+                                        </span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center mb-1">
                                     <span className="font-bold text-sm text-textMain">{deal.purchaser?.name}</span>
                                     <span className="text-gray-400 text-xs">→</span>

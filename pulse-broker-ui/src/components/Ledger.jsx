@@ -396,6 +396,7 @@ const Ledger = () => {
                                     <th className="px-6 py-4 font-bold">{t('Opposite Party', 'दूसरी फर्म')}</th>
                                     <th className="px-6 py-4 font-bold">{t('Item (Marka)', 'आइटम (मार्का)')}</th>
                                     <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
+                                    <th className="px-6 py-4 font-bold text-right">{t('Bags', 'बोरा')}</th>
                                     <th className="px-6 py-4 font-bold text-right">{t('Brokerage', 'दलाली')}</th>
                                 </tr>
                             </thead>
@@ -410,13 +411,14 @@ const Ledger = () => {
                                         <td className="px-6 py-4 font-bold text-primary">{d.oppositePartyName}</td>
                                         <td className="px-6 py-4"><span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span></td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-600">{d.weight}</td>
+                                        <td className="px-6 py-4 text-right font-bold text-gray-500">{d.numberOfPackets || '-'}</td>
                                         <td className="px-6 py-4 text-right">{renderBrokerageCell(d)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                             <tfoot className="bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
                                 <tr>
-                                    <td colSpan="3" className="px-6 py-4">
+                                    <td colSpan="4" className="px-6 py-4">
                                         {billPreview && billPreview.items.length > 0 && (
                                             <div className="flex gap-4">
                                                 <button onClick={handleViewPreview} className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
@@ -451,7 +453,7 @@ const Ledger = () => {
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
                                             <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span>
-                                            <span className="font-bold text-gray-600">{d.weight} qtl</span>
+                                            <span className="font-bold text-gray-600">{d.weight} qtl {d.numberOfPackets ? `(${d.numberOfPackets} Bags)` : ''}</span>
                                         </div>
                                         <div className="text-xs text-gray-500 mt-2">{d.dealDate}</div>
                                     </div>

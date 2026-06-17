@@ -168,7 +168,8 @@ class FinancialFlowIntegrationTest {
         bill = billRepository.save(bill);
 
         // Action: Clear the bill
-        Bill clearedBill = billingService.clearBill(bill.getId(), LocalDate.now());
+        LocalDate clearanceDate = LocalDate.now().plusDays(2);
+        Bill clearedBill = billingService.clearBill(bill.getId(), clearanceDate, null);
 
         // Proof: Status is PAID and date is set
         assertThat(clearedBill.getStatus()).isEqualTo(BillStatus.PAID);
@@ -176,7 +177,7 @@ class FinancialFlowIntegrationTest {
 
         // Proof: Cannot clear an already cleared bill
         assertThatCode(() -> {
-            billingService.clearBill(clearedBill.getId(), LocalDate.now());
+            billingService.clearBill(clearedBill.getId(), clearanceDate, null);
         }).hasMessageContaining("already cleared");
     }
 }

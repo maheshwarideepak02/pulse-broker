@@ -20,9 +20,16 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const handleRevertDeal = async (dealId) => {
+    const handleRevertDeal = async (dealOrId) => {
         try {
-            await revertDeal(dealId);
+            // Check if we passed a grouped deal object
+            if (typeof dealOrId === 'object' && dealOrId._childIds && dealOrId._childIds.length > 0) {
+                for (let childId of dealOrId._childIds) {
+                    await revertDeal(childId);
+                }
+            } else {
+                await revertDeal(dealOrId);
+            }
             addToast('Deal reverted to Pending status successfully.', 'success');
             fetchData();
         } catch (e) {
@@ -31,12 +38,38 @@ const Dashboard = () => {
         }
     };
 
-    const loadedDeals = [...deals]
-        .filter(d => d.status === 'LOADED' || d.status === 'BILLED')
-        .sort((a, b) => {
-            const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
-            return dateDiff !== 0 ? dateDiff : b.id - a.id;
-        });
+    const rawLoadedDeals = [...deals]
+        .filter(d => d.status === 'LOADED' || d.status === 'BILLED');
+
+    // Group partial loads by parent deal
+    const groupedMap = new Map();
+    rawLoadedDeals.forEach(d => {
+        const key = d.parentDeal ? d.parentDeal.id : d.id;
+        if (!groupedMap.has(key)) {
+            groupedMap.set(key, { ...d, _childIds: [d.id], _allLoadDates: d.loadDate ? d.loadDate.split(',').map(s=>s.trim()) : [] });
+        } else {
+            const existing = groupedMap.get(key);
+            existing.weight = parseFloat(existing.weight) + parseFloat(d.weight);
+            existing.numberOfPackets = parseInt(existing.numberOfPackets || 0) + parseInt(d.numberOfPackets || 0);
+            if (d.loadDate) {
+                const dates = d.loadDate.split(',').map(s=>s.trim());
+                dates.forEach(date => {
+                    if (!existing._allLoadDates.includes(date)) existing._allLoadDates.push(date);
+                });
+            }
+            existing._childIds.push(d.id);
+        }
+    });
+
+    const loadedDeals = Array.from(groupedMap.values()).map(d => {
+        if (d._allLoadDates && d._allLoadDates.length > 0) {
+            d.loadDate = d._allLoadDates.join(', ');
+        }
+        return d;
+    }).sort((a, b) => {
+        const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
+        return dateDiff !== 0 ? dateDiff : b.id - a.id;
+    });
     
     const filteredLoadedDeals = loadedDeals.filter(deal => {
         const q = searchQuery.toLowerCase();
@@ -137,8 +170,8 @@ const Dashboard = () => {
                                         <td className="px-6 py-4 text-right text-secondary font-bold">₹{deal.rate}</td>
                                         <td className="px-4 py-4 text-center">
                                             {deal.status === 'LOADED' && (
-                                                <button onClick={() => handleRevertDeal(deal.id)} className="text-gray-400 hover:text-red-500 transition-colors" title="Undo Load / Revert to Pending">
-                                                    ↩️
+                                                <button onClick={() => handleRevertDeal(deal)} className="text-gray-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200 ml-auto flex items-center gap-1 text-xs font-bold" title="Undo Load">
+                                                    ↩️ Undo
                                                 </button>
                                             )}
                                         </td>
@@ -174,7 +207,7 @@ const Dashboard = () => {
                                 </div>
                                 {deal.status === 'LOADED' && (
                                     <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">
-                                        <button onClick={() => handleRevertDeal(deal.id)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
+                                        <button onClick={() => handleRevertDeal(deal)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
                                             ↩️ Undo Load
                                         </button>
                                     </div>

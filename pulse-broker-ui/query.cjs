@@ -6,8 +6,8 @@ const client = new Client({
 
 async function run() {
   await client.connect();
-  const res = await client.query("SELECT id, deal_date, load_date, status, weight, rate FROM deals WHERE status = 'LOADED' ORDER BY id DESC LIMIT 5;");
-  console.log(res.rows);
+  const res = await client.query("ALTER TABLE deals ALTER COLUMN load_date TYPE VARCHAR(255) USING load_date::VARCHAR;");
+  console.log('Migration successful');
   await client.end();
 }
 

@@ -22,7 +22,7 @@ public class Deal {
 
     private LocalDate dealDate;
     
-    private LocalDate loadDate;
+    private String loadDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchaser_id")

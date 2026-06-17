@@ -7,8 +7,9 @@ import java.time.LocalDate;
 @Data
 public class DealBillItemDTO {
     private Long dealId;
+    private Long parentDealId;
     private LocalDate dealDate;
-    private LocalDate loadDate;
+    private String loadDate;
     private String oppositePartyName;
     private String itemMarka;
     private BigDecimal weight;

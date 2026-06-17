@@ -46,13 +46,43 @@ const Ledger = () => {
         }
     };
 
+    const groupBillItems = (items) => {
+        if (!items) return [];
+        const grouped = new Map();
+        items.forEach(item => {
+            const key = item.parentDealId ? `parent_${item.parentDealId}` : `deal_${item.dealId}`;
+            if (!grouped.has(key)) {
+                grouped.set(key, { ...item, _allLoadDates: item.loadDate ? item.loadDate.split(',').map(s=>s.trim()) : [] });
+            } else {
+                const existing = grouped.get(key);
+                existing.weight += item.weight;
+                existing.numberOfPackets = (existing.numberOfPackets || 0) + (item.numberOfPackets || 0);
+                existing.computedBrokerage += item.computedBrokerage;
+                existing.pBrokerage += item.pBrokerage;
+                existing.sBrokerage += item.sBrokerage;
+                if (item.loadDate) {
+                    const dates = item.loadDate.split(',').map(s=>s.trim());
+                    dates.forEach(date => {
+                        if (!existing._allLoadDates.includes(date)) existing._allLoadDates.push(date);
+                    });
+                }
+            }
+        });
+        return Array.from(grouped.values()).map(item => {
+            if (item._allLoadDates && item._allLoadDates.length > 0) {
+                item.loadDate = item._allLoadDates.join(', ');
+            }
+            return item;
+        }).sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+    };
+
     const fetchPreview = async () => {
         if (!filterFirm) return;
         setIsLoading(true);
         try {
             const data = await previewBill(filterFirm, fromDate, toDate);
             if (data.items) {
-                data.items.sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+                data.items = groupBillItems(data.items);
             }
             setBillPreview(data);
         } catch (e) {
@@ -100,7 +130,7 @@ const Ledger = () => {
             // After generating, fetch the full bill detail for viewing
             const detail = await getBillDetail(bill.id);
             if (detail.items) {
-                detail.items.sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+                detail.items = groupBillItems(detail.items);
             }
             setInvoiceData({
                 billNumber: detail.billNumber,
@@ -137,7 +167,7 @@ const Ledger = () => {
         try {
             const detail = await getBillDetail(billId);
             if (detail.items) {
-                detail.items.sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+                detail.items = groupBillItems(detail.items);
             }
             setInvoiceData({
                 billNumber: detail.billNumber,

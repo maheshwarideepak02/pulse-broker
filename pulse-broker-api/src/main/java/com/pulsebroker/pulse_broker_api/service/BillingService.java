@@ -172,6 +172,9 @@ public class BillingService {
     private DealBillItemDTO buildDealBillItemDTO(Deal d, Long firmId, BigDecimal computedBrokerage) {
         DealBillItemDTO dto = new DealBillItemDTO();
         dto.setDealId(d.getId());
+        if (d.getParentDeal() != null) {
+            dto.setParentDealId(d.getParentDeal().getId());
+        }
         dto.setDealDate(d.getDealDate());
         dto.setLoadDate(d.getLoadDate());
         dto.setOppositePartyName(getOppositePartyName(d, firmId));

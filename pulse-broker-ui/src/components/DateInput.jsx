@@ -5,36 +5,51 @@ import 'react-datepicker/dist/react-datepicker.css';
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAYS_HI = ['रवि', 'सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि'];
 
-const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required = false, placeholderText = "Select date", className = '' }) => {
+const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required = false, placeholderText = "Select date", className = '', isMulti = false }) => {
     const chipClass = variant === 'deal' ? 'deal-date' : variant === 'load' ? 'load-date' : 'filter-date';
     
-    const getFormattedLabel = () => {
-        if (!value) return null;
+    // Parse value string into Date objects
+    const parseDates = (valStr) => {
+        if (!valStr) return [];
+        return valStr.split(',').map(d => new Date(d.trim() + 'T00:00:00')).filter(d => !isNaN(d));
+    };
+
+    const datesList = isMulti ? parseDates(value) : [];
+    const dateValue = !isMulti && value ? new Date(value + 'T00:00:00') : null;
+
+    const getFormattedLabel = (dObj) => {
+        if (!dObj || isNaN(dObj)) return null;
         try {
-            const date = new Date(value + 'T00:00:00');
-            const dayName = DAYS[date.getDay()];
-            const day = date.getDate();
-            const month = date.toLocaleDateString('en-IN', { month: 'short' });
-            const year = date.getFullYear();
-            return { formatted: `${dayName}, ${day} ${month} ${year}` };
+            const dayName = DAYS[dObj.getDay()];
+            const day = dObj.getDate();
+            const month = dObj.toLocaleDateString('en-IN', { month: 'short' });
+            const year = dObj.getFullYear();
+            return `${dayName}, ${day} ${month} ${year}`;
         } catch {
             return null;
         }
     };
 
-    const dateInfo = getFormattedLabel();
-    const dateValue = value ? new Date(value + 'T00:00:00') : null;
+    const formatSingleDate = (date) => {
+        const offset = date.getTimezoneOffset();
+        const adj = new Date(date.getTime() - (offset * 60 * 1000));
+        return adj.toISOString().split('T')[0];
+    };
 
-    const handleChange = (date) => {
-        if (!date) {
+    const handleChange = (dateOrDates) => {
+        if (!dateOrDates || (Array.isArray(dateOrDates) && dateOrDates.length === 0)) {
             onChange({ target: { value: '' } });
             return;
         }
-        // Format to YYYY-MM-DD
-        const offset = date.getTimezoneOffset();
-        date = new Date(date.getTime() - (offset*60*1000));
-        const formatted = date.toISOString().split('T')[0];
-        onChange({ target: { value: formatted } });
+        
+        if (isMulti) {
+            const formattedDates = dateOrDates.map(formatSingleDate);
+            // Sort dates
+            formattedDates.sort();
+            onChange({ target: { value: formattedDates.join(', ') } });
+        } else {
+            onChange({ target: { value: formatSingleDate(dateOrDates) } });
+        }
     };
 
     return (
@@ -46,7 +61,9 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
             )}
             <div className="date-input-wrapper relative w-full">
                 <DatePicker
-                    selected={dateValue}
+                    selectsMultiple={isMulti}
+                    selectedDates={isMulti ? datesList : undefined}
+                    selected={!isMulti ? dateValue : undefined}
                     onChange={handleChange}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={placeholderText}
@@ -54,11 +71,20 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
                     isClearable={!required}
                 />
             </div>
-            {dateInfo && (
-                <div className={`date-label-chip ${chipClass}`}>
-                    <span>{dateInfo.formatted}</span>
-                </div>
-            )}
+            
+            {/* Show badges for selected dates */}
+            <div className="mt-2 flex flex-wrap gap-2">
+                {!isMulti && dateValue && getFormattedLabel(dateValue) && (
+                    <div className={`date-label-chip ${chipClass} text-xs px-2 py-1 rounded-md inline-block`}>
+                        <span>{getFormattedLabel(dateValue)}</span>
+                    </div>
+                )}
+                {isMulti && datesList.map((dObj, idx) => (
+                    <div key={idx} className={`date-label-chip ${chipClass} text-xs px-2 py-1 rounded-md inline-block`}>
+                        <span>{getFormattedLabel(dObj)}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

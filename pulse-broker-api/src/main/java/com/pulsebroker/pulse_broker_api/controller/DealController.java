@@ -44,7 +44,7 @@ public class DealController {
     @PostMapping("/{id}/load")
     public Deal loadDeal(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         java.math.BigDecimal weight = new java.math.BigDecimal(payload.get("weight").toString());
-        LocalDate loadDate = LocalDate.parse(payload.get("loadDate").toString());
+        String loadDate = payload.get("loadDate").toString();
         return dealService.loadDeal(id, weight, loadDate);
     }
 

@@ -168,6 +168,7 @@ const NewDeal = () => {
                             value={formData.loadDate}
                             onChange={e => setFormData(prev => ({...prev, loadDate: e.target.value}))}
                             variant="load"
+                            isMulti={true}
                         />
                     </div>
                     

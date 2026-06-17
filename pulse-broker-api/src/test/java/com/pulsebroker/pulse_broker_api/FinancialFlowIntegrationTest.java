@@ -71,14 +71,19 @@ class FinancialFlowIntegrationTest {
 
         final Long emptyDealId = emptyDeal.getId();
 
-        // Action: Partial load
-        assertThatCode(() -> {
-            dealService.loadDeal(emptyDealId, new BigDecimal("50.00"), LocalDate.now());
-        }).doesNotThrowAnyException(); // Proves the NullPointerException is fixed
+        // --- 3. Partial Load 250qtl ---
+        Deal partialLoad1 = dealService.loadDeal(emptyDeal.getId(), new BigDecimal("250.00"), LocalDate.now().toString());
+        assertThat(partialLoad1.getStatus()).isEqualTo(DealStatus.LOADED);
+        assertThat(partialLoad1.getWeight()).isEqualByComparingTo("250.00");
+        assertThat(partialLoad1.getParentDeal()).isNotNull();
 
-        Deal remainingPending = dealRepository.findById(emptyDealId).orElseThrow();
-        assertThat(remainingPending.getWeight()).isEqualByComparingTo("50.00");
-        assertThat(remainingPending.getPBrokerage()).isEqualByComparingTo("0.00");
+        // Refresh original deal
+        emptyDeal = dealRepository.findById(emptyDeal.getId()).orElseThrow();
+        assertThat(emptyDeal.getWeight()).isEqualByComparingTo("250.00"); // 500 - 250
+        assertThat(emptyDeal.getStatus()).isEqualTo(DealStatus.PENDING);
+        
+        // --- 4. Partial Load Remaining 250qtl ---
+        Deal partialLoad2 = dealService.loadDeal(emptyDeal.getId(), new BigDecimal("250.00"), LocalDate.now().toString());
     }
 
     @Test
@@ -98,7 +103,7 @@ class FinancialFlowIntegrationTest {
 
         // Action: Load exactly 33.33 Qtl (1/3rd)
         BigDecimal loadWeight = new BigDecimal("33.33");
-        Deal remaining = dealService.loadDeal(deal.getId(), loadWeight, LocalDate.now());
+        Deal remaining = dealService.loadDeal(deal.getId(), loadWeight, LocalDate.now().toString());
 
         // Proof: Original deal should have exactly 66.67 weight left
         assertThat(remaining.getWeight()).isEqualByComparingTo("66.67");

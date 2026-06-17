@@ -18,24 +18,20 @@ public class DealService {
     private DealRepository dealRepository;
 
     @Transactional
-    public Deal loadDeal(Long dealId, BigDecimal loadedWeight, LocalDate loadDate) {
+    public Deal loadDeal(Long dealId, BigDecimal loadedWeight, String loadDate) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
 
-        if (deal.getStatus() == DealStatus.LOADED) {
-            throw new IllegalArgumentException("Deal is already loaded");
-        }
-
-        if (loadedWeight.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException("Loaded weight must be greater than zero");
+        if (deal.getStatus() != DealStatus.PENDING) {
+            throw new RuntimeException("Only PENDING deals can be loaded");
         }
 
         if (loadedWeight.compareTo(deal.getWeight()) > 0) {
-            throw new IllegalArgumentException("Loaded weight cannot be greater than pending weight");
+            throw new RuntimeException("Loaded weight cannot exceed pending weight");
         }
 
         if (loadedWeight.compareTo(deal.getWeight()) < 0) {
-            // Partial Load: Split the deal
+            // Partial Load: Create a child deal for the loaded amount
             Deal loadedDeal = new Deal();
             loadedDeal.setDealDate(deal.getDealDate());
             loadedDeal.setLoadDate(loadDate);
@@ -44,35 +40,38 @@ public class DealService {
             loadedDeal.setItem(deal.getItem());
             loadedDeal.setMarka(deal.getMarka());
             loadedDeal.setRate(deal.getRate());
-            loadedDeal.setStatus(DealStatus.LOADED);
+            loadedDeal.setPacketWeight(deal.getPacketWeight());
             loadedDeal.setBrokeragePayer(deal.getBrokeragePayer());
-            loadedDeal.setParentDeal(deal);
+            loadedDeal.setParentDeal(deal); // Link to parent
+
             loadedDeal.setWeight(loadedWeight);
-
-            // Prevent divide by zero if deal weight is somehow 0
-            if (deal.getWeight().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new RuntimeException("Cannot calculate brokerage ratio. Pending weight is invalid (zero or negative).");
+            if (deal.getPacketWeight() != null && deal.getPacketWeight().compareTo(BigDecimal.ZERO) > 0) {
+                loadedDeal.setNumberOfPackets(
+                    loadedWeight.multiply(new BigDecimal("100")).divide(deal.getPacketWeight(), 0, RoundingMode.HALF_UP).intValue()
+                );
             }
-            
-            // Calculate proportional brokerage securely
-            BigDecimal ratio = loadedWeight.divide(deal.getWeight(), 10, RoundingMode.HALF_UP);
-            
-            BigDecimal currentPBrok = deal.getPBrokerage() != null ? deal.getPBrokerage() : BigDecimal.ZERO;
-            BigDecimal currentSBrok = deal.getSBrokerage() != null ? deal.getSBrokerage() : BigDecimal.ZERO;
-            
-            BigDecimal newPBrokerage = currentPBrok.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
-            BigDecimal newSBrokerage = currentSBrok.multiply(ratio).setScale(2, RoundingMode.HALF_UP);
-            
-            loadedDeal.setPBrokerage(newPBrokerage);
-            loadedDeal.setSBrokerage(newSBrokerage);
 
-            // Save the new loaded portion
+            // Pro-rate brokerage
+            BigDecimal ratio = loadedWeight.divide(deal.getWeight(), 10, RoundingMode.HALF_UP);
+            if (deal.getPBrokerage() != null) {
+                loadedDeal.setPBrokerage(deal.getPBrokerage().multiply(ratio).setScale(2, RoundingMode.HALF_UP));
+                deal.setPBrokerage(deal.getPBrokerage().subtract(loadedDeal.getPBrokerage()));
+            }
+            if (deal.getSBrokerage() != null) {
+                loadedDeal.setSBrokerage(deal.getSBrokerage().multiply(ratio).setScale(2, RoundingMode.HALF_UP));
+                deal.setSBrokerage(deal.getSBrokerage().subtract(loadedDeal.getSBrokerage()));
+            }
+
+            loadedDeal.setStatus(DealStatus.LOADED);
             dealRepository.save(loadedDeal);
 
-            // Update the original pending portion
+            // Update parent deal
             deal.setWeight(deal.getWeight().subtract(loadedWeight));
-            deal.setPBrokerage(currentPBrok.subtract(newPBrokerage));
-            deal.setSBrokerage(currentSBrok.subtract(newSBrokerage));
+            if (deal.getPacketWeight() != null && deal.getPacketWeight().compareTo(BigDecimal.ZERO) > 0) {
+                deal.setNumberOfPackets(
+                    deal.getWeight().multiply(new BigDecimal("100")).divide(deal.getPacketWeight(), 0, RoundingMode.HALF_UP).intValue()
+                );
+            }
             return dealRepository.save(deal);
         } else {
             // Full Load

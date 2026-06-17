@@ -230,7 +230,7 @@ const Ledger = () => {
                     <div style={{ textAlign: 'center', marginBottom: '10px' }}>
                         <div style={{ fontSize: '24px', color: '#9e1b22', marginBottom: '-5px' }}>ॐ</div>
                         <div style={{ fontSize: '13px', fontWeight: 'bold' }}>श्री गुरुचरण कमलेभ्यो: नम:</div>
-                        <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: '4px 0' }}>सजीव कुमार माहेश्वरी</h1>
+                        <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: '4px 0' }}>संजीव कुमार माहेश्वरी</h1>
                         <div style={{ fontSize: '14px', fontWeight: 'bold' }}>ब्रोकर: दलहन, गल्ला, चावल आदि</div>
                     </div>
                     <div style={{ textAlign: 'center', borderTop: '1px solid #9e1b22', borderBottom: '1px solid #9e1b22', padding: '4px 0', marginBottom: '10px', position: 'relative' }}>
@@ -246,7 +246,8 @@ const Ledger = () => {
                         भै० <span className="bill-line" style={{ minWidth: '300px' }}>{invoiceData.firmName}</span>
                     </div>
                     {invoiceData.items && (
-                    <table>
+                    <div className="overflow-x-auto w-full pb-2">
+                    <table style={{ minWidth: '600px' }}>
                         <thead>
                             <tr>
                                 <th style={{ width: '12%' }}>दिनांक</th>
@@ -291,6 +292,7 @@ const Ledger = () => {
                             })}
                         </tbody>
                     </table>
+                    </div>
                     )}
                     <div style={{ marginTop: '15px', position: 'relative', height: '100px' }}>
                         <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', width: '100%' }}>

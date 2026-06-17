@@ -54,8 +54,16 @@ const NewDeal = () => {
                 const pw = parseFloat(updated.packetWeight);
                 if (!isNaN(w) && !isNaN(pw) && pw > 0) {
                     updated.numberOfPackets = Math.round((w * 100) / pw);
-                } else {
+                } else if (name === 'weight' && value === '') {
                     updated.numberOfPackets = '';
+                }
+            } else if (name === 'numberOfPackets') {
+                const pkts = parseInt(updated.numberOfPackets, 10);
+                const pw = parseFloat(updated.packetWeight);
+                if (!isNaN(pkts) && !isNaN(pw) && pw > 0) {
+                    updated.weight = ((pkts * pw) / 100).toFixed(2);
+                } else if (value === '') {
+                    updated.weight = '';
                 }
             }
             return updated;

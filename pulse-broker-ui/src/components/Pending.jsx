@@ -379,7 +379,13 @@ const Pending = () => {
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-secondary uppercase mb-1">Total Bags</label>
-                                        <input type="number" value={editData.numberOfPackets} onChange={e => setEditData({...editData, numberOfPackets: e.target.value})} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
+                                        <input type="number" value={editData.numberOfPackets} onChange={e => {
+                                            const np = parseInt(e.target.value, 10);
+                                            const pw = parseFloat(editData.packetWeight);
+                                            let w = editData.weight;
+                                            if (!isNaN(np) && !isNaN(pw) && pw > 0) w = ((np * pw) / 100).toFixed(2);
+                                            setEditData({...editData, numberOfPackets: e.target.value, weight: w});
+                                        }} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
                                     </div>
                                 </div>
                                 

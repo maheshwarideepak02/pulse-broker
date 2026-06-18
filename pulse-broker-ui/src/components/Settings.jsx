@@ -45,7 +45,7 @@ const Settings = () => {
     };
 
     const handleEditItem = async (item) => {
-        const newName = window.prompt("Edit Item Name:", item.name);
+        const newName = window.prompt(t("Edit Item Name:", "आइटम का नाम संपादित करें:"), item.name);
         if (newName && newName.trim() !== '' && newName !== item.name) {
             try {
                 await updateItem(item.id, { name: newName });
@@ -77,7 +77,7 @@ const Settings = () => {
     };
 
     const handleEditMarka = async (marka) => {
-        const newName = window.prompt("Edit Marka Name:", marka.name);
+        const newName = window.prompt(t("Edit Marka Name:", "मार्का का नाम संपादित करें:"), marka.name);
         if (newName && newName.trim() !== '' && newName !== marka.name) {
             try {
                 await updateMarka(marka.id, { name: newName });
@@ -94,8 +94,8 @@ const Settings = () => {
             isOpen: true,
             type: 'item',
             id: id,
-            title: 'Delete Item',
-            message: 'Are you sure you want to delete this item?'
+            title: t('Delete Item', 'आइटम मिटाएं'),
+            message: t('Are you sure you want to delete this item?', 'क्या आप वाकई इस आइटम को मिटाना चाहते हैं?')
         });
     };
 
@@ -104,8 +104,8 @@ const Settings = () => {
             isOpen: true,
             type: 'marka',
             id: id,
-            title: 'Delete Marka',
-            message: 'Are you sure you want to delete this marka?'
+            title: t('Delete Marka', 'मार्का मिटाएं'),
+            message: t('Are you sure you want to delete this marka?', 'क्या आप वाकई इस मार्का को मिटाना चाहते हैं?')
         });
     };
 
@@ -134,17 +134,17 @@ const Settings = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-primary">🌾</span> {t('Manage Pulse Categories (Items)', 'आइटम प्रबंधित करें')}</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">
-                    <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder="Item Name (e.g. Masoor, Toor)" className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-full sm:w-64" />
+                    <input type="text" value={newItem} onChange={e => setNewItem(e.target.value)} placeholder={t("Item Name (e.g. Masoor, Toor)", "आइटम का नाम (उदा. मसूर, तूर)")} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all w-full sm:w-64" />
                     <button onClick={handleSaveItem} disabled={isProcessing} className={`transition-colors text-white font-bold px-5 py-2.5 rounded-lg shadow-md w-full sm:w-auto ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800'}`}>
-                        {isProcessing ? 'Saving...' : t('+ Add Item', '+ आइटम जोड़ें')}
+                        {isProcessing ? t('Saving...', 'सहेजा जा रहा है...') : t('+ Add Item', '+ आइटम जोड़ें')}
                     </button>
                 </div>
                 <div className="flex flex-wrap gap-3 relative z-10">
                     {items.map(i => (
-                        <span key={i.id} title="Click to Edit" className="bg-gray-50 hover:bg-red-50 hover:border-primary transition-colors border-2 border-gray-200 px-4 py-1.5 rounded-md font-bold text-gray-700 cursor-pointer group flex items-center gap-2">
+                        <span key={i.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-gray-50 hover:bg-red-50 hover:border-primary transition-colors border-2 border-gray-200 px-4 py-1.5 rounded-md font-bold text-gray-700 cursor-pointer group flex items-center gap-2">
                             <span onClick={() => handleEditItem(i)}>{i.name}</span>
                             <span onClick={() => handleEditItem(i)} className="opacity-0 group-hover:opacity-100 text-xs text-primary transition-opacity">✏️</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(i.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title="Delete Item">×</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(i.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Item", "आइटम मिटाएं")}>×</button>
                         </span>
                     ))}
                 </div>
@@ -154,17 +154,17 @@ const Settings = () => {
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-secondary">🏷️</span> {t('Manage Marka (Brands)', 'मार्का प्रबंधित करें')}</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">
-                    <input type="text" value={newMarka} onChange={e => setNewMarka(e.target.value)} placeholder="Marka Name (e.g. Navkar)" className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full sm:w-64 bg-white" />
+                    <input type="text" value={newMarka} onChange={e => setNewMarka(e.target.value)} placeholder={t("Marka Name (e.g. Navkar)", "मार्का का नाम (उदा. नवकार)")} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full sm:w-64 bg-white" />
                     <button onClick={handleSaveMarka} disabled={isProcessing} className={`transition-colors text-white font-bold px-5 py-2.5 rounded-lg shadow-md w-full sm:w-auto ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-secondary hover:bg-yellow-600'}`}>
-                        {isProcessing ? 'Saving...' : t('+ Add Marka', '+ मार्का जोड़ें')}
+                        {isProcessing ? t('Saving...', 'सहेजा जा रहा है...') : t('+ Add Marka', '+ मार्का जोड़ें')}
                     </button>
                 </div>
                 <div className="flex flex-wrap gap-3 relative z-10">
                     {markas.map(m => (
-                        <span key={m.id} title="Click to Edit" className="bg-white hover:bg-yellow-100 hover:border-secondary transition-colors border-2 border-yellow-200 text-secondary px-4 py-1.5 rounded-md font-bold cursor-pointer group flex items-center gap-2">
+                        <span key={m.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-white hover:bg-yellow-100 hover:border-secondary transition-colors border-2 border-yellow-200 text-secondary px-4 py-1.5 rounded-md font-bold cursor-pointer group flex items-center gap-2">
                             <span onClick={() => handleEditMarka(m)}>{m.name}</span>
                             <span onClick={() => handleEditMarka(m)} className="opacity-0 group-hover:opacity-100 text-xs text-secondary transition-opacity">✏️</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteMarka(m.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title="Delete Marka">×</button>
+                            <button onClick={(e) => { e.stopPropagation(); handleDeleteMarka(m.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Marka", "मार्का मिटाएं")}>×</button>
                         </span>
                     ))}
                 </div>

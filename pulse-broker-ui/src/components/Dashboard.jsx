@@ -153,7 +153,7 @@ const Dashboard = () => {
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredLoadedDeals.length === 0 ? (
-                                <tr><td colSpan="7" className="p-8 text-center text-gray-500 font-medium">No deals match your search.</td></tr>
+                                <tr><td colSpan="7" className="p-8 text-center text-gray-500 font-medium">{t('No deals match your search.', 'आपकी खोज से कोई सौदा मेल नहीं खाता।')}</td></tr>
                             ) : (
                                 filteredLoadedDeals.map(deal => (
                                     <tr key={deal.id} className="hover:bg-red-50/30 transition-colors">
@@ -167,7 +167,7 @@ const Dashboard = () => {
                                             {deal.brokeragePayer && (
                                                 <div className="mt-1">
                                                     <span className="text-[10px] uppercase font-bold text-gray-400">
-                                                        {deal.brokeragePayer === 'PURCHASER_BOTH' ? 'Buyer Pays Brokerage' : deal.brokeragePayer === 'SELLER_BOTH' ? 'Seller Pays Brokerage' : 'Separate Brokerage'}
+                                                        {deal.brokeragePayer === 'PURCHASER_BOTH' ? t('Buyer Pays Brokerage', 'खरीदार दलाली देगा') : deal.brokeragePayer === 'SELLER_BOTH' ? t('Seller Pays Brokerage', 'विक्रेता दलाली देगा') : t('Separate Brokerage', 'अलग-अलग दलाली')}
                                                     </span>
                                                 </div>
                                             )}
@@ -178,7 +178,7 @@ const Dashboard = () => {
                                         <td className="px-4 py-4 text-center">
                                             {deal.status === 'LOADED' && (
                                                 <button onClick={() => handleRevertDeal(deal)} className="text-gray-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200 ml-auto flex items-center gap-1 text-xs font-bold" title="Undo Load">
-                                                    ↩️ Undo
+                                                    ↩️ {t('Undo', 'पूर्ववत')}
                                                 </button>
                                             )}
                                         </td>
@@ -192,7 +192,7 @@ const Dashboard = () => {
                 {/* Mobile Card Layout */}
                 <div className="md:hidden divide-y divide-gray-100">
                     {filteredLoadedDeals.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500 font-medium">No deals match your search.</div>
+                        <div className="p-8 text-center text-gray-500 font-medium">{t('No deals match your search.', 'आपकी खोज से कोई सौदा मेल नहीं खाता।')}</div>
                     ) : (
                         filteredLoadedDeals.map(deal => (
                             <div key={deal.id} className="p-4 hover:bg-red-50/30 transition-colors">
@@ -206,7 +206,7 @@ const Dashboard = () => {
                                 {deal.brokeragePayer && (
                                     <div className="mb-2">
                                         <span className="text-[10px] uppercase font-bold text-gray-400">
-                                            {deal.brokeragePayer === 'PURCHASER_BOTH' ? 'Buyer Pays Brokerage' : deal.brokeragePayer === 'SELLER_BOTH' ? 'Seller Pays Brokerage' : 'Separate Brokerage'}
+                                            {deal.brokeragePayer === 'PURCHASER_BOTH' ? t('Buyer Pays Brokerage', 'खरीदार दलाली देगा') : deal.brokeragePayer === 'SELLER_BOTH' ? t('Seller Pays Brokerage', 'विक्रेता दलाली देगा') : t('Separate Brokerage', 'अलग-अलग दलाली')}
                                         </span>
                                     </div>
                                 )}
@@ -217,12 +217,12 @@ const Dashboard = () => {
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                     <span>{formatDate(deal.dealDate)} {deal.loadDate ? `→ ${formatDate(deal.loadDate)}` : ''}</span>
-                                    <span className="font-bold text-gray-700">{deal.numberOfPackets ? `${deal.numberOfPackets} Bags / ` : ''}{deal.weight} qtl</span>
+                                    <span className="font-bold text-gray-700">{deal.numberOfPackets ? `${deal.numberOfPackets} ${t('Bags', 'बोरी')} / ` : ''}{deal.weight} {t('qtl', 'क्विंटल')}</span>
                                 </div>
                                 {deal.status === 'LOADED' && (
                                     <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">
                                         <button onClick={() => handleRevertDeal(deal)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
-                                            ↩️ Undo Load
+                                            ↩️ {t('Undo Load', 'लोड पूर्ववत करें')}
                                         </button>
                                     </div>
                                 )}

@@ -172,7 +172,7 @@ const Pending = () => {
                     <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">
                         <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
                         <p className="text-primary font-bold text-lg">{t('Processing...', 'प्रक्रिया चल रही है...')}</p>
-                        <p className="text-xs text-gray-400 mt-2">Please do not close this window</p>
+                        <p className="text-xs text-gray-400 mt-2">{t('Please do not close this window', 'कृपया इस विंडो को बंद न करें')}</p>
                     </div>
                 </div>
             )}
@@ -224,16 +224,16 @@ const Pending = () => {
                                         <span className="bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200 font-bold shadow-sm">{deal.item?.name}</span> 
                                         <span className="text-secondary font-bold ml-1.5">{deal.marka?.name}</span>
                                         <div className="mt-1.5 text-xs text-textMuted font-bold uppercase flex items-center gap-2">
-                                            <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">{deal.weight} QTL {deal.numberOfPackets ? `(${deal.numberOfPackets} Bags)` : ''}</span> 
+                                            <span className="bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">{deal.weight} {t('QTL', 'क्विंटल')} {deal.numberOfPackets ? `(${deal.numberOfPackets} ${t('Bags', 'बोरी')})` : ''}</span> 
                                             <span>@ ₹{deal.rate}</span>
                                         </div>
                                     </td>
                                     <td className="px-5 py-4 text-right whitespace-nowrap">
-                                        <button onClick={() => openEditDeal(deal)} className="bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title="Edit Deal">
-                                            ✏️ Edit
+                                        <button onClick={() => openEditDeal(deal)} className="bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Edit Deal', 'सौदा संपादित करें')}>
+                                            ✏️ {t('Edit', 'संपादन')}
                                         </button>
-                                        <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title="Delete Deal">
-                                            🗑️ Delete
+                                        <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Delete Deal', 'सौदा मिटाएं')}>
+                                            🗑️ {t('Delete', 'मिटाएं')}
                                         </button>
                                         <button onClick={() => { setSelectedDeal(deal); setLoadData({...loadData, weight: deal.weight}); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
                                             {t('Load Now', 'लोड करें')}
@@ -275,7 +275,7 @@ const Pending = () => {
                             </div>
 
                             <div className="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">{deal.weight} QTL {deal.numberOfPackets ? `(${deal.numberOfPackets} Bags)` : ''}</span>
+                                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">{deal.weight} {t('QTL', 'क्विंटल')} {deal.numberOfPackets ? `(${deal.numberOfPackets} ${t('Bags', 'बोरी')})` : ''}</span>
                                 <span className="text-gray-600 font-bold text-sm">₹{deal.rate}</span>
                             </div>
 
@@ -317,31 +317,31 @@ const Pending = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Purchaser</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Purchaser', 'खरीदार')}</label>
                                     <select value={editData.purchaser.id} onChange={e => setEditData({...editData, purchaser: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                        <option value="">Select Purchaser</option>
+                                        <option value="">{t('Select Purchaser', 'खरीदार चुनें')}</option>
                                         {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Seller</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Seller', 'विक्रेता')}</label>
                                     <select value={editData.seller.id} onChange={e => setEditData({...editData, seller: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                        <option value="">Select Seller</option>
+                                        <option value="">{t('Select Seller', 'विक्रेता चुनें')}</option>
                                         {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Item</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Item', 'आइटम')}</label>
                                         <select value={editData.item.id} onChange={e => setEditData({...editData, item: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                            <option value="">Select Item</option>
+                                            <option value="">{t('Select Item', 'आइटम चुनें')}</option>
                                             {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Marka</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Marka', 'मार्का')}</label>
                                         <select value={editData.marka.id} onChange={e => setEditData({...editData, marka: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                            <option value="">Select Marka</option>
+                                            <option value="">{t('Select Marka', 'मार्का चुनें')}</option>
                                             {markas.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                                         </select>
                                     </div>
@@ -352,7 +352,7 @@ const Pending = () => {
                             <div className="space-y-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Weight (Qtl)</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Weight (Qtl)', 'वजन (क्विंटल)')}</label>
                                         <input type="number" value={editData.weight} onChange={e => {
                                             const w = parseFloat(e.target.value);
                                             const pw = parseFloat(editData.packetWeight);
@@ -362,13 +362,13 @@ const Pending = () => {
                                         }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Rate (₹)</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Rate (₹)', 'दर (₹)')}</label>
                                         <input type="number" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Packet (kg)</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Packet (kg)', 'पैकेट (किलो)')}</label>
                                         <input type="number" value={editData.packetWeight} onChange={e => {
                                             const pw = parseFloat(e.target.value);
                                             const w = parseFloat(editData.weight);
@@ -378,7 +378,7 @@ const Pending = () => {
                                         }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="1" step="0.5" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-secondary uppercase mb-1">Total Bags</label>
+                                        <label className="block text-xs font-bold text-secondary uppercase mb-1">{t('Total Bags', 'कुल बोरी')}</label>
                                         <input type="number" value={editData.numberOfPackets} onChange={e => {
                                             const np = parseInt(e.target.value, 10);
                                             const pw = parseFloat(editData.packetWeight);
@@ -396,22 +396,22 @@ const Pending = () => {
                                 </div>
                                 
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Brokerage Settings</label>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('Brokerage Settings', 'दलाली सेटिंग्स')}</label>
                                     <div className="grid grid-cols-2 gap-4 mb-3">
                                         <div>
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Purchaser Brok</label>
-                                            <input type="number" value={editData.pBrokerage} onChange={e => setEditData({...editData, pBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder="Empty = 0" />
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Purchaser Brok', 'खरीदार दलाली')}</label>
+                                            <input type="number" value={editData.pBrokerage} onChange={e => setEditData({...editData, pBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder={t('Empty = 0', 'खाली = 0')} />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Seller Brok</label>
-                                            <input type="number" value={editData.sBrokerage} onChange={e => setEditData({...editData, sBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder="Empty = 0" />
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Seller Brok', 'विक्रेता दलाली')}</label>
+                                            <input type="number" value={editData.sBrokerage} onChange={e => setEditData({...editData, sBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder={t('Empty = 0', 'खाली = 0')} />
                                         </div>
                                     </div>
-                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Who Pays Brokerage?</label>
+                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Who Pays Brokerage?', 'दलाली कौन देगा?')}</label>
                                     <select value={editData.brokeragePayer} onChange={e => setEditData({...editData, brokeragePayer: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm bg-white font-bold">
-                                        <option value="SEPARATE">Separate (अलग-अलग)</option>
-                                        <option value="PURCHASER_BOTH">Purchaser Pays Both (खरीदार दोनों देगा)</option>
-                                        <option value="SELLER_BOTH">Seller Pays Both (विक्रेता दोनों देगा)</option>
+                                        <option value="SEPARATE">{t('Separate (Both pay own)', 'अलग-अलग (दोनों अपनी-अपनी)')}</option>
+                                        <option value="PURCHASER_BOTH">{t('Purchaser Pays Both', 'खरीदार दोनों देगा')}</option>
+                                        <option value="SELLER_BOTH">{t('Seller Pays Both', 'विक्रेता दोनों देगा')}</option>
                                     </select>
                                 </div>
                             </div>
@@ -463,8 +463,8 @@ const Pending = () => {
                                 <div className="absolute right-4 top-3.5 text-gray-400 font-bold">QTL</div>
                             </div>
                             <div className="flex justify-between items-center mt-2 px-1">
-                                <p className="text-xs text-textMuted font-medium">Pending: <span className="font-bold text-secondary text-sm">{selectedDeal.weight}</span> Qtl</p>
-                                <p className="text-xs text-moneyGreen font-bold italic animate-pulse">* Automatically splits if partial</p>
+                                <p className="text-xs text-textMuted font-medium">{t('Pending', 'शेष')}: <span className="font-bold text-secondary text-sm">{selectedDeal.weight}</span> {t('Qtl', 'क्विंटल')}</p>
+                                <p className="text-xs text-moneyGreen font-bold italic animate-pulse">* {t('Automatically splits if partial', 'आंशिक होने पर स्वचालित विभाजन')}</p>
                             </div>
                         </div>
                         <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
@@ -479,8 +479,8 @@ const Pending = () => {
 
             <ConfirmModal 
                 isOpen={confirmDialog.isOpen}
-                title="Delete Deal"
-                message="Are you sure you want to delete this deal?"
+                title={t('Delete Deal', 'सौदा मिटाएं')}
+                message={t('Are you sure you want to delete this deal?', 'क्या आप वाकई इस सौदे को मिटाना चाहते हैं?')}
                 onConfirm={executeDelete}
                 onCancel={() => setConfirmDialog({ isOpen: false, id: null })}
             />

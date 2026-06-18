@@ -195,7 +195,7 @@ const NewDeal = () => {
                             <button type="button" onClick={() => {
                                 setFormData(prev => ({...prev, loadDates: [...prev.loadDates, '']}));
                             }} className="text-secondary hover:text-yellow-600 font-bold text-xs uppercase flex items-center gap-1 mt-1 transition-colors">
-                                <span>➕ Add Date</span>
+                                <span>➕ {t('Add Date', 'तारीख जोड़ें')}</span>
                             </button>
                         </div>
                     </div>
@@ -243,7 +243,7 @@ const NewDeal = () => {
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">{t('Total Bags/Packets', 'कुल बोरे/कट्टे')}</label>
-                            <input type="number" name="numberOfPackets" value={formData.numberOfPackets} onChange={handleChange} min="1" className="w-full border-2 border-yellow-200 rounded-lg px-3 py-3 font-black focus:ring-2 focus:ring-secondary outline-none transition-all shadow-sm bg-yellow-50 text-right text-secondary" placeholder="Auto-calculated" required />
+                            <input type="number" name="numberOfPackets" value={formData.numberOfPackets} onChange={handleChange} min="1" className="w-full border-2 border-yellow-200 rounded-lg px-3 py-3 font-black focus:ring-2 focus:ring-secondary outline-none transition-all shadow-sm bg-yellow-50 text-right text-secondary" placeholder={t('Auto-calculated', 'स्वचालित गणना')} required />
                         </div>
                     </div>
 
@@ -257,8 +257,8 @@ const NewDeal = () => {
                                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                                     <input type="number" name="pBrokVal" value={formData.pBrokVal} onChange={handleChange} min="0" className="w-full sm:w-24 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50" step="0.01" />
                                     <select name="pBrokType" value={formData.pBrokType} onChange={handleChange} className="w-full sm:flex-1 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50">
-                                        <option value="PERCENT">% Percent</option>
-                                        <option value="FIXED">₹ Fixed/Qtl</option>
+                                        <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
+                                        <option value="FIXED">₹ {t('Fixed/Qtl', 'प्रति क्विंटल')}</option>
                                     </select>
                                 </div>
                                 <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
@@ -271,8 +271,8 @@ const NewDeal = () => {
                                 <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
                                     <input type="number" name="sBrokVal" value={formData.sBrokVal} onChange={handleChange} min="0" className="w-full sm:w-24 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50" step="0.01" />
                                     <select name="sBrokType" value={formData.sBrokType} onChange={handleChange} className="w-full sm:flex-1 border-2 border-gray-200 p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-primary outline-none transition-all bg-gray-50">
-                                        <option value="PERCENT">% Percent</option>
-                                        <option value="FIXED">₹ Fixed/Qtl</option>
+                                        <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
+                                        <option value="FIXED">₹ {t('Fixed/Qtl', 'प्रति क्विंटल')}</option>
                                     </select>
                                 </div>
                                 <div className="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">

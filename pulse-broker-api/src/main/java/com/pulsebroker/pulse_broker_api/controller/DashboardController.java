@@ -47,8 +47,8 @@ public class DashboardController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setTotalOutstanding(totalOutstanding);
 
-        // 2. Pending Loads (Count of PENDING deals)
-        long pendingCount = dealRepository.findByStatus(DealStatus.PENDING).size();
+        // 2. Pending Loads (Count of PENDING and OPEN_UNASSIGNED deals)
+        long pendingCount = dealRepository.findByStatusIn(java.util.Arrays.asList(DealStatus.PENDING, DealStatus.OPEN_UNASSIGNED)).size();
         summary.setPendingLoads(pendingCount);
 
         // 3. Deals This Month (Count of all deals created this month)
@@ -56,9 +56,9 @@ public class DashboardController {
         long dealsThisMonth = dealRepository.countByDealDateGreaterThanEqual(startOfMonth);
         summary.setDealsThisMonth(dealsThisMonth);
 
-        // 4. Total Unbilled (Sum of all PENDING and LOADED deals' brokerages)
+        // 4. Total Unbilled (Sum of all PENDING, OPEN_UNASSIGNED, and LOADED deals' brokerages)
         List<Deal> unbilledDeals = dealRepository.findAll().stream()
-                .filter(d -> d.getStatus() == DealStatus.PENDING || d.getStatus() == DealStatus.LOADED)
+                .filter(d -> d.getStatus() == DealStatus.PENDING || d.getStatus() == DealStatus.OPEN_UNASSIGNED || d.getStatus() == DealStatus.LOADED)
                 .toList();
                 
         BigDecimal totalUnbilled = BigDecimal.ZERO;

@@ -21,6 +21,9 @@ const Parties = () => {
     const [nc, setNc] = useState({ name: '', phone: '', city: '' });
     const [fc, setFc] = useState({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
 
+    const [fc, setFc] = useState({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
+
+    const [isProcessing, setIsProcessing] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });
 
     const fetchData = () => {
@@ -44,6 +47,8 @@ const Parties = () => {
                 return;
             }
         }
+        if (isProcessing) return;
+        setIsProcessing(true);
         try {
             if (editContact) {
                 await updateContact(editContact.id, nc);
@@ -58,6 +63,8 @@ const Parties = () => {
             setEditContact(null);
         } catch (e) {
             addToast('Failed to save contact', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -70,6 +77,8 @@ const Parties = () => {
             addToast('Brokerage value cannot be negative', 'error');
             return;
         }
+        if (isProcessing) return;
+        setIsProcessing(true);
         try {
             const payload = {
                 name: fc.name,
@@ -89,6 +98,8 @@ const Parties = () => {
             setEditFirm(null);
         } catch (e) {
             addToast('Failed to save firm', 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 

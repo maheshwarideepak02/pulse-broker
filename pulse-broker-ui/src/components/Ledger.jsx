@@ -701,7 +701,9 @@ const Ledger = () => {
 
                         <div className="flex justify-end gap-3">
                             <button onClick={() => setClearBillDialog({ ...clearBillDialog, isOpen: false })} className="px-5 py-2.5 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-colors">Cancel</button>
-                            <button onClick={executeClearBill} className="px-5 py-2.5 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 shadow-md transition-colors">✓ Mark Paid</button>
+                            <button onClick={executeClearBill} disabled={isProcessing} className={`px-5 py-2.5 rounded-lg font-bold text-white shadow-md transition-colors ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
+                                {isProcessing ? 'Processing...' : '✓ Mark Paid'}
+                            </button>
                         </div>
                     </div>
                 </div>

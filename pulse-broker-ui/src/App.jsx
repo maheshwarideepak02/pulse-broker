@@ -74,12 +74,13 @@ function App() {
     return (
       <div className="fixed inset-0 bg-background flex flex-col items-center justify-center p-6 text-center z-50">
         <div className="w-24 h-24 border-8 border-gray-200 border-t-primary rounded-full animate-spin mb-8 shadow-lg"></div>
-        <h1 className="text-3xl font-bold text-textMain mb-4">Waking up the Broker Engine 🌾</h1>
+        <h1 className="text-3xl font-bold text-textMain mb-4">Waking up the Broker Engine 🌾<br/><span className="text-2xl mt-2 block text-secondary">सर्वर चालू हो रहा है</span></h1>
         <p className="text-gray-500 max-w-md text-lg">
-          Our servers were catching a quick nap! Please give it about 30 to 50 seconds to fully boot up. Once it's awake, it will run at lightning speed.
+          Our servers were catching a quick nap! Please give it about 30 to 50 seconds to fully boot up.<br/><br/>
+          <span className="font-bold text-gray-600">सर्वर को पूरी तरह चालू होने में 30 से 50 सेकंड का समय लग सकता है। कृपया प्रतीक्षा करें।</span>
         </p>
         <div className="mt-8 px-6 py-2 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold animate-pulse">
-          ⏳ Please do not close this window
+          ⏳ Please do not close this window | कृपया इस विंडो को बंद न करें
         </div>
       </div>
     );

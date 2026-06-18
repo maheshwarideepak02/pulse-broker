@@ -4,6 +4,7 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
+export const checkServerHealth = () => api.get('/health').then(res => res.data);
 export const getItems = () => api.get('/items').then(res => res.data);
 export const getMarkas = () => api.get('/markas').then(res => res.data);
 export const getContacts = () => api.get('/contacts').then(res => res.data);

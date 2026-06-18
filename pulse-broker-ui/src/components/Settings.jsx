@@ -12,7 +12,6 @@ const Settings = () => {
     const [newItem, setNewItem] = useState('');
     const [newMarka, setNewMarka] = useState('');
 
-    const [newMarka, setNewMarka] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });

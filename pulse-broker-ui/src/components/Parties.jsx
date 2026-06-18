@@ -21,8 +21,6 @@ const Parties = () => {
     const [nc, setNc] = useState({ name: '', phone: '', city: '' });
     const [fc, setFc] = useState({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
 
-    const [fc, setFc] = useState({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
-
     const [isProcessing, setIsProcessing] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });
 

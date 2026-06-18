@@ -45,7 +45,9 @@ public class DealController {
     public Deal loadDeal(@PathVariable Long id, @RequestBody Map<String, Object> payload) {
         java.math.BigDecimal weight = new java.math.BigDecimal(payload.get("weight").toString());
         String loadDate = payload.get("loadDate").toString();
-        return dealService.loadDeal(id, weight, loadDate);
+        Long purchaserId = payload.containsKey("purchaserId") && payload.get("purchaserId") != null ? Long.valueOf(payload.get("purchaserId").toString()) : null;
+        Long sellerId = payload.containsKey("sellerId") && payload.get("sellerId") != null ? Long.valueOf(payload.get("sellerId").toString()) : null;
+        return dealService.loadDeal(id, weight, loadDate, purchaserId, sellerId);
     }
 
     @PutMapping("/{id}")
@@ -55,6 +57,8 @@ public class DealController {
             throw new IllegalArgumentException("Cannot edit a billed deal.");
         }
         deal.setDealDate(dealDetails.getDealDate());
+        deal.setPurchaserContact(dealDetails.getPurchaserContact());
+        deal.setSellerContact(dealDetails.getSellerContact());
         deal.setPurchaser(dealDetails.getPurchaser());
         deal.setSeller(dealDetails.getSeller());
         deal.setItem(dealDetails.getItem());

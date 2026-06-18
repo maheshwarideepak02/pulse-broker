@@ -25,12 +25,22 @@ public class Deal {
     private String loadDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "purchaser_id")
+    @JoinColumn(name = "purchaser_contact_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Contact purchaserContact;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_contact_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    private Contact sellerContact;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "purchaser_id", nullable = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Firm purchaser;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "seller_id")
+    @JoinColumn(name = "seller_id", nullable = true)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Firm seller;
 

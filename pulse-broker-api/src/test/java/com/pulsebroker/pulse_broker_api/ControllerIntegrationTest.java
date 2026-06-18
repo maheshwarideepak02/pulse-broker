@@ -54,6 +54,8 @@ public class ControllerIntegrationTest {
     private BillRepository billRepository;
 
     private Contact contact;
+    private Contact purchaserContact;
+    private Contact sellerContact;
     private Firm purchaser;
     private Firm seller;
     private Item item;
@@ -67,18 +69,26 @@ public class ControllerIntegrationTest {
         contact.setCity("Bareilly");
         contact = contactRepository.save(contact);
 
+        purchaserContact = new Contact();
+        purchaserContact.setName("Purchaser Contact");
+        purchaserContact.setDefaultBrokType(BrokType.PERCENT);
+        purchaserContact.setDefaultBrokVal(new BigDecimal("1.0"));
+        purchaserContact = contactRepository.save(purchaserContact);
+
         purchaser = new Firm();
         purchaser.setName("Purchaser Firm");
-        purchaser.setContact(contact);
-        purchaser.setDefaultBrokType(BrokType.PERCENT);
-        purchaser.setDefaultBrokVal(new BigDecimal("1.50"));
+        purchaser.setContact(purchaserContact);
         purchaser = firmRepository.save(purchaser);
+
+        sellerContact = new Contact();
+        sellerContact.setName("Seller Contact");
+        sellerContact.setDefaultBrokType(BrokType.FIXED);
+        sellerContact.setDefaultBrokVal(new BigDecimal("2.5"));
+        sellerContact = contactRepository.save(sellerContact);
 
         seller = new Firm();
         seller.setName("Seller Firm");
-        seller.setContact(contact);
-        seller.setDefaultBrokType(BrokType.FIXED);
-        seller.setDefaultBrokVal(new BigDecimal("10.00"));
+        seller.setContact(sellerContact);
         seller = firmRepository.save(seller);
 
         item = new Item();
@@ -182,6 +192,8 @@ public class ControllerIntegrationTest {
         // Create Deal
         Deal deal = new Deal();
         deal.setDealDate(LocalDate.now());
+        deal.setPurchaserContact(purchaserContact);
+        deal.setSellerContact(sellerContact);
         deal.setPurchaser(purchaser);
         deal.setSeller(seller);
         deal.setItem(item);

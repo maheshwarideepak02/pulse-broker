@@ -22,10 +22,4 @@ public class Firm {
 
     @Column(nullable = false)
     private String name;
-
-    @Enumerated(EnumType.STRING)
-    private BrokType defaultBrokType;
-
-    @Column(precision = 19, scale = 2)
-    private BigDecimal defaultBrokVal;
 }

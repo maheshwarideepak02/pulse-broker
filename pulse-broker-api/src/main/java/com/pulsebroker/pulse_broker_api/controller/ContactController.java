@@ -39,6 +39,8 @@ public class ContactController {
         contact.setName(contactDetails.getName());
         contact.setPhone(contactDetails.getPhone());
         contact.setCity(contactDetails.getCity());
+        contact.setDefaultBrokType(contactDetails.getDefaultBrokType());
+        contact.setDefaultBrokVal(contactDetails.getDefaultBrokVal());
         return contactRepository.save(contact);
     }
 

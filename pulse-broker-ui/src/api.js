@@ -22,7 +22,7 @@ export const createFirm = (data) => api.post('/firms', data).then(res => res.dat
 export const updateFirm = (id, data) => api.put(`/firms/${id}`, data).then(res => res.data);
 export const createDeal = (data) => api.post('/deals', data).then(res => res.data);
 export const updateDeal = (id, data) => api.put(`/deals/${id}`, data).then(res => res.data);
-export const loadDeal = (id, weight, loadDate) => api.post(`/deals/${id}/load`, { weight, loadDate }).then(res => res.data);
+export const loadDeal = (id, payload) => api.post(`/deals/${id}/load`, payload).then(res => res.data);
 export const revertDeal = (id) => api.post(`/deals/${id}/revert`).then(res => res.data);
 export const getDashboardSummary = () => api.get('/dashboard/summary').then(res => res.data);
 

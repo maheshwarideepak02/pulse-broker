@@ -37,6 +37,9 @@ class FinancialFlowIntegrationTest {
     private DealRepository dealRepository;
 
     @Autowired
+    private com.pulsebroker.pulse_broker_api.repository.ContactRepository contactRepository;
+
+    @Autowired
     private FirmRepository firmRepository;
 
     @Autowired
@@ -47,12 +50,22 @@ class FinancialFlowIntegrationTest {
 
     @BeforeEach
     void setup() {
+        Contact c1 = new Contact();
+        c1.setName("C1");
+        c1 = contactRepository.save(c1);
+
+        Contact c2 = new Contact();
+        c2.setName("C2");
+        c2 = contactRepository.save(c2);
+
         testFirmPurchaser = new Firm();
         testFirmPurchaser.setName("Test Purchaser Firm");
+        testFirmPurchaser.setContact(c1);
         testFirmPurchaser = firmRepository.save(testFirmPurchaser);
 
         testFirmSeller = new Firm();
         testFirmSeller.setName("Test Seller Firm");
+        testFirmSeller.setContact(c2);
         testFirmSeller = firmRepository.save(testFirmSeller);
     }
 
@@ -63,6 +76,8 @@ class FinancialFlowIntegrationTest {
         emptyDeal.setWeight(new BigDecimal("100.00"));
         emptyDeal.setRate(new BigDecimal("5000.00"));
         emptyDeal.setBrokeragePayer(BrokeragePayer.SEPARATE);
+        emptyDeal.setPurchaserContact(testFirmPurchaser.getContact());
+        emptyDeal.setSellerContact(testFirmSeller.getContact());
         emptyDeal.setPurchaser(testFirmPurchaser);
         emptyDeal.setSeller(testFirmSeller);
         emptyDeal.setStatus(DealStatus.PENDING);
@@ -71,19 +86,19 @@ class FinancialFlowIntegrationTest {
 
         final Long emptyDealId = emptyDeal.getId();
 
-        // --- 3. Partial Load 250qtl ---
-        Deal partialLoad1 = dealService.loadDeal(emptyDeal.getId(), new BigDecimal("250.00"), LocalDate.now().toString());
+        // --- 3. Partial Load 50qtl ---
+        Deal partialLoad1 = dealService.loadDeal(emptyDeal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), null, null);
         assertThat(partialLoad1.getStatus()).isEqualTo(DealStatus.LOADED);
-        assertThat(partialLoad1.getWeight()).isEqualByComparingTo("250.00");
+        assertThat(partialLoad1.getWeight()).isEqualByComparingTo("50.00");
         assertThat(partialLoad1.getParentDeal()).isNotNull();
 
         // Refresh original deal
         emptyDeal = dealRepository.findById(emptyDeal.getId()).orElseThrow();
-        assertThat(emptyDeal.getWeight()).isEqualByComparingTo("250.00"); // 500 - 250
+        assertThat(emptyDeal.getWeight()).isEqualByComparingTo("50.00"); // 100 - 50
         assertThat(emptyDeal.getStatus()).isEqualTo(DealStatus.PENDING);
         
-        // --- 4. Partial Load Remaining 250qtl ---
-        Deal partialLoad2 = dealService.loadDeal(emptyDeal.getId(), new BigDecimal("250.00"), LocalDate.now().toString());
+        // --- 4. Partial Load Remaining 50qtl ---
+        Deal partialLoad2 = dealService.loadDeal(emptyDeal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), null, null);
     }
 
     @Test
@@ -95,6 +110,8 @@ class FinancialFlowIntegrationTest {
         deal.setPBrokerage(new BigDecimal("500.00"));
         deal.setSBrokerage(new BigDecimal("200.00"));
         deal.setBrokeragePayer(BrokeragePayer.SEPARATE);
+        deal.setPurchaserContact(testFirmPurchaser.getContact());
+        deal.setSellerContact(testFirmSeller.getContact());
         deal.setPurchaser(testFirmPurchaser);
         deal.setSeller(testFirmSeller);
         deal.setDealDate(LocalDate.now());
@@ -103,9 +120,11 @@ class FinancialFlowIntegrationTest {
 
         // Action: Load exactly 33.33 Qtl (1/3rd)
         BigDecimal loadWeight = new BigDecimal("33.33");
-        Deal remaining = dealService.loadDeal(deal.getId(), loadWeight, LocalDate.now().toString());
+        Deal loadedDeal = dealService.loadDeal(deal.getId(), loadWeight, LocalDate.now().toString(), null, null);
+        assertThat(loadedDeal.getWeight()).isEqualByComparingTo("33.33");
 
         // Proof: Original deal should have exactly 66.67 weight left
+        Deal remaining = dealRepository.findById(deal.getId()).orElseThrow();
         assertThat(remaining.getWeight()).isEqualByComparingTo("66.67");
         // Remaining pBrok: 500 - 166.65 = 333.35
         assertThat(remaining.getPBrokerage()).isEqualByComparingTo("333.35");
@@ -142,7 +161,10 @@ class FinancialFlowIntegrationTest {
         loadedDeal.setRate(new BigDecimal("5000.00"));
         loadedDeal.setPBrokerage(new BigDecimal("1000.00"));
         loadedDeal.setBrokeragePayer(BrokeragePayer.PURCHASER_BOTH);
+        loadedDeal.setPurchaserContact(testFirmPurchaser.getContact());
+        loadedDeal.setSellerContact(testFirmSeller.getContact());
         loadedDeal.setPurchaser(testFirmPurchaser);
+        loadedDeal.setSeller(testFirmSeller); // Need a seller for DB constraints
         loadedDeal.setItem(testItem);
         loadedDeal.setStatus(DealStatus.LOADED);
         loadedDeal.setDealDate(LocalDate.now());

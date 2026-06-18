@@ -34,8 +34,6 @@ public class FirmController {
     public Firm update(@PathVariable Long id, @RequestBody Firm firmDetails) {
         Firm firm = firmRepository.findById(id).orElseThrow(() -> new RuntimeException("Firm not found"));
         firm.setName(firmDetails.getName());
-        firm.setDefaultBrokType(firmDetails.getDefaultBrokType());
-        firm.setDefaultBrokVal(firmDetails.getDefaultBrokVal());
         if (firmDetails.getContact() != null) {
             firm.setContact(firmDetails.getContact());
         }

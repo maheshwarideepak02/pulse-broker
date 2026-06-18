@@ -18,8 +18,8 @@ const Parties = () => {
     const [editContact, setEditContact] = useState(null);
     const [editFirm, setEditFirm] = useState(null);
 
-    const [nc, setNc] = useState({ name: '', phone: '', city: '' });
-    const [fc, setFc] = useState({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
+    const [nc, setNc] = useState({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
+    const [fc, setFc] = useState({ name: '' });
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });
@@ -48,15 +48,22 @@ const Parties = () => {
         if (isProcessing) return;
         setIsProcessing(true);
         try {
+            const payload = {
+                name: nc.name,
+                phone: nc.phone,
+                city: nc.city,
+                defaultBrokType: nc.defaultBrokType,
+                defaultBrokVal: nc.defaultBrokVal === '' || nc.defaultBrokVal === null || nc.defaultBrokVal === undefined ? null : parseFloat(nc.defaultBrokVal)
+            };
             if (editContact) {
-                await updateContact(editContact.id, nc);
+                await updateContact(editContact.id, payload);
                 addToast('Contact Updated Successfully!', 'success');
             } else {
-                await createContact(nc);
+                await createContact(payload);
                 addToast('Contact Added Successfully!', 'success');
             }
             fetchData();
-            setNc({ name: '', phone: '', city: '' });
+            setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
             setShowContactForm(false);
             setEditContact(null);
         } catch (e) {
@@ -79,9 +86,7 @@ const Parties = () => {
         setIsProcessing(true);
         try {
             const payload = {
-                name: fc.name,
-                defaultBrokType: fc.defaultBrokType,
-                defaultBrokVal: fc.defaultBrokVal === '' || fc.defaultBrokVal === null || fc.defaultBrokVal === undefined ? null : parseFloat(fc.defaultBrokVal)
+                name: fc.name
             };
             if (editFirm) {
                 await updateFirm(editFirm.id, payload);
@@ -91,7 +96,7 @@ const Parties = () => {
                 addToast('Firm Added Successfully!', 'success');
             }
             fetchData();
-            setFc({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
+            setFc({ name: '' });
             setShowFirmForm(false);
             setEditFirm(null);
         } catch (e) {
@@ -141,13 +146,13 @@ const Parties = () => {
 
     const openEditContact = (c) => {
         setEditContact(c);
-        setNc({ name: c.name, phone: c.phone || '', city: c.city || '' });
+        setNc({ name: c.name, phone: c.phone || '', city: c.city || '', defaultBrokType: c.defaultBrokType || 'PERCENT', defaultBrokVal: c.defaultBrokVal !== null && c.defaultBrokVal !== undefined ? c.defaultBrokVal : '' });
         setShowContactForm(true);
     };
 
     const openEditFirm = (f) => {
         setEditFirm(f);
-        setFc({ name: f.name, defaultBrokType: f.defaultBrokType || 'PERCENT', defaultBrokVal: f.defaultBrokVal !== null && f.defaultBrokVal !== undefined ? f.defaultBrokVal : '' });
+        setFc({ name: f.name });
         setShowFirmForm(true);
     };
 
@@ -175,7 +180,7 @@ const Parties = () => {
                             🔍
                         </div>
                     </div>
-                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '' }); setShowContactForm(true); }} className="bg-primary hover:bg-red-800 transition-colors text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md whitespace-nowrap">
+                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); }} className="bg-primary hover:bg-red-800 transition-colors text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md whitespace-nowrap">
                         {t('+ Add New Party', '+ नई पार्टी जोड़ें')}
                     </button>
                 </div>
@@ -185,13 +190,22 @@ const Parties = () => {
                 <div className="bg-white border border-gray-100 rounded-xl shadow-xl p-6 mb-8 border-t-4 border-t-primary animate-slide-in relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full"></div>
                     <h3 className="font-bold text-primary mb-5 uppercase tracking-wide text-lg">{editContact ? t('Edit Contact Person', 'संपर्क संपादित करें') : t('Add New Contact Person', 'नया संपर्क व्यक्ति जोड़ें')}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5 relative z-10">
-                        <input type="text" placeholder={t('Name *', 'नाम *')} value={nc.name} onChange={e => setNc({...nc, name: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-5 relative z-10">
+                        <input type="text" placeholder={t('Name *', 'नाम *')} value={nc.name} onChange={e => setNc({...nc, name: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all md:col-span-2" />
                         <input type="text" placeholder={t('Phone', 'फ़ोन')} value={nc.phone} onChange={e => setNc({...nc, phone: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
                         <input type="text" placeholder={t('City', 'शहर')} value={nc.city} onChange={e => setNc({...nc, city: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
-                        <button onClick={handleSaveContact} className="bg-primary text-white font-bold px-4 py-2.5 rounded-lg shadow-md hover:bg-red-800 transition-colors">{t('Save Contact', 'संपर्क सहेजें')}</button>
+                        <div className="md:col-span-1 border-2 border-gray-200 rounded-lg overflow-hidden flex flex-col justify-center">
+                            <select value={nc.defaultBrokType} onChange={e => setNc({...nc, defaultBrokType: e.target.value})} className="w-full bg-white p-2 text-xs font-bold text-textMain outline-none border-b border-gray-200">
+                                <option value="PERCENT">% Percent</option>
+                                <option value="FIXED">₹ Fixed/Qtl</option>
+                            </select>
+                            <input type="number" placeholder={t('Default Brokerage', 'डिफ़ॉल्ट दलाली')} value={nc.defaultBrokVal} onChange={e => setNc({...nc, defaultBrokVal: e.target.value})} step="0.01" min="0" className="w-full bg-white p-2 text-sm font-bold text-textMain outline-none" />
+                        </div>
                     </div>
-                    <button onClick={() => { setShowContactForm(false); setEditContact(null); }} className="text-sm font-semibold text-textMuted hover:text-primary transition-colors underline relative z-10">{t('Cancel', 'रद्द करें')}</button>
+                    <div className="flex gap-4 relative z-10 items-center">
+                        <button onClick={handleSaveContact} className="bg-primary text-white font-bold px-8 py-2.5 rounded-lg shadow-md hover:bg-red-800 transition-colors">{t('Save Contact', 'संपर्क सहेजें')}</button>
+                        <button onClick={() => { setShowContactForm(false); setEditContact(null); }} className="text-sm font-semibold text-textMuted hover:text-primary transition-colors underline">{t('Cancel', 'रद्द करें')}</button>
+                    </div>
                 </div>
             )}
 
@@ -199,13 +213,8 @@ const Parties = () => {
                 <div className="bg-yellow-50 border border-yellow-100 rounded-xl shadow-xl p-6 mb-8 border-t-4 border-t-secondary animate-slide-in relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full"></div>
                     <h3 className="font-bold text-secondary mb-5 uppercase tracking-wide text-lg">{editFirm ? t('Edit Firm', 'फर्म संपादित करें') : t('Add Firm for', 'फर्म जोड़ें')} <span className="text-primary">{selectedContact?.name}</span></h3>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-5 mb-5 relative z-10">
-                        <input type="text" placeholder={t('Firm Name *', 'फर्म का नाम *')} value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all md:col-span-2 bg-white" />
-                        <select value={fc.defaultBrokType} onChange={e => setFc({...fc, defaultBrokType: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all bg-white font-bold text-textMain">
-                            <option value="PERCENT">% Percent</option>
-                            <option value="FIXED">₹ Fixed/Qtl</option>
-                        </select>
-                        <input type="number" placeholder={t('Default Rate', 'डिफ़ॉल्ट दर')} value={fc.defaultBrokVal} onChange={e => setFc({...fc, defaultBrokVal: e.target.value})} step="0.01" min="0" className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all bg-white font-bold" />
+                    <div className="mb-5 relative z-10">
+                        <input type="text" placeholder={t('Firm Name *', 'फर्म का नाम *')} value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full bg-white" />
                     </div>
                     <div className="flex gap-4 relative z-10">
                         <button onClick={handleSaveFirm} className="bg-secondary hover:bg-yellow-600 text-white font-bold px-8 py-2.5 rounded-lg shadow-md transition-colors">{t('Save Firm', 'फर्म सहेजें')}</button>
@@ -235,9 +244,14 @@ const Parties = () => {
                                     <div className="flex items-center gap-3 mt-1">
                                         <span className="text-sm font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded flex items-center gap-1">📞 {c.phone || 'N/A'}</span>
                                         <span className="text-sm font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded flex items-center gap-1">📍 {c.city || 'N/A'}</span>
+                                        {c.defaultBrokVal !== null && c.defaultBrokVal !== undefined && c.defaultBrokVal !== '' && parseFloat(c.defaultBrokVal) > 0 ? (
+                                            <span className="text-sm font-bold text-primary bg-red-50 border border-red-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                                💰 {c.defaultBrokVal} {c.defaultBrokType === 'PERCENT' ? '%' : '₹/Qtl'}
+                                            </span>
+                                        ) : null}
                                     </div>
                                 </div>
-                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowFirmForm(true); }} className="text-xs bg-white text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-md font-bold border-2 border-primary transition-colors shadow-sm whitespace-nowrap">
+                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); }} className="text-xs bg-white text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-md font-bold border-2 border-primary transition-colors shadow-sm whitespace-nowrap">
                                     {t('+ Add Firm', '+ फर्म जोड़ें')}
                                 </button>
                             </div>
@@ -246,9 +260,7 @@ const Parties = () => {
                                 <div className="flex flex-wrap gap-2">
                                     {firms.filter(f => f.contact?.id === c.id).map(f => (
                                         <span key={f.id} className="inline-flex items-center gap-1 bg-yellow-50 text-secondary text-xs font-bold px-2.5 py-1 rounded-md border border-yellow-200 shadow-sm group/firm hover:border-secondary transition-colors cursor-pointer" onClick={() => { setSelectedContact(c); openEditFirm(f); }} title={t('Click to edit firm', 'फर्म को संपादित करने के लिए क्लिक करें')}>
-                                            {f.name} {f.defaultBrokVal !== null && f.defaultBrokVal !== undefined && f.defaultBrokVal !== '' && parseFloat(f.defaultBrokVal) > 0 ? (
-                                                <span className="opacity-75 font-medium ml-1">({f.defaultBrokVal} {f.defaultBrokType === 'PERCENT' ? '%' : '₹/Qtl'})</span>
-                                            ) : null}
+                                            {f.name}
                                             <span className="opacity-0 group-hover/firm:opacity-100 transition-opacity ml-1 text-[10px]">✏️</span>
                                             <button onClick={(e) => handleDeleteFirm(e, f.id)} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-[10px]" title={t('Delete Firm', 'फर्म मिटाएं')}>×</button>
                                         </span>

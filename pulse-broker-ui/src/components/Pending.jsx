@@ -14,7 +14,7 @@ const Pending = () => {
     
     // Load Action State
     const [selectedDeal, setSelectedDeal] = useState(null);
-    const [loadData, setLoadData] = useState({ date: '', weight: '' });
+    const [loadData, setLoadData] = useState({ date: new Date().toISOString().split('T')[0], weight: '', purchaserId: '', sellerId: '' });
     
     // Edit Action State
     const [editDeal, setEditDeal] = useState(null);
@@ -61,9 +61,22 @@ const Pending = () => {
             addToast('Cannot load more than pending weight.', 'error');
             return;
         }
+        if (!selectedDeal.purchaser && !loadData.purchaserId) {
+            addToast('Please select Purchaser Firm', 'error');
+            return;
+        }
+        if (!selectedDeal.seller && !loadData.sellerId) {
+            addToast('Please select Seller Firm', 'error');
+            return;
+        }
         setIsProcessing(true);
         try {
-            await loadDeal(selectedDeal.id, weightToLoad, loadData.date);
+            await loadDeal(selectedDeal.id, {
+                loadDate: loadData.date,
+                weight: weightToLoad,
+                purchaserId: loadData.purchaserId || null,
+                sellerId: loadData.sellerId || null
+            });
             addToast('Deal Loaded Successfully!', 'success');
             setSelectedDeal(null);
             fetchDeals(); // refresh list
@@ -158,8 +171,8 @@ const Pending = () => {
     const filteredDeals = deals.filter(deal => {
         const q = searchQuery.toLowerCase();
         return (
-            (deal.purchaser?.name || '').toLowerCase().includes(q) ||
-            (deal.seller?.name || '').toLowerCase().includes(q) ||
+            (deal.purchaserContact?.name || deal.purchaser?.name || '').toLowerCase().includes(q) ||
+            (deal.sellerContact?.name || deal.seller?.name || '').toLowerCase().includes(q) ||
             (deal.item?.name || '').toLowerCase().includes(q) ||
             (deal.marka?.name || '').toLowerCase().includes(q)
         );
@@ -218,8 +231,14 @@ const Pending = () => {
                             ) : filteredDeals.map(deal => (
                                 <tr key={deal.id} className="hover:bg-yellow-50/50 transition-colors group">
                                     <td className="px-5 py-4 font-semibold text-gray-600">{deal.dealDate}</td>
-                                    <td className="px-5 py-4 font-bold text-primary group-hover:text-red-900 transition-colors">{deal.purchaser?.name}</td>
-                                    <td className="px-5 py-4 font-bold text-primary group-hover:text-red-900 transition-colors">{deal.seller?.name}</td>
+                                    <td className="px-5 py-4 font-bold text-primary group-hover:text-red-900 transition-colors">
+                                        {deal.purchaserContact?.name || deal.purchaser?.name}
+                                        {deal.purchaserContact && deal.purchaser && <div className="text-xs font-normal text-gray-500">{deal.purchaser.name}</div>}
+                                    </td>
+                                    <td className="px-5 py-4 font-bold text-primary group-hover:text-red-900 transition-colors">
+                                        {deal.sellerContact?.name || deal.seller?.name}
+                                        {deal.sellerContact && deal.seller && <div className="text-xs font-normal text-gray-500">{deal.seller.name}</div>}
+                                    </td>
                                     <td className="px-5 py-4">
                                         <span className="bg-gray-100 px-2.5 py-1 rounded-md border border-gray-200 font-bold shadow-sm">{deal.item?.name}</span> 
                                         <span className="text-secondary font-bold ml-1.5">{deal.marka?.name}</span>
@@ -235,7 +254,7 @@ const Pending = () => {
                                         <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Delete Deal', 'सौदा मिटाएं')}>
                                             🗑️ {t('Delete', 'मिटाएं')}
                                         </button>
-                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({...loadData, weight: deal.weight}); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
+                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: new Date().toISOString().split('T')[0], weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
                                             {t('Load Now', 'लोड करें')}
                                         </button>
                                     </td>
@@ -255,7 +274,6 @@ const Pending = () => {
                         </div>
                     ) : filteredDeals.map(deal => (
                         <div key={deal.id} className="p-4 hover:bg-yellow-50/50 transition-colors relative pl-6">
-                            {/* Decorative line matching dashboard cards */}
                             <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-secondary to-yellow-300 opacity-50"></div>
                             
                             <div className="flex justify-between items-start mb-3">
@@ -263,14 +281,14 @@ const Pending = () => {
                                 <div className="text-xs font-bold text-secondary">{deal.item?.name} - {deal.marka?.name}</div>
                             </div>
                             
-                            <div className="mb-3">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[10px] uppercase font-bold text-gray-400 w-6">P</span>
-                                    <span className="font-bold text-primary">{deal.purchaser?.name}</span>
+                            <div className="mb-3 flex gap-4">
+                                <div className="flex-1">
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase">{t('Purchaser', 'खरीदार')}</div>
+                                    <div className="font-bold text-primary text-sm">{deal.purchaserContact?.name || deal.purchaser?.name}</div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[10px] uppercase font-bold text-gray-400 w-6">S</span>
-                                    <span className="font-bold text-primary">{deal.seller?.name}</span>
+                                <div className="flex-1">
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase">{t('Seller', 'विक्रेता')}</div>
+                                    <div className="font-bold text-primary text-sm">{deal.sellerContact?.name || deal.seller?.name}</div>
                                 </div>
                             </div>
 
@@ -280,7 +298,7 @@ const Pending = () => {
                             </div>
 
                             <div className="flex gap-2">
-                                <button onClick={() => { setSelectedDeal(deal); setLoadData({...loadData, weight: deal.weight}); }} className="flex-1 bg-secondary text-white font-bold py-2 px-3 rounded-lg shadow-sm text-xs uppercase tracking-wider text-center">
+                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: new Date().toISOString().split('T')[0], weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm uppercase tracking-wider transition-colors">
                                     {t('Load', 'लोड')}
                                 </button>
                                 <button onClick={() => openEditDeal(deal)} className="bg-white border-2 border-gray-200 text-gray-600 font-bold py-2 px-3 rounded-lg shadow-sm text-xs">

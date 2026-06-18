@@ -17,4 +17,10 @@ public class Contact {
 
     private String phone;
     private String city;
+
+    @Enumerated(EnumType.STRING)
+    private BrokType defaultBrokType;
+
+    @Column(precision = 19, scale = 2)
+    private java.math.BigDecimal defaultBrokVal;
 }

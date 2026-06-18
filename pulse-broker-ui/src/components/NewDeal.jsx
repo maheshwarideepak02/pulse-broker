@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getFirms, getItems, getMarkas, createDeal } from '../api';
+import { getContacts, getFirms, getItems, getMarkas, createDeal } from '../api';
 import DateInput from './DateInput';
 
 const NewDeal = () => {
     const { t } = useLanguage();
     const { addToast } = useToast();
+    const [contacts, setContacts] = useState([]);
     const [firms, setFirms] = useState([]);
     const [items, setItems] = useState([]);
     const [markas, setMarkas] = useState([]);
@@ -15,7 +16,9 @@ const NewDeal = () => {
     const [formData, setFormData] = useState({
         dealDate: new Date().toISOString().split('T')[0],
         loadDates: [''],
+        purchaserContactId: '',
         purchaserId: '',
+        sellerContactId: '',
         sellerId: '',
         itemId: '',
         markaId: '',
@@ -31,12 +34,15 @@ const NewDeal = () => {
     });
 
     useEffect(() => {
-        Promise.all([getFirms(), getItems(), getMarkas()]).then(([f, i, m]) => {
+        Promise.all([getContacts(), getFirms(), getItems(), getMarkas()]).then(([c, f, i, m]) => {
+            setContacts(c);
             setFirms(f);
             setItems(i);
             setMarkas(m);
-            if (f.length > 1) {
-                setFormData(prev => ({ ...prev, purchaserId: f[0].id, sellerId: f[1].id, pBrokVal: f[0].defaultBrokVal ?? '', pBrokType: f[0].defaultBrokType || 'PERCENT', sBrokVal: f[1].defaultBrokVal ?? '', sBrokType: f[1].defaultBrokType || 'PERCENT' }));
+            if (c.length > 1) {
+                setFormData(prev => ({ ...prev, purchaserContactId: c[0].id, sellerContactId: c[1].id, pBrokVal: c[0].defaultBrokVal ?? '', pBrokType: c[0].defaultBrokType || 'PERCENT', sBrokVal: c[1].defaultBrokVal ?? '', sBrokType: c[1].defaultBrokType || 'PERCENT' }));
+            } else if (c.length === 1) {
+                setFormData(prev => ({ ...prev, purchaserContactId: c[0].id, pBrokVal: c[0].defaultBrokVal ?? '', pBrokType: c[0].defaultBrokType || 'PERCENT' }));
             }
             if (i.length > 0) setFormData(prev => ({ ...prev, itemId: i[0].id }));
             if (m.length > 0) setFormData(prev => ({ ...prev, markaId: m[0].id }));
@@ -75,14 +81,21 @@ const NewDeal = () => {
         });
     };
 
-    const handleFirmChange = (e, type) => {
-        const firmId = e.target.value;
-        const firm = firms.find(f => f.id == firmId);
+    const handleContactChange = (e, type) => {
+        const contactId = e.target.value;
+        const contact = contacts.find(c => c.id == contactId);
         setFormData(prev => ({
             ...prev,
-            [e.target.name]: firmId,
-            ...(type === 'purchaser' ? { pBrokVal: firm?.defaultBrokVal ?? '', pBrokType: firm?.defaultBrokType || 'PERCENT' } : {}),
-            ...(type === 'seller' ? { sBrokVal: firm?.defaultBrokVal ?? '', sBrokType: firm?.defaultBrokType || 'PERCENT' } : {})
+            [e.target.name]: contactId,
+            ...(type === 'purchaser' ? { purchaserId: '', pBrokVal: contact?.defaultBrokVal ?? '', pBrokType: contact?.defaultBrokType || 'PERCENT' } : {}),
+            ...(type === 'seller' ? { sellerId: '', sBrokVal: contact?.defaultBrokVal ?? '', sBrokType: contact?.defaultBrokType || 'PERCENT' } : {})
+        }));
+    };
+
+    const handleFirmChange = (e) => {
+        setFormData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
         }));
     };
 
@@ -100,13 +113,22 @@ const NewDeal = () => {
         
         if (isProcessing) return;
 
-        if (formData.purchaserId === formData.sellerId) {
-            addToast('Purchaser and Seller cannot be the same firm', 'error');
+        if (formData.purchaserContactId === formData.sellerContactId) {
+            addToast('Purchaser and Seller Party cannot be the same', 'error');
             return;
         }
-        if (!formData.purchaserId || !formData.sellerId || !formData.itemId || !formData.markaId) {
-            addToast('Please select all required dropdowns', 'error');
+        if (!formData.purchaserContactId || !formData.sellerContactId || !formData.itemId || !formData.markaId) {
+            addToast('Please select Purchaser Party, Seller Party, Item, and Marka', 'error');
             return;
+        }
+        
+        const finalLoadDate = formData.loadDates.filter(d => d).join(', ') || null;
+
+        if (finalLoadDate) {
+            if (!formData.purchaserId || !formData.sellerId) {
+                addToast('Firms must be selected if a Load Date is provided', 'error');
+                return;
+            }
         }
         if (formData.weight <= 0 || formData.rate <= 0) {
             addToast('Weight and Rate must be greater than zero', 'error');
@@ -117,15 +139,17 @@ const NewDeal = () => {
             return;
         }
 
-        const finalLoadDate = formData.loadDates.filter(d => d).join(', ') || null;
+
 
         setIsProcessing(true);
         try {
             await createDeal({
                 dealDate: formData.dealDate,
                 loadDate: finalLoadDate,
-                purchaser: { id: formData.purchaserId },
-                seller: { id: formData.sellerId },
+                purchaserContact: { id: formData.purchaserContactId },
+                sellerContact: { id: formData.sellerContactId },
+                purchaser: formData.purchaserId ? { id: formData.purchaserId } : null,
+                seller: formData.sellerId ? { id: formData.sellerId } : null,
                 item: { id: formData.itemId },
                 marka: { id: formData.markaId },
                 weight: formData.weight,
@@ -202,17 +226,41 @@ const NewDeal = () => {
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8 relative">
                         <div className="hidden sm:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-gray-100 rounded-full items-center justify-center text-gray-400 font-bold z-20 border-2 border-white shadow-sm">VS</div>
+                        
+                        {/* Purchaser Section */}
                         <div className="bg-red-50/50 p-5 rounded-xl border border-red-100">
-                            <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('Purchaser Firm', 'खरीदार फर्म')}</label>
-                            <select name="purchaserId" value={formData.purchaserId} onChange={(e) => handleFirmChange(e, 'purchaser')} className="w-full bg-white border-2 border-red-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm">
-                                {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                            </select>
+                            <div className="mb-4">
+                                <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('Purchaser Party *', 'क्रेता पार्टी *')}</label>
+                                <select name="purchaserContactId" value={formData.purchaserContactId} onChange={(e) => handleContactChange(e, 'purchaser')} className="w-full bg-white border-2 border-red-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm">
+                                    <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
+                                    {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('Purchaser Firm', 'क्रेता फर्म')} <span className="text-gray-400 font-normal ml-1 lowercase">({t('Optional', 'वैकल्पिक')})</span></label>
+                                <select name="purchaserId" value={formData.purchaserId} onChange={handleFirmChange} className="w-full bg-white border-2 border-red-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm" disabled={!formData.purchaserContactId}>
+                                    <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
+                                    {firms.filter(f => f.contact?.id == formData.purchaserContactId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                </select>
+                            </div>
                         </div>
+
+                        {/* Seller Section */}
                         <div className="bg-blue-50/50 p-5 rounded-xl border border-blue-100">
-                            <label className="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">{t('Seller Firm', 'विक्रेता फर्म')}</label>
-                            <select name="sellerId" value={formData.sellerId} onChange={(e) => handleFirmChange(e, 'seller')} className="w-full bg-white border-2 border-blue-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-sm">
-                                {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                            </select>
+                            <div className="mb-4">
+                                <label className="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">{t('Seller Party *', 'विक्रेता पार्टी *')}</label>
+                                <select name="sellerContactId" value={formData.sellerContactId} onChange={(e) => handleContactChange(e, 'seller')} className="w-full bg-white border-2 border-blue-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-sm">
+                                    <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
+                                    {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">{t('Seller Firm', 'विक्रेता फर्म')} <span className="text-gray-400 font-normal ml-1 lowercase">({t('Optional', 'वैकल्पिक')})</span></label>
+                                <select name="sellerId" value={formData.sellerId} onChange={handleFirmChange} className="w-full bg-white border-2 border-blue-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-sm" disabled={!formData.sellerContactId}>
+                                    <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
+                                    {firms.filter(f => f.contact?.id == formData.sellerContactId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                </select>
+                            </div>
                         </div>
                     </div>
 

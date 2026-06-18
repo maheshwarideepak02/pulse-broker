@@ -17,8 +17,11 @@ public class DealService {
     @Autowired
     private DealRepository dealRepository;
 
+    @Autowired
+    private com.pulsebroker.pulse_broker_api.repository.FirmRepository firmRepository;
+
     @Transactional
-    public Deal loadDeal(Long dealId, BigDecimal loadedWeight, String loadDate) {
+    public Deal loadDeal(Long dealId, BigDecimal loadedWeight, String loadDate, Long purchaserId, Long sellerId) {
         Deal deal = dealRepository.findById(dealId)
                 .orElseThrow(() -> new RuntimeException("Deal not found"));
 
@@ -35,8 +38,18 @@ public class DealService {
             Deal loadedDeal = new Deal();
             loadedDeal.setDealDate(deal.getDealDate());
             loadedDeal.setLoadDate(loadDate);
-            loadedDeal.setPurchaser(deal.getPurchaser());
-            loadedDeal.setSeller(deal.getSeller());
+            loadedDeal.setPurchaserContact(deal.getPurchaserContact());
+            loadedDeal.setSellerContact(deal.getSellerContact());
+            if (purchaserId != null) {
+                loadedDeal.setPurchaser(firmRepository.findById(purchaserId).orElse(null));
+            } else {
+                loadedDeal.setPurchaser(deal.getPurchaser());
+            }
+            if (sellerId != null) {
+                loadedDeal.setSeller(firmRepository.findById(sellerId).orElse(null));
+            } else {
+                loadedDeal.setSeller(deal.getSeller());
+            }
             loadedDeal.setItem(deal.getItem());
             loadedDeal.setMarka(deal.getMarka());
             loadedDeal.setRate(deal.getRate());
@@ -72,11 +85,18 @@ public class DealService {
                     deal.getWeight().multiply(new BigDecimal("100")).divide(deal.getPacketWeight(), 0, RoundingMode.HALF_UP).intValue()
                 );
             }
-            return dealRepository.save(deal);
+            dealRepository.save(deal);
+            return loadedDeal;
         } else {
             // Full Load
             deal.setStatus(DealStatus.LOADED);
             deal.setLoadDate(loadDate);
+            if (purchaserId != null) {
+                deal.setPurchaser(firmRepository.findById(purchaserId).orElse(null));
+            }
+            if (sellerId != null) {
+                deal.setSeller(firmRepository.findById(sellerId).orElse(null));
+            }
             return dealRepository.save(deal);
         }
     }

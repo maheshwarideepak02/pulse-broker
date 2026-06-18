@@ -171,8 +171,10 @@ const Pending = () => {
     const filteredDeals = deals.filter(deal => {
         const q = searchQuery.toLowerCase();
         return (
-            (deal.purchaserContact?.name || deal.purchaser?.name || '').toLowerCase().includes(q) ||
-            (deal.sellerContact?.name || deal.seller?.name || '').toLowerCase().includes(q) ||
+            (deal.purchaserContact?.name || '').toLowerCase().includes(q) ||
+            (deal.purchaser?.name || '').toLowerCase().includes(q) ||
+            (deal.sellerContact?.name || '').toLowerCase().includes(q) ||
+            (deal.seller?.name || '').toLowerCase().includes(q) ||
             (deal.item?.name || '').toLowerCase().includes(q) ||
             (deal.marka?.name || '').toLowerCase().includes(q)
         );

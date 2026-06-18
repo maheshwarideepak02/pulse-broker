@@ -39,13 +39,26 @@ const NewDeal = () => {
             setFirms(f);
             setItems(i);
             setMarkas(m);
-            if (c.length > 1) {
-                setFormData(prev => ({ ...prev, purchaserContactId: c[0].id, sellerContactId: c[1].id, pBrokVal: c[0].defaultBrokVal ?? '', pBrokType: c[0].defaultBrokType || 'PERCENT', sBrokVal: c[1].defaultBrokVal ?? '', sBrokType: c[1].defaultBrokType || 'PERCENT' }));
-            } else if (c.length === 1) {
-                setFormData(prev => ({ ...prev, purchaserContactId: c[0].id, pBrokVal: c[0].defaultBrokVal ?? '', pBrokType: c[0].defaultBrokType || 'PERCENT' }));
-            }
-            if (i.length > 0) setFormData(prev => ({ ...prev, itemId: i[0].id }));
-            if (m.length > 0) setFormData(prev => ({ ...prev, markaId: m[0].id }));
+            setFormData(prev => {
+                const updated = { ...prev };
+                if (!updated.purchaserContactId && c.length > 0) {
+                    updated.purchaserContactId = c[0].id;
+                    updated.pBrokVal = c[0].defaultBrokVal ?? '';
+                    updated.pBrokType = c[0].defaultBrokType || 'PERCENT';
+                }
+                if (!updated.sellerContactId && c.length > 1) {
+                    updated.sellerContactId = c[1].id;
+                    updated.sBrokVal = c[1].defaultBrokVal ?? '';
+                    updated.sBrokType = c[1].defaultBrokType || 'PERCENT';
+                } else if (!updated.sellerContactId && c.length === 1) {
+                    updated.sellerContactId = c[0].id;
+                    updated.sBrokVal = c[0].defaultBrokVal ?? '';
+                    updated.sBrokType = c[0].defaultBrokType || 'PERCENT';
+                }
+                if (!updated.itemId && i.length > 0) updated.itemId = i[0].id;
+                if (!updated.markaId && m.length > 0) updated.markaId = m[0].id;
+                return updated;
+            });
         });
     }, []);
 

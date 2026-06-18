@@ -145,6 +145,54 @@ class FinancialFlowIntegrationTest {
         assertThat(loadedPortion.getSBrokerage()).isEqualByComparingTo("66.66");
     }
 
+    @Test
+    void testPartialLoadWithDifferentFirms() {
+        // Create an unassigned parent deal (only Contact, no Firm)
+        Deal deal = new Deal();
+        deal.setWeight(new BigDecimal("100.00"));
+        deal.setRate(new BigDecimal("5000.00"));
+        deal.setPBrokerage(new BigDecimal("100.00"));
+        deal.setSBrokerage(new BigDecimal("100.00"));
+        deal.setBrokeragePayer(BrokeragePayer.SEPARATE);
+        deal.setPurchaserContact(testFirmPurchaser.getContact());
+        deal.setSellerContact(testFirmSeller.getContact());
+        deal.setPurchaser(null); // Explicitly unassigned
+        deal.setSeller(null);
+        deal.setDealDate(LocalDate.now());
+        deal.setStatus(DealStatus.PENDING);
+        deal = dealRepository.save(deal);
+
+        // Load 1: 50 Qtl assigned to testFirmPurchaser
+        Deal load1 = dealService.loadDeal(deal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), testFirmPurchaser.getId(), null);
+        assertThat(load1.getWeight()).isEqualByComparingTo("50.00");
+        assertThat(load1.getPurchaser().getId()).isEqualTo(testFirmPurchaser.getId());
+
+        // Create a second firm for the same contact
+        Firm secondPurchaserFirm = new Firm();
+        secondPurchaserFirm.setName("Second Purchaser Firm");
+        secondPurchaserFirm.setContact(testFirmPurchaser.getContact());
+        secondPurchaserFirm = firmRepository.save(secondPurchaserFirm);
+
+        // Load 2: Remaining 50 Qtl assigned to secondPurchaserFirm
+        Deal load2 = dealService.loadDeal(deal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), secondPurchaserFirm.getId(), null);
+        assertThat(load2.getWeight()).isEqualByComparingTo("50.00");
+        assertThat(load2.getPurchaser().getId()).isEqualTo(secondPurchaserFirm.getId());
+
+        // Original deal should now be fully LOADED and have weight 50.00 (the remaining portion)
+        Deal remaining = dealRepository.findById(deal.getId()).orElseThrow();
+        assertThat(remaining.getWeight()).isEqualByComparingTo("50.00");
+        assertThat(remaining.getStatus()).isEqualTo(DealStatus.LOADED);
+
+        // Verify Billing Isolation
+        com.pulsebroker.pulse_broker_api.dto.BillPreviewDTO bill1 = billingService.previewBill(testFirmPurchaser.getId(), null, null);
+        assertThat(bill1.getItems()).hasSize(1);
+        assertThat(bill1.getItems().get(0).getDealId()).isEqualTo(load1.getId());
+
+        com.pulsebroker.pulse_broker_api.dto.BillPreviewDTO bill2 = billingService.previewBill(secondPurchaserFirm.getId(), null, null);
+        assertThat(bill2.getItems()).hasSize(1);
+        assertThat(bill2.getItems().get(0).getDealId()).isEqualTo(remaining.getId());
+    }
+
     @Autowired
     private ItemRepository itemRepository;
 

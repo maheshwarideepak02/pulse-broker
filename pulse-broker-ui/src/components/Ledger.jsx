@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal } from '../api';
+import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { formatDate } from '../utils/dateUtils';
@@ -476,10 +476,10 @@ const Ledger = () => {
                                     </tr>
                                 ))}
                             </tbody>
-                            <tfoot className="bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-4">
-                                        {billPreview && billPreview.items.length > 0 && (
+                            {billPreview && billPreview.items.length > 0 && (
+                                <tfoot className="bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
+                                    <tr>
+                                        <td colSpan="5" className="px-6 py-4">
                                             <div className="flex gap-4">
                                                 <button onClick={handleViewPreview} className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
                                                     <span>👀</span> {t('Preview PDF', 'पूर्वावलोकन')}
@@ -488,12 +488,12 @@ const Ledger = () => {
                                                     <span>🔒</span> {t('Finalize & Lock Bill', 'बिल पक्का करें')}
                                                 </button>
                                             </div>
-                                        )}
-                                    </td>
-                                    <td className="text-right font-bold uppercase py-5 text-gray-500 tracking-wider flex items-center justify-end h-full mt-1.5">{t('Total to Bill:', 'कुल बिल:')}</td>
-                                    <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</td>
-                                </tr>
-                            </tfoot>
+                                        </td>
+                                        <td className="text-right font-bold uppercase py-5 text-gray-500 tracking-wider">{t('Total to Bill:', 'कुल बिल:')}</td>
+                                        <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {billPreview.totalAmount.toFixed(2)}</td>
+                                    </tr>
+                                </tfoot>
+                            )}
                         </table>
                     </div>
 

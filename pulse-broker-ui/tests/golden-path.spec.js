@@ -4,9 +4,10 @@ test.describe('Golden Path E2E', () => {
   test('Full User Journey', async ({ page }) => {
     // Generate unique names for each test run to prevent dirty state collisions
     const timestamp = new Date().getTime().toString().slice(-4) + Math.floor(Math.random() * 1000);
+    const pContact = `PContact ${timestamp}`;
+    const sContact = `SContact ${timestamp}`;
     const pFirm = `Purchaser ${timestamp}`;
     const sFirm = `Seller ${timestamp}`;
-    const testContact = `Contact ${timestamp}`;
     const testItem = `Item ${timestamp}`;
     const testMarka = `Marka ${timestamp}`;
     
@@ -55,25 +56,31 @@ test.describe('Golden Path E2E', () => {
     await page.locator('a:has-text("Parties & Firms") >> visible=true').click();
     await page.locator('button:has-text("Add New Party") >> visible=true').click();
     
-    // Fill Contact
-    await page.fill('input[placeholder*="Name"]', testContact);
+    // Fill Purchaser Contact
+    await page.fill('input[placeholder*="Name"]', pContact);
     await page.fill('input[placeholder*="City"]', 'Mumbai');
     await page.fill('input[placeholder*="Phone"]', '9876543210');
+    await page.selectOption('select', { label: '% Percent' });
+    await page.fill('input[placeholder*="Default Brokerage"]', '1.5');
     await page.click('button:has-text("Save Contact")');
     
     // Add Purchaser Firm
-    await page.click(`text=${testContact}`); // Select the contact
-    await page.click('button:has-text("Add Firm")');
+    await page.locator(`div:has(> div > div > h3:has-text("${pContact}"))`).locator('button:has-text("Add Firm")').first().click();
     await page.fill('input[placeholder*="Firm Name"]', pFirm);
-    await page.selectOption('select', { label: '% Percent' });
-    await page.fill('input[placeholder*="Default Rate"]', '1.5');
     await page.click('button:has-text("Save Firm")');
 
-    // Add Seller Firm
-    await page.click('button:has-text("Add Firm")');
-    await page.fill('input[placeholder*="Firm Name"]', sFirm);
+    // Fill Seller Contact
+    await page.locator('button:has-text("Add New Party") >> visible=true').click();
+    await page.fill('input[placeholder*="Name"]', sContact);
+    await page.fill('input[placeholder*="City"]', 'Delhi');
+    await page.fill('input[placeholder*="Phone"]', '9876543211');
     await page.selectOption('select', { label: '₹ Fixed/Qtl' });
-    await page.fill('input[placeholder*="Default Rate"]', '10');
+    await page.fill('input[placeholder*="Default Brokerage"]', '10');
+    await page.click('button:has-text("Save Contact")');
+
+    // Add Seller Firm
+    await page.locator(`div:has(> div > div > h3:has-text("${sContact}"))`).locator('button:has-text("Add Firm")').first().click();
+    await page.fill('input[placeholder*="Firm Name"]', sFirm);
     await page.click('button:has-text("Save Firm")');
 
     // 3. Add Item & Marka
@@ -90,7 +97,11 @@ test.describe('Golden Path E2E', () => {
     if (isMobile) await page.getByLabel('Menu').click();
     await page.locator('a:has-text("New Deal") >> visible=true').click();
     
+    await page.selectOption('select[name="purchaserContactId"]', { label: pContact });
+    await page.waitForTimeout(500);
     await page.selectOption('select[name="purchaserId"]', { label: pFirm });
+    await page.selectOption('select[name="sellerContactId"]', { label: sContact });
+    await page.waitForTimeout(500);
     await page.selectOption('select[name="sellerId"]', { label: sFirm });
     await page.selectOption('select[name="itemId"]', { label: testItem });
     await page.selectOption('select[name="markaId"]', { label: testMarka });

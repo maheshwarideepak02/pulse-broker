@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -30,7 +31,7 @@ public class DealController {
 
     @GetMapping("/pending")
     public List<Deal> getPending() {
-        return dealRepository.findByStatus(DealStatus.PENDING);
+        return dealRepository.findByStatusIn(Arrays.asList(DealStatus.PENDING, DealStatus.OPEN_UNASSIGNED));
     }
 
     @PostMapping

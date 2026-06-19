@@ -77,8 +77,17 @@ const Navbar = () => {
             </div>
 
             <nav className="lg:hidden fixed z-50 bottom-3 left-3 right-3 h-[70px] rounded-2xl border border-stone-200/90 bg-white/95 backdrop-blur-xl shadow-[0_12px_40px_rgba(30,25,20,.18)] px-2 grid grid-cols-5 items-center print:hidden">
-                {links.slice(0,3).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
-                <NavLink to="/app/new-deal" onClick={() => setMenuOpen(false)} className="h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold text-white bg-primary shadow-md shadow-red-900/20 -translate-y-2"><Icon name="new"/><span>{t('New','नया')}</span></NavLink>
+                {links.slice(0,2).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
+                
+                <div className="flex justify-center h-full relative">
+                    <NavLink to="/app/new-deal" onClick={() => setMenuOpen(false)} className="absolute -top-4 w-[60px] h-[60px] flex flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 border-[4px] border-white active:scale-95 transition-transform">
+                        <Icon name="new" className="w-5 h-5"/>
+                        <span className="leading-none mt-0.5">{t('New','नया')}</span>
+                    </NavLink>
+                </div>
+
+                {links.slice(2,3).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
+                
                 <button onClick={() => setMenuOpen(v => !v)} className={`h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold ${menuOpen ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name="more"/><span>{t('More','अधिक')}</span></button>
             </nav>
         </>

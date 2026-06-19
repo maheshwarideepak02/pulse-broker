@@ -53,6 +53,8 @@ public class DealService {
             loadedDeal.setItem(deal.getItem());
             loadedDeal.setMarka(deal.getMarka());
             loadedDeal.setRate(deal.getRate());
+            loadedDeal.setMarginMarkup(deal.getMarginMarkup() != null ? deal.getMarginMarkup() : java.math.BigDecimal.ZERO);
+            loadedDeal.setPurchaserRate(deal.getPurchaserRate() != null ? deal.getPurchaserRate() : deal.getRate());
             loadedDeal.setPacketWeight(deal.getPacketWeight());
             loadedDeal.setBrokeragePayer(deal.getBrokeragePayer());
             loadedDeal.setParentDeal(deal); // Link to parent

@@ -26,6 +26,7 @@ const NewDeal = () => {
         packetWeight: 30,
         numberOfPackets: '',
         rate: '',
+        marginMarkup: '',
         pBrokVal: '',
         pBrokType: 'PERCENT',
         sBrokVal: '',
@@ -169,6 +170,7 @@ const NewDeal = () => {
                 packetWeight: formData.packetWeight,
                 numberOfPackets: formData.numberOfPackets,
                 rate: formData.rate,
+                marginMarkup: formData.marginMarkup ? parseFloat(formData.marginMarkup) : 0,
                 pBrokerage: pBrokerage,
                 sBrokerage: sBrokerage,
                 brokeragePayer: formData.brokeragePayer,
@@ -290,13 +292,32 @@ const NewDeal = () => {
                                 {markas.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                             </select>
                         </div>
+                        <div className="col-span-2 md:col-span-2">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Base Rate (₹)', 'मूल दर (₹)')}</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-3.5 text-gray-400 font-bold">₹</span>
+                                        <input type="number" name="rate" value={formData.rate} onChange={handleChange} className="w-full bg-white border-2 border-gray-200 rounded-lg pl-8 pr-4 py-3 font-bold text-gray-800 focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm" placeholder="0.00" required min="1" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2" title="Price manipulation added to purchaser rate">{t('Markup (± ₹)', 'मार्जिन (± ₹)')}</label>
+                                    <div className="relative">
+                                        <span className="absolute left-3 top-3.5 text-gray-400 font-bold">₹</span>
+                                        <input type="number" name="marginMarkup" value={formData.marginMarkup} onChange={handleChange} className={`w-full bg-white border-2 rounded-lg pl-8 pr-4 py-3 font-bold focus:ring-2 outline-none transition-all shadow-sm ${formData.marginMarkup > 0 ? 'border-green-300 text-green-700 focus:ring-green-500 bg-green-50' : formData.marginMarkup < 0 ? 'border-red-300 text-red-700 focus:ring-red-500 bg-red-50' : 'border-gray-200 text-gray-800 focus:ring-primary'}`} placeholder="0.00" step="0.01" />
+                                        {formData.rate && formData.marginMarkup && (
+                                            <div className="absolute -bottom-5 right-0 text-[10px] font-bold text-gray-500">
+                                                Purchaser: ₹{parseFloat(formData.rate) + parseFloat(formData.marginMarkup || 0)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Weight (Qtl)', 'वजन')}</label>
                             <input type="number" name="weight" value={formData.weight} onChange={handleChange} min="0.01" step="0.01" className="w-full border-2 border-gray-300 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-white text-right" required />
-                        </div>
-                        <div className="col-span-2 md:col-span-1">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Rate (₹)', 'भाव (₹)')}</label>
-                            <input type="number" name="rate" value={formData.rate} onChange={handleChange} min="0.01" step="0.01" className="w-full border-2 border-gray-300 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-white text-right" required />
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Packet Weight (kg)', 'बोरे का वजन')}</label>

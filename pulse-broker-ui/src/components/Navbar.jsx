@@ -39,6 +39,7 @@ const Navbar = () => {
                     <NavLink to="/app/dashboard" className={navLinkClasses}>{t('Dashboard', 'डैशबोर्ड')}</NavLink>
                     <NavLink to="/app/parties" className={navLinkClasses}>{t('Parties & Firms', 'पार्टियां और फर्में')}</NavLink>
                     <NavLink to="/app/ledger" className={navLinkClasses}>{t('Ledger & Bills', 'खाता बही और बिल')}</NavLink>
+                    <NavLink to="/app/margins" className={navLinkClasses}>{t('Trade Margins', 'ट्रेड मार्जिन')}</NavLink>
                     <NavLink to="/app/pending" className={({ isActive }) =>
                         `px-4 py-2.5 rounded-lg font-bold text-sm transition-all duration-200 border-2 shadow-sm whitespace-nowrap ${
                             isActive 

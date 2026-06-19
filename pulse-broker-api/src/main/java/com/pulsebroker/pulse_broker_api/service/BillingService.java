@@ -183,7 +183,8 @@ public class BillingService {
         dto.setItemMarka(itemName + " (" + markaName + ")");
         dto.setWeight(d.getWeight());
         dto.setNumberOfPackets(d.getNumberOfPackets());
-        dto.setRate(d.getRate());
+        boolean isPurchaser = d.getPurchaser() != null && d.getPurchaser().getId().equals(firmId);
+        dto.setRate(isPurchaser && d.getPurchaserRate() != null ? d.getPurchaserRate() : d.getRate());
         dto.setComputedBrokerage(computedBrokerage);
         
         // Breakdown fields for transparency

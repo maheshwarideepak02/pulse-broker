@@ -11,6 +11,7 @@ export const getContacts = () => api.get('/contacts').then(res => res.data);
 export const getFirms = () => api.get('/firms').then(res => res.data);
 export const getDeals = () => api.get('/deals').then(res => res.data);
 export const getPendingDeals = () => api.get('/deals/pending').then(res => res.data);
+export const getMarginDeals = (partyId) => api.get(`/deals/margins/${partyId}`).then(res => res.data);
 
 export const createItem = (data) => api.post('/items', data).then(res => res.data);
 export const updateItem = (id, data) => api.put(`/items/${id}`, data).then(res => res.data);

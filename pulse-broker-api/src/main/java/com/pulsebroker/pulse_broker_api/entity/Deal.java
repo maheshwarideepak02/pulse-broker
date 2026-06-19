@@ -58,7 +58,13 @@ public class Deal {
     private BigDecimal weight;
     
     @Column(precision = 19, scale = 2)
-    private BigDecimal rate;
+    private BigDecimal rate; // This serves as the Seller/Base rate
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal purchaserRate; // Auto-calculated as rate + marginMarkup
+
+    @Column(precision = 19, scale = 2)
+    private BigDecimal marginMarkup; // e.g. +50 or -50
 
     @Column(precision = 19, scale = 2)
     @JsonProperty("pBrokerage")

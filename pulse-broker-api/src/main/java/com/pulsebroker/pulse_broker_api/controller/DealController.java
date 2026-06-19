@@ -34,10 +34,21 @@ public class DealController {
         return dealRepository.findByStatusIn(Arrays.asList(DealStatus.PENDING, DealStatus.OPEN_UNASSIGNED));
     }
 
+    @GetMapping("/margins/{partyId}")
+    public List<Deal> getMarginDeals(@PathVariable Long partyId) {
+        return dealRepository.findMarginDealsByParty(partyId);
+    }
+
     @PostMapping
     public Deal create(@RequestBody Deal deal) {
         if (deal.getStatus() == null) {
             deal.setStatus(DealStatus.PENDING);
+        }
+        if (deal.getMarginMarkup() == null) {
+            deal.setMarginMarkup(java.math.BigDecimal.ZERO);
+        }
+        if (deal.getRate() != null) {
+            deal.setPurchaserRate(deal.getRate().add(deal.getMarginMarkup()));
         }
         return dealRepository.save(deal);
     }
@@ -68,6 +79,10 @@ public class DealController {
         deal.setPacketWeight(dealDetails.getPacketWeight());
         deal.setNumberOfPackets(dealDetails.getNumberOfPackets());
         deal.setRate(dealDetails.getRate());
+        deal.setMarginMarkup(dealDetails.getMarginMarkup() != null ? dealDetails.getMarginMarkup() : java.math.BigDecimal.ZERO);
+        if (deal.getRate() != null) {
+            deal.setPurchaserRate(deal.getRate().add(deal.getMarginMarkup()));
+        }
         deal.setPBrokerage(dealDetails.getPBrokerage());
         deal.setSBrokerage(dealDetails.getSBrokerage());
         deal.setBrokeragePayer(dealDetails.getBrokeragePayer());

@@ -11,6 +11,7 @@ import Ledger from './components/Ledger';
 import Pending from './components/Pending';
 import Settings from './components/Settings';
 import NewDeal from './components/NewDeal';
+import MarginLedger from './components/MarginLedger';
 
 const Layout = ({ children }) => (
     <div className="bg-background text-textMain min-h-screen pb-12">
@@ -105,6 +106,7 @@ function App() {
                         <Route path="dashboard" element={<Dashboard />} />
                         <Route path="parties" element={<Parties />} />
                         <Route path="ledger" element={<Ledger />} />
+                        <Route path="margins" element={<MarginLedger />} />
                         <Route path="pending" element={<Pending />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="new-deal" element={<NewDeal />} />

@@ -118,6 +118,7 @@ const Pending = () => {
             packetWeight: deal.packetWeight || 30,
             numberOfPackets: deal.numberOfPackets || '',
             rate: deal.rate || '',
+            marginMarkup: deal.marginMarkup || '',
             pBrokerage: deal.pBrokerage || '',
             sBrokerage: deal.sBrokerage || '',
             brokeragePayer: deal.brokeragePayer || 'BOTH'
@@ -152,6 +153,7 @@ const Pending = () => {
                 packetWeight: editData.packetWeight ? parseFloat(editData.packetWeight) : null,
                 numberOfPackets: editData.numberOfPackets ? parseInt(editData.numberOfPackets) : null,
                 rate: parseFloat(editData.rate),
+                marginMarkup: editData.marginMarkup ? parseFloat(editData.marginMarkup) : 0,
                 pBrokerage: editData.pBrokerage ? parseFloat(editData.pBrokerage) : null,
                 sBrokerage: editData.sBrokerage ? parseFloat(editData.sBrokerage) : null,
                 brokeragePayer: editData.brokeragePayer
@@ -368,7 +370,7 @@ const Pending = () => {
                             
                             {/* Right Column */}
                             <div className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Weight (Qtl)', 'वजन (क्विंटल)')}</label>
                                         <input type="number" name="weight" value={editData.weight} onChange={e => {
@@ -380,8 +382,17 @@ const Pending = () => {
                                         }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Rate (₹)', 'दर (₹)')}</label>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Base Rate (₹)', 'मूल दर (₹)')}</label>
                                         <input type="number" name="rate" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                    </div>
+                                    <div className="relative">
+                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Markup (± ₹)', 'मार्जिन (± ₹)')}</label>
+                                        <input type="number" name="marginMarkup" value={editData.marginMarkup} onChange={e => setEditData({...editData, marginMarkup: e.target.value})} className={`w-full border-2 p-2.5 rounded-lg focus:ring-2 outline-none ${editData.marginMarkup > 0 ? 'border-green-300 text-green-700 focus:ring-green-500 bg-green-50' : editData.marginMarkup < 0 ? 'border-red-300 text-red-700 focus:ring-red-500 bg-red-50' : 'border-gray-200 focus:ring-primary'}`} step="0.01" />
+                                        {editData.rate && editData.marginMarkup && (
+                                            <div className="absolute -bottom-5 right-0 text-[10px] font-bold text-gray-500">
+                                                Purchaser: ₹{parseFloat(editData.rate) + parseFloat(editData.marginMarkup || 0)}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">

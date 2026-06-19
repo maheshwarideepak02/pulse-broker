@@ -126,12 +126,8 @@ const Pending = () => {
 
     const handleUpdateDeal = async () => {
         try {
-            // Data validation (similar to new deal)
-            if (!editData.purchaser.id || !editData.seller.id) {
-                addToast('Purchaser and Seller are required', 'error');
-                return;
-            }
-            if (editData.purchaser.id === editData.seller.id) {
+            // Data validation (Firms are optional until load)
+            if (editData.purchaser.id && editData.seller.id && editData.purchaser.id === editData.seller.id) {
                 addToast('Purchaser and Seller cannot be the same', 'error');
                 return;
             }
@@ -146,6 +142,8 @@ const Pending = () => {
             setIsProcessing(true);
             await updateDeal(editDeal.id, {
                 dealDate: editData.dealDate || null,
+                purchaserContact: editDeal.purchaserContact ? { id: editDeal.purchaserContact.id } : null,
+                sellerContact: editDeal.sellerContact ? { id: editDeal.sellerContact.id } : null,
                 purchaser: editData.purchaser.id ? { id: editData.purchaser.id } : null,
                 seller: editData.seller.id ? { id: editData.seller.id } : null,
                 item: editData.item.id ? { id: editData.item.id } : null,

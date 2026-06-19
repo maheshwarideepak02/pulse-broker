@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getDeals, getDashboardSummary, revertDeal } from '../api';
+import { getDeals, getDashboardSummary, revertDeal, revertBulkDeals } from '../api';
 import { formatDate } from '../utils/dateUtils';
 
 const Dashboard = () => {
@@ -39,10 +39,8 @@ const Dashboard = () => {
                     addToast('Cannot revert: One or more partial loads have already been billed.', 'error');
                     return;
                 }
-                // Execute sequentially to prevent optimistic lock conflicts on the backend parent deal
-                for (let childId of dealOrId._childIds) {
-                    await revertDeal(childId);
-                }
+                // Execute atomically on the backend to prevent optimistic lock conflicts and half-reverted states
+                await revertBulkDeals(dealOrId._childIds);
             } else {
                 await revertDeal(dealOrId);
             }

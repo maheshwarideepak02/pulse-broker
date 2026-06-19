@@ -26,6 +26,7 @@ export const createDeal = (data) => api.post('/deals', data).then(res => res.dat
 export const updateDeal = (id, data) => api.put(`/deals/${id}`, data).then(res => res.data);
 export const loadDeal = (id, payload) => api.post(`/deals/${id}/load`, payload).then(res => res.data);
 export const revertDeal = (id) => api.post(`/deals/${id}/revert`).then(res => res.data);
+export const revertBulkDeals = (ids) => api.post(`/deals/revert-bulk`, ids).then(res => res.data);
 export const getDashboardSummary = () => api.get('/dashboard/summary').then(res => res.data);
 
 export const previewBill = (firmId, fromDate, toDate) => {

@@ -118,6 +118,14 @@ public class DealController {
         }
     }
 
+    @PostMapping("/revert-bulk")
+    @org.springframework.transaction.annotation.Transactional
+    public void revertDealsBulk(@RequestBody java.util.List<Long> ids) {
+        for (Long id : ids) {
+            revertDeal(id);
+        }
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @org.springframework.transaction.annotation.Transactional

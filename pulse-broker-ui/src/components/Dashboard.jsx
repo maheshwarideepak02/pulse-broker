@@ -33,7 +33,10 @@ const Dashboard = () => {
                     addToast('Cannot revert: One or more partial loads have already been billed.', 'error');
                     return;
                 }
-                await Promise.all(dealOrId._childIds.map(childId => revertDeal(childId)));
+                // Execute sequentially to prevent optimistic lock conflicts on the backend parent deal
+                for (let childId of dealOrId._childIds) {
+                    await revertDeal(childId);
+                }
             } else {
                 await revertDeal(dealOrId);
             }

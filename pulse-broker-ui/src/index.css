@@ -95,6 +95,8 @@ table tbody tr { transition: background-color .16s ease; }
 
 /* Mobile-specific overrides */
 @media (max-width: 640px) {
+    .modal-overlay { align-items: flex-start; padding-top: 40px; padding-bottom: 40px; overflow-y: auto; }
+    .modal-content { max-height: none; margin-bottom: 40px; }
     .app-main { padding-bottom: 6.75rem; }
     .app-main > div { padding-left: 14px !important; padding-right: 14px !important; }
     .app-main h1 { line-height: 1.18; }

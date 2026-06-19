@@ -71,13 +71,13 @@ const Navbar = () => {
             {menuOpen && <button className="lg:hidden fixed inset-0 z-40 bg-gray-950/30 backdrop-blur-[2px]" onClick={() => setMenuOpen(false)} aria-label="Close menu" />}
             <div className={`lg:hidden fixed z-50 left-3 right-3 bottom-[86px] bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 transition-all duration-200 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 <div className="grid grid-cols-2 gap-2">
-                    {links.slice(3).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${isActive ? 'bg-red-50 text-primary' : 'text-gray-600 bg-stone-50'}`}><Icon name={link.icon}/>{t(link.en,link.hi)}</NavLink>)}
+                    {links.filter((_, i) => [2, 3, 5].includes(i)).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${isActive ? 'bg-red-50 text-primary' : 'text-gray-600 bg-stone-50'}`}><Icon name={link.icon}/>{t(link.en,link.hi)}</NavLink>)}
                     <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="flex items-center gap-3 p-3 rounded-xl text-sm font-bold text-red-700 bg-red-50">↪ {t('Logout','लॉग आउट')}</button>
                 </div>
             </div>
 
             <nav className="lg:hidden fixed z-50 bottom-3 left-3 right-3 h-[70px] rounded-2xl border border-stone-200/90 bg-white/95 backdrop-blur-xl shadow-[0_12px_40px_rgba(30,25,20,.18)] px-2 grid grid-cols-5 items-center print:hidden">
-                {links.slice(0,2).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
+                {links.filter((_, i) => [0, 1].includes(i)).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
                 
                 <div className="flex justify-center h-full relative">
                     <NavLink to="/app/new-deal" onClick={() => setMenuOpen(false)} className="absolute -top-4 w-[60px] h-[60px] flex flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 border-[4px] border-white active:scale-95 transition-transform">
@@ -86,7 +86,7 @@ const Navbar = () => {
                     </NavLink>
                 </div>
 
-                {links.slice(2,3).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
+                {links.filter((_, i) => i === 4).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
                 
                 <button onClick={() => setMenuOpen(v => !v)} className={`h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold ${menuOpen ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name="more"/><span>{t('More','अधिक')}</span></button>
             </nav>

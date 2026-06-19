@@ -194,38 +194,42 @@ const Parties = () => {
             </div>
 
             {showContactForm && (
-                <div className="bg-white border border-gray-100 rounded-xl shadow-xl p-6 mb-8 border-t-4 border-t-primary animate-slide-in relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full"></div>
-                    <h3 className="font-bold text-primary mb-5 uppercase tracking-wide text-lg">{editContact ? t('Edit Contact Person', 'संपर्क संपादित करें') : t('Add New Contact Person', 'नया संपर्क व्यक्ति जोड़ें')}</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-5 relative z-10">
-                        <input type="text" placeholder={t('Name *', 'नाम *')} value={nc.name} onChange={e => setNc({...nc, name: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all md:col-span-2" />
-                        <input type="text" placeholder={t('Phone', 'फ़ोन')} value={nc.phone} onChange={e => setNc({...nc, phone: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
-                        <input type="text" placeholder={t('City', 'शहर')} value={nc.city} onChange={e => setNc({...nc, city: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
-                        <div className="md:col-span-1 border-2 border-gray-200 rounded-lg overflow-hidden flex flex-col justify-center">
-                            <select value={nc.defaultBrokType} onChange={e => setNc({...nc, defaultBrokType: e.target.value})} className="w-full bg-white p-2 text-xs font-bold text-textMain outline-none border-b border-gray-200">
-                                <option value="PERCENT">% Percent</option>
-                                <option value="FIXED">₹ Fixed/Qtl</option>
-                            </select>
-                            <input type="number" placeholder={t('Default Brokerage', 'डिफ़ॉल्ट दलाली')} value={nc.defaultBrokVal} onChange={e => setNc({...nc, defaultBrokVal: e.target.value})} step="0.01" min="0" className="w-full bg-white p-2 text-sm font-bold text-textMain outline-none" />
+                <div className="modal-overlay">
+                    <div className="modal-content border-t-4 border-t-primary animate-slide-in relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
+                        <h3 className="font-bold text-primary mb-5 uppercase tracking-wide text-lg">{editContact ? t('Edit Contact Person', 'संपर्क संपादित करें') : t('Add New Contact Person', 'नया संपर्क व्यक्ति जोड़ें')}</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-5 relative z-10">
+                            <input type="text" placeholder={t('Name *', 'नाम *')} value={nc.name} onChange={e => setNc({...nc, name: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all md:col-span-2" />
+                            <input type="text" placeholder={t('Phone', 'फ़ोन')} value={nc.phone} onChange={e => setNc({...nc, phone: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
+                            <input type="text" placeholder={t('City', 'शहर')} value={nc.city} onChange={e => setNc({...nc, city: e.target.value})} className="border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none transition-all" />
+                            <div className="md:col-span-1 border-2 border-gray-200 rounded-lg overflow-hidden flex flex-col justify-center">
+                                <select value={nc.defaultBrokType} onChange={e => setNc({...nc, defaultBrokType: e.target.value})} className="w-full bg-white p-2 text-xs font-bold text-textMain outline-none border-b border-gray-200">
+                                    <option value="PERCENT">% Percent</option>
+                                    <option value="FIXED">₹ Fixed/Qtl</option>
+                                </select>
+                                <input type="number" placeholder={t('Default Brokerage', 'डिफ़ॉल्ट दलाली')} value={nc.defaultBrokVal} onChange={e => setNc({...nc, defaultBrokVal: e.target.value})} step="0.01" min="0" className="w-full bg-white p-2 text-sm font-bold text-textMain outline-none" />
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex gap-4 relative z-10 items-center">
-                        <button onClick={handleSaveContact} className="bg-primary text-white font-bold px-8 py-2.5 rounded-lg shadow-md hover:bg-red-800 transition-colors">{t('Save Contact', 'संपर्क सहेजें')}</button>
-                        <button onClick={() => { setShowContactForm(false); setEditContact(null); }} className="text-sm font-semibold text-textMuted hover:text-primary transition-colors underline">{t('Cancel', 'रद्द करें')}</button>
+                        <div className="flex gap-4 relative z-10 items-center">
+                            <button onClick={handleSaveContact} className="bg-primary text-white font-bold px-8 py-2.5 rounded-lg shadow-md hover:bg-red-800 transition-colors">{t('Save Contact', 'संपर्क सहेजें')}</button>
+                            <button onClick={() => { setShowContactForm(false); setEditContact(null); }} className="text-sm font-semibold text-textMuted hover:text-primary transition-colors underline">{t('Cancel', 'रद्द करें')}</button>
+                        </div>
                     </div>
                 </div>
             )}
 
             {showFirmForm && (
-                <div className="bg-yellow-50 border border-yellow-100 rounded-xl shadow-xl p-6 mb-8 border-t-4 border-t-secondary animate-slide-in relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full"></div>
-                    <h3 className="font-bold text-secondary mb-5 uppercase tracking-wide text-lg">{editFirm ? t('Edit Firm', 'फर्म संपादित करें') : t('Add Firm for', 'फर्म जोड़ें')} <span className="text-primary">{selectedContact?.name}</span></h3>
-                    <div className="mb-5 relative z-10">
-                        <input type="text" placeholder={t('Firm Name *', 'फर्म का नाम *')} value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full bg-white" />
-                    </div>
-                    <div className="flex gap-4 relative z-10">
-                        <button onClick={handleSaveFirm} className="bg-secondary hover:bg-yellow-600 text-white font-bold px-8 py-2.5 rounded-lg shadow-md transition-colors">{t('Save Firm', 'फर्म सहेजें')}</button>
-                        <button onClick={() => { setShowFirmForm(false); setEditFirm(null); }} className="text-sm font-semibold text-textMuted hover:text-secondary transition-colors underline px-4 py-2.5">{t('Cancel', 'रद्द करें')}</button>
+                <div className="modal-overlay">
+                    <div className="modal-content bg-yellow-50 border border-yellow-100 border-t-4 border-t-secondary animate-slide-in relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full pointer-events-none"></div>
+                        <h3 className="font-bold text-secondary mb-5 uppercase tracking-wide text-lg">{editFirm ? t('Edit Firm', 'फर्म संपादित करें') : t('Add Firm for', 'फर्म जोड़ें')} <span className="text-primary">{selectedContact?.name}</span></h3>
+                        <div className="mb-5 relative z-10">
+                            <input type="text" placeholder={t('Firm Name *', 'फर्म का नाम *')} value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full bg-white" />
+                        </div>
+                        <div className="flex gap-4 relative z-10">
+                            <button onClick={handleSaveFirm} className="bg-secondary hover:bg-yellow-600 text-white font-bold px-8 py-2.5 rounded-lg shadow-md transition-colors">{t('Save Firm', 'फर्म सहेजें')}</button>
+                            <button onClick={() => { setShowFirmForm(false); setEditFirm(null); }} className="text-sm font-semibold text-textMuted hover:text-secondary transition-colors underline px-4 py-2.5">{t('Cancel', 'रद्द करें')}</button>
+                        </div>
                     </div>
                 </div>
             )}

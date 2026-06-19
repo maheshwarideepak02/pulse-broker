@@ -291,46 +291,58 @@ const Pending = () => {
                 </div>
 
                 {/* Mobile Card Layout */}
-                <div className="md:hidden divide-y divide-gray-100">
+                <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
                     {filteredDeals.length === 0 ? (
-                        <div className="p-12 text-center">
+                        <div className="p-8 text-center text-gray-500 font-medium bg-white rounded-xl border border-gray-100">
                             <div className="text-4xl mb-3 opacity-50">📋</div>
-                            <h3 className="text-lg font-bold text-textMain">{t('No Pending Deals', 'कोई लंबित सौदा नहीं')}</h3>
-                            <p className="text-textMuted mt-1">{t('Try adjusting your search query', 'अपनी खोज बदलें')}</p>
+                            <h3 className="text-lg font-bold text-gray-900">{t('No Pending Deals', 'कोई लंबित सौदा नहीं')}</h3>
+                            <p className="text-gray-400 mt-1">{t('Try adjusting your search query', 'अपनी खोज बदलें')}</p>
                         </div>
                     ) : filteredDeals.map(deal => (
-                        <div key={deal.id} className="p-4 hover:bg-yellow-50/50 transition-colors relative pl-6">
-                            <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-secondary to-yellow-300 opacity-50"></div>
+                        <div key={deal.id} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-secondary transition-colors relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-secondary to-yellow-300"></div>
                             
                             <div className="flex justify-between items-start mb-3">
-                                <div className="text-xs text-gray-500 font-bold">{deal.dealDate}</div>
-                                <div className="text-xs font-bold text-secondary">{deal.item?.name} - {deal.marka?.name}</div>
+                                <div className="flex gap-2 items-center">
+                                    <span className="bg-gray-100 px-2 py-1 rounded-md font-bold text-xs text-gray-700 shadow-sm border border-gray-200">{deal.item?.name}</span>
+                                    <span className="text-secondary font-extrabold text-xs">{deal.marka?.name}</span>
+                                </div>
+                                <div className="text-xs text-gray-500 font-bold border border-gray-200 px-2 py-1 rounded-md bg-gray-50 shadow-sm">{deal.dealDate}</div>
                             </div>
                             
-                            <div className="mb-3 flex gap-4">
-                                <div className="flex-1">
-                                    <div className="text-[10px] text-gray-400 font-bold uppercase">{t('Purchaser', 'खरीदार')}</div>
-                                    <div className="font-bold text-primary text-sm">{deal.purchaserContact?.name || deal.purchaser?.name}</div>
+                            <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3">
+                                <div className="flex flex-col flex-1">
+                                    <span className="font-extrabold text-sm text-gray-900">{deal.purchaserContact?.name || deal.purchaser?.name}</span>
+                                    <span className="text-[10px] text-gray-500 font-bold uppercase">{t('Purchaser', 'खरीदार')}</span>
                                 </div>
-                                <div className="flex-1">
-                                    <div className="text-[10px] text-gray-400 font-bold uppercase">{t('Seller', 'विक्रेता')}</div>
-                                    <div className="font-bold text-primary text-sm">{deal.sellerContact?.name || deal.seller?.name}</div>
+                                <div className="flex items-center justify-center px-2">
+                                    <span className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[10px] shadow-sm">➡️</span>
+                                </div>
+                                <div className="flex flex-col flex-1 text-right">
+                                    <span className="font-extrabold text-sm text-gray-900">{deal.sellerContact?.name || deal.seller?.name}</span>
+                                    <span className="text-[10px] text-gray-500 font-bold uppercase">{t('Seller', 'विक्रेता')}</span>
                                 </div>
                             </div>
 
-                            <div className="flex justify-between items-center mb-4 bg-gray-50 p-2 rounded-lg border border-gray-100">
-                                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">{deal.weight} {t('QTL', 'क्विंटल')} {deal.numberOfPackets ? `(${deal.numberOfPackets} ${t('Bags', 'बोरी')})` : ''}</span>
-                                <span className="text-gray-600 font-bold text-sm">₹{deal.rate}</span>
+                            <div className="flex justify-between items-center mb-4 px-1">
+                                <span className="font-medium flex flex-col">
+                                    <span className="text-[10px] text-gray-400 uppercase">{t('Quantity', 'मात्रा')}</span>
+                                    <span className="font-extrabold text-gray-800">{deal.numberOfPackets ? `${deal.numberOfPackets} ${t('Bags', 'बोरी')} / ` : ''}{deal.weight} {t('qtl', 'क्विंटल')}</span>
+                                </span>
+                                <span className="font-medium flex flex-col text-right">
+                                    <span className="text-[10px] text-gray-400 uppercase">{t('Rate', 'भाव')}</span>
+                                    <span className="font-black text-lg text-primary">₹{deal.rate}</span>
+                                </span>
                             </div>
 
-                            <div className="flex gap-2">
-                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm uppercase tracking-wider transition-colors">
+                            <div className="flex gap-2 pt-2 border-t border-gray-100 mt-2">
+                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="flex-1 bg-gradient-to-tr from-secondary to-yellow-500 hover:shadow-lg hover:-translate-y-0.5 text-white font-bold py-2 px-4 rounded-xl shadow-md text-sm uppercase tracking-wider transition-all">
                                     {t('Load', 'लोड')}
                                 </button>
-                                <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-white border-2 border-gray-200 text-gray-600 font-bold py-2 px-3 rounded-lg shadow-sm text-xs">
+                                <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-all text-sm">
                                     ✏️
                                 </button>
-                                <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white border-2 border-red-200 text-red-600 font-bold py-2 px-3 rounded-lg shadow-sm text-xs">
+                                <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-all text-sm">
                                     🗑️
                                 </button>
                             </div>

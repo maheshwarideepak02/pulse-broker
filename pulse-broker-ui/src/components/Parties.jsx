@@ -231,42 +231,42 @@ const Parties = () => {
             )}
 
             {filteredContacts.length === 0 ? (
-                <div className="text-center py-20 bg-white rounded-xl shadow-sm border border-dashed border-gray-300">
+                <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-dashed border-gray-300">
                     <div className="text-4xl mb-3 opacity-50">🔍</div>
-                    <h3 className="text-lg font-bold text-textMain">{t('No Parties Found', 'कोई पार्टी नहीं मिली')}</h3>
-                    <p className="text-textMuted mt-1">{t('Try adjusting your search query', 'अपनी खोज बदलें')}</p>
+                    <h3 className="text-lg font-bold text-gray-900">{t('No Parties Found', 'कोई पार्टी नहीं मिली')}</h3>
+                    <p className="text-gray-400 mt-1">{t('Try adjusting your search query', 'अपनी खोज बदलें')}</p>
                 </div>
             ) : (
-                <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-2">
+                <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 bg-gray-50/50 sm:bg-transparent p-3 sm:p-0 rounded-3xl sm:rounded-none">
                     {filteredContacts.map(c => (
-                        <div key={c.id} className="bg-white p-5 rounded-xl shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 group relative overflow-hidden">
-                            <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pl-2">
+                        <div key={c.id} className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative overflow-hidden">
+                            <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-primary to-secondary"></div>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 pl-2">
                                 <div className="w-full sm:w-auto">
-                                    <div className="flex items-center gap-2 mb-1.5">
+                                    <div className="flex items-center gap-2 mb-2">
                                         <h3 className="font-extrabold text-xl text-gray-900 group-hover:text-primary transition-colors">{c.name}</h3>
                                         <button onClick={() => openEditContact(c)} className="text-gray-300 hover:text-primary transition-colors text-xs p-1" title="Edit Contact">✏️</button>
                                         <button onClick={() => handleDeleteContact(c.id)} className="text-gray-300 hover:text-red-600 transition-colors text-xs p-1" title="Delete Contact">🗑️</button>
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm border border-gray-200">📞 {c.phone || 'N/A'}</span>
-                                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm border border-gray-200">📍 {c.city || 'N/A'}</span>
+                                        <span className="text-[11px] font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm border border-gray-200">📞 {c.phone || 'N/A'}</span>
+                                        <span className="text-[11px] font-bold text-gray-600 bg-gray-50 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm border border-gray-200">📍 {c.city || 'N/A'}</span>
                                         {c.defaultBrokVal !== null && c.defaultBrokVal !== undefined && c.defaultBrokVal !== '' && parseFloat(c.defaultBrokVal) > 0 ? (
-                                            <span className="text-xs font-extrabold text-primary bg-red-50 border border-red-200 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm">
+                                            <span className="text-[11px] font-extrabold text-primary bg-red-50 border border-red-200 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm">
                                                 💰 {c.defaultBrokVal} {c.defaultBrokType === 'PERCENT' ? '%' : '₹/Qtl'}
                                             </span>
                                         ) : null}
                                     </div>
                                 </div>
-                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
+                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2.5 rounded-xl font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
                                     {t('+ Add Firm', '+ फर्म जोड़ें')}
                                 </button>
                             </div>
                             <div className="mt-2 pt-4 border-t border-gray-100 pl-2">
-                                <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">{t('Linked Firms', 'जुड़ी हुई फर्में')}</p>
+                                <p className="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-3">{t('Linked Firms', 'जुड़ी हुई फर्में')}</p>
                                 <div className="flex flex-wrap gap-2">
                                     {firms.filter(f => f.contact?.id === c.id).map(f => (
-                                        <span key={f.id} className="inline-flex items-center gap-1 bg-yellow-50 text-secondary text-xs font-bold px-2.5 py-1 rounded-md border border-yellow-200 shadow-sm group/firm hover:border-secondary transition-colors cursor-pointer" onClick={() => { setSelectedContact(c); openEditFirm(f); }} title={t('Click to edit firm', 'फर्म को संपादित करने के लिए क्लिक करें')}>
+                                        <span key={f.id} className="inline-flex items-center gap-1 bg-white text-secondary text-[11px] font-bold px-3 py-1.5 rounded-lg border border-yellow-200 shadow-sm group/firm hover:border-secondary hover:bg-yellow-50 transition-colors cursor-pointer" onClick={() => { setSelectedContact(c); openEditFirm(f); }} title={t('Click to edit firm', 'फर्म को संपादित करने के लिए क्लिक करें')}>
                                             {f.name}
                                             <span className="opacity-0 group-hover/firm:opacity-100 transition-opacity ml-1 text-[10px]">✏️</span>
                                             <button onClick={(e) => handleDeleteFirm(e, f.id)} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-[10px]" title={t('Delete Firm', 'फर्म मिटाएं')}>×</button>

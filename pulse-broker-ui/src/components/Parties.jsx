@@ -148,12 +148,14 @@ const Parties = () => {
         setEditContact(c);
         setNc({ name: c.name, phone: c.phone || '', city: c.city || '', defaultBrokType: c.defaultBrokType || 'PERCENT', defaultBrokVal: c.defaultBrokVal !== null && c.defaultBrokVal !== undefined ? c.defaultBrokVal : '' });
         setShowContactForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const openEditFirm = (f) => {
         setEditFirm(f);
         setFc({ name: f.name });
         setShowFirmForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const filteredContacts = contacts.filter(c => {
@@ -187,7 +189,7 @@ const Parties = () => {
                             🔍
                         </div>
                     </div>
-                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); }} className="bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1 transition-all text-white px-5 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap">
+                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1 transition-all text-white px-5 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap">
                         {t('+ Add New Party', '+ नई पार्टी जोड़ें')}
                     </button>
                 </div>
@@ -262,7 +264,7 @@ const Parties = () => {
                                         ) : null}
                                     </div>
                                 </div>
-                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2.5 rounded-xl font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
+                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2.5 rounded-xl font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
                                     {t('+ Add Firm', '+ फर्म जोड़ें')}
                                 </button>
                             </div>

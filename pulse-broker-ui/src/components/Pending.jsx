@@ -129,6 +129,7 @@ const Pending = () => {
             sBrokerage: deal.sBrokerage || '',
             brokeragePayer: deal.brokeragePayer || 'BOTH'
         });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     const handleUpdateDeal = async () => {
@@ -280,7 +281,7 @@ const Pending = () => {
                                         <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Delete Deal', 'सौदा मिटाएं')}>
                                             🗑️ {t('Delete', 'मिटाएं')}
                                         </button>
-                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
+                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
                                             {t('Load Now', 'लोड करें')}
                                         </button>
                                     </td>
@@ -336,7 +337,7 @@ const Pending = () => {
                             </div>
 
                             <div className="flex gap-2 pt-2 border-t border-gray-100 mt-2">
-                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="flex-1 bg-gradient-to-tr from-secondary to-yellow-500 hover:shadow-lg hover:-translate-y-0.5 text-white font-bold py-2 px-4 rounded-xl shadow-md text-sm uppercase tracking-wider transition-all">
+                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-gradient-to-tr from-secondary to-yellow-500 hover:shadow-lg hover:-translate-y-0.5 text-white font-bold py-2 px-4 rounded-xl shadow-md text-sm uppercase tracking-wider transition-all">
                                     {t('Load', 'लोड')}
                                 </button>
                                 <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-all text-sm">

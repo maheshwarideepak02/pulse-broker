@@ -517,15 +517,16 @@ const Ledger = () => {
                     </div>
 
                     {/* Mobile Card Layout for Generate Bill */}
-                    <div className="md:hidden divide-y divide-gray-100">
+                    <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
                         {isLoading ? (
-                            <div className="p-8 text-center text-gray-500 animate-pulse">{t('Calculating via secure server...', 'सर्वर से कैलकुलेट हो रहा है...')}</div>
+                            <div className="p-8 text-center text-gray-500 bg-white rounded-xl border border-gray-100 animate-pulse">{t('Calculating via secure server...', 'सर्वर से कैलकुलेट हो रहा है...')}</div>
                         ) : !billPreview || billPreview.items.length === 0 ? (
-                            <div className="p-12 text-center text-gray-500 font-medium">{filterFirm ? t('No unbilled deals match the selected filter.', 'चुने गए फिल्टर में कोई अनबिल्ड सौदा नहीं मिला।') : t('Please select a firm to view their ledger.', 'खाता देखने के लिए फर्म चुनें।')}</div>
+                            <div className="p-8 text-center text-gray-500 font-medium bg-white rounded-xl border border-gray-100">{filterFirm ? t('No unbilled deals match the selected filter.', 'चुने गए फिल्टर में कोई अनबिल्ड सौदा नहीं मिला।') : t('Please select a firm to view their ledger.', 'खाता देखने के लिए फर्म चुनें।')}</div>
                         ) : (
                             <>
                                 {billPreview.items.map(d => (
-                                    <div key={d.dealId} className="p-4 hover:bg-red-50/30 transition-colors">
+                                    <div key={d.dealId} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-primary transition-colors relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-secondary"></div>
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="font-bold text-primary text-lg">{d.oppositePartyName}</span>
                                             <div className="text-right">{renderBrokerageCell(d)}</div>
@@ -534,15 +535,16 @@ const Ledger = () => {
                                             <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span>
                                             <span className="font-bold text-gray-600">{d.weight} {t('qtl', 'क्विंटल')} {d.numberOfPackets ? `(${d.numberOfPackets} ${t('Bags', 'बोरी')})` : ''}</span>
                                         </div>
-                                        <div className="flex justify-between items-center mt-2">
-                                            <div className="text-xs text-gray-500">{formatDate(d.dealDate)}</div>
-                                            <button onClick={() => handleRevertDeal(d.dealId)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
+                                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                                            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(d.dealDate)}</div>
+                                            <button onClick={() => handleRevertDeal(d.dealId)} className="text-[11px] font-bold text-gray-500 hover:text-red-600 flex items-center gap-1 bg-white border border-gray-200 shadow-sm px-2 py-1 rounded-md active:scale-95 transition-all">
                                                 ↩️ {t('Revert', 'वापस')}
                                             </button>
                                         </div>
                                     </div>
                                 ))}
-                                <div className="p-4 bg-gradient-to-r from-gray-50 to-red-50 border-t-2 border-gray-200">
+                                <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 mt-2 relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-moneyGreen to-green-500"></div>
                                     <div className="flex justify-between items-center mb-4">
                                         <span className="font-bold uppercase text-gray-500 tracking-wider text-sm">{t('Total to Bill:', 'कुल बिल:')}</span>
                                         <span className="font-black text-moneyGreen text-2xl">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</span>
@@ -644,11 +646,12 @@ const Ledger = () => {
                     </div>
 
                     {/* Mobile Card Layout for History */}
-                    <div className="md:hidden divide-y divide-gray-100">
+                    <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
                         {billsHistory.length === 0 ? (
-                            <div className="p-12 text-center text-gray-500 font-medium">{t('No invoices generated yet.', 'अभी तक कोई बिल नहीं बनाया गया है।')}</div>
+                            <div className="p-8 text-center text-gray-500 font-medium bg-white rounded-xl border border-gray-100">{t('No invoices generated yet.', 'अभी तक कोई बिल नहीं बनाया गया है।')}</div>
                         ) : billsHistory.map(b => (
-                            <div key={b.id} className="p-4 hover:bg-gray-50 transition-colors">
+                            <div key={b.id} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
+                                <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${b.status === 'PAID' ? 'from-moneyGreen to-green-500' : 'from-yellow-400 to-yellow-600'}`}></div>
                                 <div className="flex justify-between items-start mb-2">
                                     <div>
                                         <div className="font-bold text-gray-600 text-xs mb-1">{b.billNumber}</div>
@@ -669,19 +672,19 @@ const Ledger = () => {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-end mt-4">
+                                <div className="flex justify-between items-end mt-4 pt-3 border-t border-gray-50">
                                     <div className="flex flex-col gap-1">
-                                        <div className="text-xs text-gray-500">{formatDate(b.billDate)}</div>
+                                        <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(b.billDate)}</div>
                                         {b.status === 'PAID' && b.discountAmount > 0 && (
                                             <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 inline-block w-max">{t('Kasar', 'कसर')}: ₹{b.discountAmount}</span>
                                         )}
                                     </div>
                                     <div className="flex gap-2">
-                                        <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">👁️</button>
+                                        <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">👁️</button>
                                         {b.status === 'UNPAID' && (
                                             <>
-                                                <button onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">✓ {t('Pay', 'भुगतान')}</button>
-                                                <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm">🗑️</button>
+                                                <button onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">✓ {t('Pay', 'भुगतान')}</button>
+                                                <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">🗑️</button>
                                             </>
                                         )}
                                     </div>

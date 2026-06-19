@@ -336,14 +336,14 @@ const Pending = () => {
                                 </span>
                             </div>
 
-                            <div className="flex gap-2 pt-2 border-t border-gray-100 mt-2">
-                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-gradient-to-tr from-secondary to-yellow-500 hover:shadow-lg hover:-translate-y-0.5 text-white font-bold py-2 px-4 rounded-xl shadow-md text-sm uppercase tracking-wider transition-all">
-                                    {t('Load', 'लोड')}
+                            <div className="flex gap-2 pt-3 border-t border-gray-100 mt-2">
+                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95">
+                                    <span>🚚</span> {t('Load', 'लोड')}
                                 </button>
-                                <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-white border border-gray-200 hover:bg-gray-50 text-gray-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-all text-sm">
-                                    ✏️
+                                <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider flex items-center justify-center active:scale-95">
+                                    ✏️ {t('Edit', 'संपादन')}
                                 </button>
-                                <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white border border-red-200 hover:bg-red-50 text-red-600 font-bold py-2 px-4 rounded-xl shadow-sm transition-all text-sm">
+                                <button onClick={() => handleDeleteDeal(deal.id)} className="bg-red-50 border border-red-100 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center active:scale-95">
                                     🗑️
                                 </button>
                             </div>

@@ -224,7 +224,8 @@ const MarginLedger = () => {
                     ) : filteredDeals.length === 0 ? (
                         <div className="p-12 text-center text-gray-500">{t('No margin differences found for this party and filters.', 'इस पार्टी और फ़िल्टर के लिए कोई मार्जिन अंतर नहीं मिला।')}</div>
                     ) : (
-                        <div className="overflow-x-auto">
+                        <>
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-primary/5 text-primary text-xs uppercase tracking-wider">
@@ -289,6 +290,53 @@ const MarginLedger = () => {
                                 </tbody>
                             </table>
                         </div>
+
+                        {/* Mobile Card Layout */}
+                        <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
+                            {filteredDeals.map(d => {
+                                const netMargin = d.marginMarkup * d.weight;
+                                const isSelected = selectedDealIds.includes(d.id);
+                                return (
+                                    <div key={d.id} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden" onClick={() => toggleSelection(d.id)}>
+                                        <div className={`absolute top-0 left-0 w-1 h-full ${isSelected ? 'bg-primary' : 'bg-gray-300'}`}></div>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    className="w-4 h-4 rounded text-primary focus:ring-primary"
+                                                    checked={isSelected}
+                                                    onChange={() => toggleSelection(d.id)}
+                                                    onClick={(e) => e.stopPropagation()}
+                                                />
+                                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(d.dealDate)}</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`font-black text-lg ${netMargin > 0 ? 'text-green-600' : 'text-red-600'}`}>₹{netMargin.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div>
+                                                <div className="text-[10px] uppercase text-gray-400 font-bold">{t('Purchaser', 'खरीदार')}</div>
+                                                <div className="font-bold text-gray-800 text-sm leading-tight">{d.purchaser?.name}</div>
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-[10px] uppercase text-gray-400 font-bold">{t('Seller', 'विक्रेता')}</div>
+                                                <div className="font-bold text-gray-800 text-sm leading-tight">{d.seller?.name}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
+                                            <div className="flex items-center gap-2">
+                                                <span className="bg-gray-100 px-2 py-0.5 rounded border border-gray-200 font-bold text-xs">{d.item?.name} {d.marka ? `- ${d.marka.name}` : ''}</span>
+                                            </div>
+                                            <div className="text-right text-xs font-bold text-gray-600">
+                                                {d.weight} {t('Qtl', 'क्विंटल')} × <span className={d.marginMarkup > 0 ? 'text-green-600' : 'text-red-600'}>{d.marginMarkup > 0 ? '+' : ''}{d.marginMarkup}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        </>
                     )}
                 </div>
             )}

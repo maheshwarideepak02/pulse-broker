@@ -137,7 +137,7 @@ const Settings = () => {
                 </h1>
             </div>
             
-            <div className="bg-white border border-border rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-primary relative overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 mb-6 border-l-8 border-l-primary relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-primary">🌾</span> {t('Manage Pulse Categories (Items)', 'आइटम प्रबंधित करें')}</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">
@@ -157,7 +157,7 @@ const Settings = () => {
                 </div>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-100 rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-secondary relative overflow-hidden">
+            <div className="bg-white border border-yellow-100 rounded-2xl shadow-xl p-6 mb-6 border-l-8 border-l-secondary relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-secondary">🏷️</span> {t('Manage Marka (Brands)', 'मार्का प्रबंधित करें')}</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">

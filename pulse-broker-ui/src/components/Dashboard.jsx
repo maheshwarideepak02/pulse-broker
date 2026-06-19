@@ -148,6 +148,8 @@ const Dashboard = () => {
                                 <th className="px-6 py-4 font-bold text-right">{t('Bags', 'बोरा')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Rate', 'भाव')}</th>
+                                <th className="px-6 py-4 font-bold text-right">{t('P. Brok', 'खरीदार दलाली')}</th>
+                                <th className="px-6 py-4 font-bold text-right">{t('S. Brok', 'विक्रेता दलाली')}</th>
                                 <th className="px-6 py-4 font-bold text-center"></th>
                             </tr>
                         </thead>
@@ -159,8 +161,14 @@ const Dashboard = () => {
                                     <tr key={deal.id} className="hover:bg-red-50/30 transition-colors">
                                         <td className="px-6 py-4 text-gray-500 font-medium">{formatDate(deal.dealDate)}</td>
                                         <td className="px-6 py-4 text-gray-500 font-medium">{formatDate(deal.loadDate)}</td>
-                                        <td className="px-6 py-4 font-bold text-textMain">{deal.purchaser?.name}</td>
-                                        <td className="px-6 py-4 font-bold text-textMain">{deal.seller?.name}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-textMain">{deal.purchaser?.name}</div>
+                                            <div className="text-[10px] text-gray-400 font-bold uppercase">{deal.purchaserContact?.name}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-textMain">{deal.seller?.name}</div>
+                                            <div className="text-[10px] text-gray-400 font-bold uppercase">{deal.sellerContact?.name}</div>
+                                        </td>
                                         <td className="px-6 py-4">
                                             <span className="bg-gray-100 px-2 py-1 rounded font-bold text-xs border border-gray-200">{deal.item?.name}</span>
                                             <span className="text-secondary font-bold text-xs ml-1.5">{deal.marka?.name}</span>
@@ -175,6 +183,8 @@ const Dashboard = () => {
                                         <td className="px-6 py-4 text-right font-bold text-gray-500">{deal.numberOfPackets || '-'}</td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight}</td>
                                         <td className="px-6 py-4 text-right text-secondary font-bold">₹{deal.rate}</td>
+                                        <td className="px-6 py-4 text-right text-gray-600 font-bold">₹{deal.pBrokerage || 0}</td>
+                                        <td className="px-6 py-4 text-right text-gray-600 font-bold">₹{deal.sBrokerage || 0}</td>
                                         <td className="px-4 py-4 text-center">
                                             {deal.status === 'LOADED' && (
                                                 <button onClick={() => handleRevertDeal(deal)} className="text-gray-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200 ml-auto flex items-center gap-1 text-xs font-bold" title="Undo Load">
@@ -211,13 +221,23 @@ const Dashboard = () => {
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center mb-1">
-                                    <span className="font-bold text-sm text-textMain">{deal.purchaser?.name}</span>
-                                    <span className="text-gray-400 text-xs">→</span>
-                                    <span className="font-bold text-sm text-textMain">{deal.seller?.name}</span>
+                                    <div className="flex flex-col">
+                                        <span className="font-bold text-sm text-textMain">{deal.purchaser?.name}</span>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">{deal.purchaserContact?.name}</span>
+                                    </div>
+                                    <span className="text-gray-400 text-xs px-2">→</span>
+                                    <div className="flex flex-col text-right">
+                                        <span className="font-bold text-sm text-textMain">{deal.seller?.name}</span>
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">{deal.sellerContact?.name}</span>
+                                    </div>
                                 </div>
                                 <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                     <span>{formatDate(deal.dealDate)} {deal.loadDate ? `→ ${formatDate(deal.loadDate)}` : ''}</span>
                                     <span className="font-bold text-gray-700">{deal.numberOfPackets ? `${deal.numberOfPackets} ${t('Bags', 'बोरी')} / ` : ''}{deal.weight} {t('qtl', 'क्विंटल')}</span>
+                                </div>
+                                <div className="flex justify-between items-center text-xs border-t border-gray-100 pt-2 mb-2">
+                                    <span className="font-bold text-gray-500">{t('P. Brok:', 'खरीदार दलाली:')} <span className="text-gray-700">₹{deal.pBrokerage || 0}</span></span>
+                                    <span className="font-bold text-gray-500">{t('S. Brok:', 'विक्रेता दलाली:')} <span className="text-gray-700">₹{deal.sBrokerage || 0}</span></span>
                                 </div>
                                 {deal.status === 'LOADED' && (
                                     <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">

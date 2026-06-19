@@ -28,6 +28,11 @@ public class ContactController {
         return contactRepository.findAll();
     }
 
+    @GetMapping("/with-margins")
+    public List<Contact> getContactsWithMargins() {
+        return contactRepository.findContactsWithMargins();
+    }
+
     @PostMapping
     public Contact create(@RequestBody Contact contact) {
         return contactRepository.save(contact);

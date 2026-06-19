@@ -6,6 +6,7 @@ import com.pulsebroker.pulse_broker_api.repository.DealRepository;
 import com.pulsebroker.pulse_broker_api.service.DealService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -132,5 +133,28 @@ public class DealController {
         }
         
         dealRepository.delete(deal);
+    }
+
+    @PostMapping("/margin/clear")
+    public ResponseEntity<Void> clearMargins(@RequestBody List<Long> dealIds) {
+        List<Deal> deals = dealRepository.findAllById(dealIds);
+        LocalDate today = LocalDate.now();
+        for (Deal d : deals) {
+            d.setMarginCleared(true);
+            d.setMarginClearanceDate(today);
+        }
+        dealRepository.saveAll(deals);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/margin/unclear")
+    public ResponseEntity<Void> unclearMargins(@RequestBody List<Long> dealIds) {
+        List<Deal> deals = dealRepository.findAllById(dealIds);
+        for (Deal d : deals) {
+            d.setMarginCleared(false);
+            d.setMarginClearanceDate(null);
+        }
+        dealRepository.saveAll(deals);
+        return ResponseEntity.ok().build();
     }
 }

@@ -66,6 +66,12 @@ public class Deal {
     @Column(precision = 19, scale = 2)
     private BigDecimal marginMarkup; // e.g. +50 or -50
 
+    @Column(name = "margin_cleared")
+    private Boolean marginCleared;
+
+    @Column(name = "margin_clearance_date")
+    private LocalDate marginClearanceDate;
+
     @Column(precision = 19, scale = 2)
     @JsonProperty("pBrokerage")
     private BigDecimal pBrokerage; // Purchaser brokerage calculated

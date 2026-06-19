@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getContacts, getMarginDeals } from '../api';
+import { getContactsWithMargins, getMarginDeals, clearMargins, unclearMargins } from '../api';
 import { formatDate } from '../utils/dateUtils';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const MarginLedger = () => {
     const { t } = useLanguage();
@@ -11,9 +13,17 @@ const MarginLedger = () => {
     const [selectedParty, setSelectedParty] = useState('');
     const [marginDeals, setMarginDeals] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [showInvoice, setShowInvoice] = useState(false);
+    
+    // Filtering and Clearance State
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'cleared'
+    const [selectedDealIds, setSelectedDealIds] = useState([]);
+    const [isClearing, setIsClearing] = useState(false);
 
     useEffect(() => {
-        getContacts().then(setContacts).catch(console.error);
+        getContactsWithMargins().then(setContacts).catch(console.error);
     }, []);
 
     useEffect(() => {
@@ -29,6 +39,7 @@ const MarginLedger = () => {
         try {
             const data = await getMarginDeals(partyId);
             setMarginDeals(data);
+            setSelectedDealIds([]); // reset selection on fetch
         } catch (err) {
             console.error(err);
             addToast('Failed to load margin ledger', 'error');
@@ -37,7 +48,57 @@ const MarginLedger = () => {
         }
     };
 
-    const totalMargin = marginDeals.reduce((sum, d) => sum + (d.marginMarkup * d.weight), 0);
+    const handleClearToggle = async (action) => {
+        if (selectedDealIds.length === 0) return;
+        setIsClearing(true);
+        try {
+            if (action === 'clear') {
+                await clearMargins(selectedDealIds);
+                addToast(t('Margins marked as cleared', 'मार्जिन को क्लीयर के रूप में चिह्नित किया गया'), 'success');
+            } else {
+                await unclearMargins(selectedDealIds);
+                addToast(t('Margins clearance undone', 'मार्जिन क्लीयरेंस पूर्ववत किया गया'), 'success');
+            }
+            await fetchMargins(selectedParty);
+        } catch (err) {
+            addToast(t('Action failed', 'कार्रवाई विफल रही'), 'error');
+        } finally {
+            setIsClearing(false);
+        }
+    };
+
+    const toggleSelection = (id) => {
+        setSelectedDealIds(prev => prev.includes(id) ? prev.filter(dealId => dealId !== id) : [...prev, id]);
+    };
+
+    const toggleAllSelection = () => {
+        if (selectedDealIds.length === filteredDeals.length && filteredDeals.length > 0) {
+            setSelectedDealIds([]);
+        } else {
+            setSelectedDealIds(filteredDeals.map(d => d.id));
+        }
+    };
+
+    // Derived State
+    const filteredDeals = marginDeals.filter(d => {
+        const isCleared = !!d.marginCleared;
+        if (activeTab === 'pending' && isCleared) return false;
+        if (activeTab === 'cleared' && !isCleared) return false;
+
+        if (startDate) {
+            const dealDate = new Date(d.dealDate);
+            dealDate.setHours(0,0,0,0);
+            if (dealDate < startDate) return false;
+        }
+        if (endDate) {
+            const dealDate = new Date(d.dealDate);
+            dealDate.setHours(0,0,0,0);
+            if (dealDate > endDate) return false;
+        }
+        return true;
+    });
+
+    const totalMargin = filteredDeals.reduce((sum, d) => sum + (d.marginMarkup * d.weight), 0);
 
     return (
         <div className="max-w-6xl mx-auto p-4 py-8">
@@ -49,35 +110,115 @@ const MarginLedger = () => {
             </div>
 
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 border-t-8 border-t-primary mb-8">
-                <div className="max-w-md">
-                    <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">{t('Select Party', 'पार्टी चुनें')}</label>
-                    <select value={selectedParty} onChange={(e) => setSelectedParty(e.target.value)} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 font-bold text-gray-800 focus:ring-2 focus:ring-primary outline-none transition-all">
-                        <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
-                        {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
+                <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex-1">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">{t('Select Party', 'पार्टी चुनें')}</label>
+                        <select value={selectedParty} onChange={(e) => setSelectedParty(e.target.value)} className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 font-bold text-gray-800 focus:ring-2 focus:ring-primary outline-none transition-all">
+                            <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
+                            {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">{t('Start Date', 'आरंभ तिथि')}</label>
+                        <div className="date-input-wrapper">
+                            <DatePicker
+                                selected={startDate}
+                                onChange={date => setStartDate(date)}
+                                selectsStart
+                                startDate={startDate}
+                                endDate={endDate}
+                                placeholderText={t('From Date', 'तारीख से')}
+                                className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 font-bold text-gray-800 outline-none"
+                                dateFormat="dd-MM-yyyy"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex-1">
+                        <label className="block text-sm font-bold text-gray-700 uppercase tracking-wider mb-2">{t('End Date', 'अंतिम तिथि')}</label>
+                        <div className="date-input-wrapper">
+                            <DatePicker
+                                selected={endDate}
+                                onChange={date => setEndDate(date)}
+                                selectsEnd
+                                startDate={startDate}
+                                endDate={endDate}
+                                minDate={startDate}
+                                placeholderText={t('To Date', 'तारीख तक')}
+                                className="w-full border-2 border-gray-200 rounded-lg px-4 py-3 font-bold text-gray-800 outline-none"
+                                dateFormat="dd-MM-yyyy"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
 
             {selectedParty && (
                 <div className="bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden">
-                    <div className="bg-gray-50 p-6 border-b border-gray-200 flex justify-between items-center">
-                        <h2 className="text-xl font-bold text-gray-800">{t('Margin Ledger', 'मार्जिन लेजर')}</h2>
-                        <div className={`px-4 py-2 rounded-xl border-2 font-bold text-lg ${totalMargin >= 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
-                            {t('Total Balance: ', 'कुल बैलेंस: ')} ₹{totalMargin.toFixed(2)}
+                    <div className="bg-gray-50 border-b border-gray-200">
+                        <div className="flex px-6 pt-4 gap-4">
+                            <button 
+                                onClick={() => setActiveTab('pending')}
+                                className={`px-4 py-2 font-bold transition-colors border-b-2 ${activeTab === 'pending' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                {t('Pending Margins', 'लंबित मार्जिन')}
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab('cleared')}
+                                className={`px-4 py-2 font-bold transition-colors border-b-2 ${activeTab === 'cleared' ? 'border-primary text-primary' : 'border-transparent text-gray-500 hover:text-gray-700'}`}
+                            >
+                                {t('Cleared / Paid', 'क्लीयर / भुगतान किया गया')}
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <h2 className="text-xl font-bold text-gray-800">{activeTab === 'pending' ? t('Pending Ledger', 'लंबित लेजर') : t('Cleared Ledger', 'क्लीयर लेजर')}</h2>
+                            {selectedDealIds.length > 0 && (
+                                <button 
+                                    onClick={() => handleClearToggle(activeTab === 'pending' ? 'clear' : 'unclear')}
+                                    disabled={isClearing}
+                                    className={`px-4 py-1.5 rounded-lg text-sm font-bold shadow-sm transition-colors ${activeTab === 'pending' ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                                >
+                                    {isClearing ? t('Processing...', 'प्रक्रिया...') : (activeTab === 'pending' ? t(`Mark ${selectedDealIds.length} as Cleared`, `${selectedDealIds.length} क्लीयर करें`) : t(`Undo Clear for ${selectedDealIds.length}`, `${selectedDealIds.length} पूर्ववत करें`))}
+                                </button>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <div className={`px-4 py-2 rounded-xl border-2 font-bold text-lg ${totalMargin >= 0 ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                                {t('Total Balance: ', 'कुल बैलेंस: ')} ₹{totalMargin.toFixed(2)}
+                            </div>
+                            <button 
+                                onClick={() => setShowInvoice(true)} 
+                                disabled={marginDeals.length === 0}
+                                className="bg-primary hover:bg-red-800 transition-colors text-white px-4 py-2 rounded-xl font-bold shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                <span>🖨️</span> {t('Print Bill', 'बिल प्रिंट करें')}
+                            </button>
                         </div>
                     </div>
 
                     {isLoading ? (
                         <div className="p-12 text-center text-gray-500 font-bold animate-pulse">{t('Loading...', 'लोड हो रहा है...')}</div>
-                    ) : marginDeals.length === 0 ? (
-                        <div className="p-12 text-center text-gray-500">{t('No margin differences found for this party.', 'इस पार्टी के लिए कोई मार्जिन अंतर नहीं मिला।')}</div>
+                    ) : filteredDeals.length === 0 ? (
+                        <div className="p-12 text-center text-gray-500">{t('No margin differences found for this party and filters.', 'इस पार्टी और फ़िल्टर के लिए कोई मार्जिन अंतर नहीं मिला।')}</div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-primary/5 text-primary text-xs uppercase tracking-wider">
+                                        <th className="p-4 border-b border-primary/10">
+                                            <input 
+                                                type="checkbox" 
+                                                className="w-4 h-4 rounded text-primary focus:ring-primary"
+                                                checked={selectedDealIds.length === filteredDeals.length && filteredDeals.length > 0}
+                                                onChange={toggleAllSelection}
+                                            />
+                                        </th>
                                         <th className="p-4 font-bold border-b border-primary/10">ID</th>
                                         <th className="p-4 font-bold border-b border-primary/10">{t('Date', 'तारीख')}</th>
+                                        <th className="p-4 font-bold border-b border-primary/10">{t('Purchaser', 'खरीदार')}</th>
+                                        <th className="p-4 font-bold border-b border-primary/10">{t('Seller', 'विक्रेता')}</th>
                                         <th className="p-4 font-bold border-b border-primary/10">{t('Item', 'आइटम')}</th>
                                         <th className="p-4 font-bold border-b border-primary/10 text-right">{t('Weight (Qtl)', 'वजन')}</th>
                                         <th className="p-4 font-bold border-b border-primary/10 text-right">{t('Base Rate', 'मूल दर')}</th>
@@ -86,12 +227,29 @@ const MarginLedger = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {marginDeals.map(d => {
+                                    {filteredDeals.map(d => {
                                         const netMargin = d.marginMarkup * d.weight;
+                                        const isSelected = selectedDealIds.includes(d.id);
                                         return (
-                                            <tr key={d.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                                            <tr key={d.id} className={`border-b border-gray-100 transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'}`}>
+                                                <td className="p-4">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="w-4 h-4 rounded text-primary focus:ring-primary"
+                                                        checked={isSelected}
+                                                        onChange={() => toggleSelection(d.id)}
+                                                    />
+                                                </td>
                                                 <td className="p-4 text-sm text-gray-500 font-medium">#{d.id}</td>
                                                 <td className="p-4 font-bold text-gray-800">{formatDate(d.dealDate)}</td>
+                                                <td className="p-4">
+                                                    <div className="font-bold text-gray-800">{d.purchaser?.name}</div>
+                                                    <div className="text-xs text-gray-500 font-bold uppercase">{d.purchaserContact?.name}</div>
+                                                </td>
+                                                <td className="p-4">
+                                                    <div className="font-bold text-gray-800">{d.seller?.name}</div>
+                                                    <div className="text-xs text-gray-500 font-bold uppercase">{d.sellerContact?.name}</div>
+                                                </td>
                                                 <td className="p-4">
                                                     <div className="font-bold text-gray-800">{d.item?.name}</div>
                                                     <div className="text-xs text-secondary font-bold">{d.marka?.name}</div>
@@ -111,6 +269,91 @@ const MarginLedger = () => {
                             </table>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* INVOICE VIEW */}
+            {showInvoice && (
+                <div className="fixed inset-0 z-50 bg-white overflow-y-auto print:bg-white print:p-0">
+                    <div className="max-w-5xl mx-auto p-4 py-8">
+                        <div className="mb-8 flex justify-between items-center bg-gray-50 p-5 rounded-xl shadow-sm border border-gray-200 print:hidden sticky top-4 z-50">
+                            <button onClick={() => setShowInvoice(false)} className="text-gray-500 hover:text-primary transition-colors font-bold flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300">
+                                {t('← Back', '← वापस')}
+                            </button>
+                            <button onClick={() => window.print()} className="bg-primary hover:bg-red-800 transition-colors text-white px-8 py-2.5 rounded-lg font-bold shadow-lg hover:-translate-y-0.5 uppercase tracking-wider flex items-center gap-2">
+                                <span>🖨️</span> {t('Print / Download PDF', 'प्रिंट करें')}
+                            </button>
+                        </div>
+
+                        <div className="invoice-preview relative bg-white border border-gray-200">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
+                                <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
+                            </div>
+                            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                <div style={{ fontSize: '24px', color: '#9e1b22', marginBottom: '-5px' }}>ॐ</div>
+                                <div style={{ fontSize: '13px', fontWeight: 'bold' }}>श्री गुरुचरण कमलेभ्यो: नम:</div>
+                                <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: '4px 0' }}>संजीव कुमार माहेश्वरी</h1>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>ब्रोकर: दलहन, गल्ला, चावल आदि</div>
+                            </div>
+                            <div style={{ textAlign: 'center', borderTop: '1px solid #9e1b22', borderBottom: '1px solid #9e1b22', padding: '4px 0', marginBottom: '10px', position: 'relative' }}>
+                                <span style={{ position: 'absolute', left: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                                    क्रमांक <span className="bill-line" style={{ minWidth: '80px' }}>-</span>
+                                </span>
+                                <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', display: 'inline-block' }}>ट्रेड मार्जिन / प्लस माइनस खाता</h2>
+                                <span style={{ position: 'absolute', right: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                                    दिनांक <span className="bill-line" style={{ minWidth: '100px' }}>{formatDate(new Date().toISOString().split('T')[0])}</span>
+                                </span>
+                            </div>
+                            <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '15px' }}>
+                                <span className="bill-line" style={{ minWidth: '300px' }}>{contacts.find(c => c.id == selectedParty)?.name}</span>
+                            </div>
+
+                            <div className="overflow-x-auto w-full pb-2">
+                                <table style={{ minWidth: '600px' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ width: '10%' }}>सौदे की तारीख</th>
+                                            <th style={{ width: '10%' }}>लोडिंग<br/>तारीख</th>
+                                            <th style={{ width: '18%' }}>खरीदार फर्म</th>
+                                            <th style={{ width: '18%' }}>विक्रेता फर्म</th>
+                                            <th style={{ width: '12%' }}>जिन्स / मार्का</th>
+                                            <th style={{ width: '8%' }}>वजन<br/>(कु.मे.)</th>
+                                            <th style={{ width: '8%' }}>मूल दर</th>
+                                            <th style={{ width: '8%' }}>मार्जिन<br/>(±)</th>
+                                            <th style={{ width: '8%' }}>कुल राशि</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredDeals.map((d, i) => {
+                                            const netMargin = d.marginMarkup * d.weight;
+                                            return (
+                                                <tr key={i}>
+                                                    <td>{formatDate(d.dealDate)}</td>
+                                                    <td>{d.loadDate ? formatDate(d.loadDate) : '-'}</td>
+                                                    <td>{d.purchaser?.name}</td>
+                                                    <td>{d.seller?.name}</td>
+                                                    <td>{d.item?.name} {d.marka?.name ? `(${d.marka.name})` : ''}</td>
+                                                    <td>{d.weight}</td>
+                                                    <td>{d.rate}</td>
+                                                    <td>{d.marginMarkup > 0 ? '+' : ''}{d.marginMarkup}</td>
+                                                    <td>₹{netMargin.toFixed(2)}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div style={{ marginTop: '15px', position: 'relative', height: '100px' }}>
+                                <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', width: '100%' }}>
+                                    <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
+                                    <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
+                                </div>
+                                <div style={{ position: 'absolute', right: 0, bottom: '20px', border: '1px solid #9e1b22', padding: '2px 10px', fontWeight: 'bold', fontSize: '14px' }}>
+                                    कुल मार्जिन बैलेंस: <span className="bill-line" style={{ minWidth: '80px' }}>₹ {totalMargin.toFixed(2)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

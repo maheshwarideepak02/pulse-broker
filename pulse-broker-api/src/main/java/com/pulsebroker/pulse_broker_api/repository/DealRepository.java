@@ -19,6 +19,6 @@ public interface DealRepository extends JpaRepository<Deal, Long> {
     boolean existsByMarkaId(Long markaId);
     List<Deal> findByPurchaserBillIdOrSellerBillId(Long purchaserBillId, Long sellerBillId);
 
-    @org.springframework.data.jpa.repository.Query("SELECT d FROM Deal d WHERE d.purchaserContact.id = :partyId AND d.marginMarkup IS NOT NULL AND d.marginMarkup <> 0")
+    @org.springframework.data.jpa.repository.Query("SELECT d FROM Deal d WHERE d.sellerContact.id = :partyId AND d.marginMarkup IS NOT NULL AND d.marginMarkup <> 0")
     List<Deal> findMarginDealsByParty(@org.springframework.data.repository.query.Param("partyId") Long partyId);
 }

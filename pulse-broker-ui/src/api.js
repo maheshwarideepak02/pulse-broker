@@ -8,6 +8,7 @@ export const checkServerHealth = () => api.get('/health').then(res => res.data);
 export const getItems = () => api.get('/items').then(res => res.data);
 export const getMarkas = () => api.get('/markas').then(res => res.data);
 export const getContacts = () => api.get('/contacts').then(res => res.data);
+export const getContactsWithMargins = () => api.get('/contacts/with-margins').then(res => res.data);
 export const getFirms = () => api.get('/firms').then(res => res.data);
 export const getDeals = () => api.get('/deals').then(res => res.data);
 export const getPendingDeals = () => api.get('/deals/pending').then(res => res.data);
@@ -58,3 +59,21 @@ export const deleteDeal = (id) => api.delete(`/deals/${id}`);
 export const deleteBill = (id) => api.delete(`/billing/${id}`);
 
 export default api;
+// Deals Margin API
+export const clearMargins = async (dealIds) => {
+    const response = await fetch(`${API_BASE_URL}/deals/margin/clear`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dealIds),
+    });
+    if (!response.ok) throw new Error('Failed to clear margins');
+};
+
+export const unclearMargins = async (dealIds) => {
+    const response = await fetch(`${API_BASE_URL}/deals/margin/unclear`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dealIds),
+    });
+    if (!response.ok) throw new Error('Failed to unclear margins');
+};

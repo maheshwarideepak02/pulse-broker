@@ -5,7 +5,7 @@ import { getDeals, getDashboardSummary, revertDeal, revertBulkDeals } from '../a
 import { formatDate } from '../utils/dateUtils';
 
 const Dashboard = () => {
-    const { t } = useLanguage();
+    const { t, lang } = useLanguage();
     const { addToast } = useToast();
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });

@@ -98,6 +98,7 @@ const Navbar = () => {
                         <NavLink to="/app/dashboard" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>📊 {t('Dashboard', 'डैशबोर्ड')}</NavLink>
                         <NavLink to="/app/parties" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>👥 {t('Parties & Firms', 'पार्टियां और फर्में')}</NavLink>
                         <NavLink to="/app/ledger" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>📒 {t('Ledger & Bills', 'खाता बही और बिल')}</NavLink>
+                        <NavLink to="/app/margins" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>⚖️ {t('Trade Margins', 'ट्रेड मार्जिन')}</NavLink>
                         <NavLink to="/app/pending" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>🚚 {t('Pending Deals', 'लंबित सौदे')}</NavLink>
                         <NavLink to="/app/settings" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>⚙️ {t('Settings', 'सेटिंग्स')}</NavLink>
                         <NavLink to="/app/new-deal" className={mobileNavLinkClasses} onClick={() => setMenuOpen(false)}>✍️ {t('New Deal', 'नया सौदा')}</NavLink>

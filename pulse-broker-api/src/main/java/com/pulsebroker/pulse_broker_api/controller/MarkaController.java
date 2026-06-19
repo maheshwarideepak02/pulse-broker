@@ -19,7 +19,7 @@ public class MarkaController {
 
     @GetMapping
     public List<Marka> getAll() {
-        return markaRepository.findAll();
+        return markaRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "name"));
     }
 
     @PostMapping

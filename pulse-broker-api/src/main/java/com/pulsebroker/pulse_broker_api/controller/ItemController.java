@@ -19,7 +19,7 @@ public class ItemController {
 
     @GetMapping
     public List<Item> getAll() {
-        return itemRepository.findAll();
+        return itemRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "name"));
     }
 
     @PostMapping

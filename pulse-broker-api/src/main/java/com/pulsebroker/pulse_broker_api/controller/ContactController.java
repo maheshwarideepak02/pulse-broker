@@ -25,7 +25,7 @@ public class ContactController {
 
     @GetMapping
     public List<Contact> getAll() {
-        return contactRepository.findAll();
+        return contactRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "name"));
     }
 
     @GetMapping("/with-margins")

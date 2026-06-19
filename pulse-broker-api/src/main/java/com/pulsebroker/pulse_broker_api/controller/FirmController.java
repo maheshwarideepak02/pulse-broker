@@ -22,7 +22,7 @@ public class FirmController {
 
     @GetMapping
     public List<Firm> getAll() {
-        return firmRepository.findAll();
+        return firmRepository.findAll(org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "name"));
     }
 
     @PostMapping

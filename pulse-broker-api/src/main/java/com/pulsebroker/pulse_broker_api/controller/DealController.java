@@ -103,6 +103,11 @@ public class DealController {
             parent.setWeight(parent.getWeight().add(deal.getWeight()));
             parent.setPBrokerage(parent.getPBrokerage().add(deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO));
             parent.setSBrokerage(parent.getSBrokerage().add(deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO));
+            if (parent.getPacketWeight() != null && parent.getPacketWeight().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                parent.setNumberOfPackets(
+                    parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
+                );
+            }
             dealRepository.save(parent);
             dealRepository.delete(deal);
             return parent;
@@ -129,6 +134,11 @@ public class DealController {
             parent.setWeight(parent.getWeight().add(deal.getWeight()));
             parent.setPBrokerage(parent.getPBrokerage().add(deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO));
             parent.setSBrokerage(parent.getSBrokerage().add(deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO));
+            if (parent.getPacketWeight() != null && parent.getPacketWeight().compareTo(java.math.BigDecimal.ZERO) > 0) {
+                parent.setNumberOfPackets(
+                    parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
+                );
+            }
             dealRepository.save(parent);
         }
         

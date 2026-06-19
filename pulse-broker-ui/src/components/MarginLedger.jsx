@@ -86,12 +86,16 @@ const MarginLedger = () => {
         if (activeTab === 'cleared' && !isCleared) return false;
 
         if (startDate) {
-            const dealDate = new Date(d.dealDate);
+            if (!d.dealDate) return true;
+            const [y, m, day] = d.dealDate.split('-');
+            const dealDate = new Date(y, parseInt(m, 10) - 1, parseInt(day, 10));
             dealDate.setHours(0,0,0,0);
             if (dealDate < startDate) return false;
         }
         if (endDate) {
-            const dealDate = new Date(d.dealDate);
+            if (!d.dealDate) return true;
+            const [y, m, day] = d.dealDate.split('-');
+            const dealDate = new Date(y, parseInt(m, 10) - 1, parseInt(day, 10));
             dealDate.setHours(0,0,0,0);
             if (dealDate > endDate) return false;
         }

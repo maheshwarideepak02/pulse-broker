@@ -78,7 +78,11 @@ public class BillController {
             if (d.getSellerBill() != null && d.getSellerBill().getId().equals(id)) {
                 d.setSellerBill(null);
             }
-            d.setStatus(DealStatus.LOADED);
+            
+            // Only revert to LOADED if neither bill remains
+            if (d.getPurchaserBill() == null && d.getSellerBill() == null) {
+                d.setStatus(DealStatus.LOADED);
+            }
             dealRepository.save(d);
         }
         

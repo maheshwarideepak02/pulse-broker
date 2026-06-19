@@ -10,10 +10,16 @@ const Dashboard = () => {
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
     const [searchQuery, setSearchQuery] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     const fetchData = () => {
-        getDeals().then(setDeals).catch(console.error);
-        getDashboardSummary().then(setSummary).catch(console.error);
+        setIsLoading(true);
+        Promise.all([
+            getDeals().then(setDeals),
+            getDashboardSummary().then(setSummary)
+        ])
+        .catch(console.error)
+        .finally(() => setIsLoading(false));
     };
 
     useEffect(() => {
@@ -145,8 +151,17 @@ const Dashboard = () => {
                     </div>
                 </div>
                 
+                {/* Loader */}
+                {isLoading && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary"></div>
+                        <p className="mt-4 text-gray-500 font-medium">Loading Deals...</p>
+                    </div>
+                )}
+                
                 {/* Desktop Table */}
-                <div className="hidden md:block overflow-x-auto">
+                {!isLoading && (
+                    <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left text-sm text-textMain">
                         <thead className="bg-white text-xs uppercase text-gray-500 border-b border-gray-200">
                             <tr>
@@ -208,8 +223,10 @@ const Dashboard = () => {
                         </tbody>
                     </table>
                 </div>
+                )}
 
                 {/* Mobile Card Layout */}
+                {!isLoading && (
                 <div className="md:hidden divide-y divide-gray-100">
                     {filteredLoadedDeals.length === 0 ? (
                         <div className="p-8 text-center text-gray-500 font-medium">{t('No deals match your search.', 'आपकी खोज से कोई सौदा मेल नहीं खाता।')}</div>
@@ -260,6 +277,7 @@ const Dashboard = () => {
                         ))
                     )}
                 </div>
+                )}
             </div>
         </div>
     );

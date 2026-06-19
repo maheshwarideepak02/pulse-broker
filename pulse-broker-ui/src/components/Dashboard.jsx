@@ -96,17 +96,19 @@ const Dashboard = () => {
 
     return (
         <div className="max-w-7xl mx-auto p-3 sm:p-6 py-6 sm:py-9">
-            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
-                <div>
-                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-3">
+                <div className="w-full sm:w-auto text-center sm:text-left">
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2 justify-center sm:justify-start">
                         <span className="w-6 h-px bg-secondary/50"></span>{t('Business overview', 'व्यापार अवलोकन')}
                     </div>
                     <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight mb-1">{t('Good day, welcome back', 'नमस्कार, आपका स्वागत है')}</h1>
                     <p className="text-textMuted font-medium text-xs sm:text-sm">{new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
-                <button className="hidden sm:flex bg-primary hover:bg-red-900 text-white transition-all text-sm font-bold items-center gap-2 px-4 py-2.5 rounded-xl shadow-sm" onClick={() => window.location.href='/app/new-deal'}>
-                    <span className="text-lg leading-none">＋</span> {t('Create new deal', 'नया सौदा बनाएं')}
-                </button>
+                <div className="w-full sm:w-auto flex justify-center sm:justify-end mt-2 sm:mt-0">
+                    <button className="flex bg-primary hover:bg-red-900 text-white transition-all text-sm font-bold items-center gap-2 px-6 py-3 sm:px-4 sm:py-2.5 rounded-xl shadow-md sm:shadow-sm w-full sm:w-auto justify-center" onClick={() => window.location.href='/app/new-deal'}>
+                        <span className="text-lg leading-none">＋</span> {t('Create new deal', 'नया सौदा बनाएं')}
+                    </button>
+                </div>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-10">

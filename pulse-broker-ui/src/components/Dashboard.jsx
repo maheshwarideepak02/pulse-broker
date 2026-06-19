@@ -204,6 +204,10 @@ const Dashboard = () => {
                                                     <span className="text-[10px] uppercase font-bold text-gray-400">
                                                         {deal.brokeragePayer === 'PURCHASER_BOTH' ? t('Buyer Pays Brokerage', 'खरीदार दलाली देगा') : deal.brokeragePayer === 'SELLER_BOTH' ? t('Seller Pays Brokerage', 'विक्रेता दलाली देगा') : t('Separate Brokerage', 'अलग-अलग दलाली')}
                                                     </span>
+                                                    <div className="flex gap-2 mt-1">
+                                                        {deal.pBrokerage > 0 && <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">{t('Buyer', 'खरीदार')}: ₹{deal.pBrokerage}</span>}
+                                                        {deal.sBrokerage > 0 && <span className="text-[10px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">{t('Seller', 'विक्रेता')}: ₹{deal.sBrokerage}</span>}
+                                                    </div>
                                                 </div>
                                             )}
                                         </td>
@@ -244,9 +248,13 @@ const Dashboard = () => {
                                 </div>
                                 {deal.brokeragePayer && (
                                     <div className="mb-3">
-                                        <span className="text-[10px] uppercase font-bold text-white bg-gray-800 px-2 py-0.5 rounded shadow-sm">
+                                        <span className="text-[10px] uppercase font-bold text-white bg-gray-800 px-2 py-0.5 rounded shadow-sm inline-block">
                                             {deal.brokeragePayer === 'PURCHASER_BOTH' ? t('Buyer Pays Brokerage', 'खरीदार दलाली देगा') : deal.brokeragePayer === 'SELLER_BOTH' ? t('Seller Pays Brokerage', 'विक्रेता दलाली देगा') : t('Separate Brokerage', 'अलग-अलग दलाली')}
                                         </span>
+                                        <div className="flex gap-2 mt-1.5">
+                                            {deal.pBrokerage > 0 && <span className="text-[10px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20">{t('Buyer', 'खरीदार')}: ₹{deal.pBrokerage}</span>}
+                                            {deal.sBrokerage > 0 && <span className="text-[10px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded border border-secondary/20">{t('Seller', 'विक्रेता')}: ₹{deal.sBrokerage}</span>}
+                                        </div>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3">

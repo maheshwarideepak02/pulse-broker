@@ -176,8 +176,7 @@ const Dashboard = () => {
                                 <th className="px-6 py-4 font-bold text-right">{t('Bags', 'बोरा')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Weight', 'वजन')}</th>
                                 <th className="px-6 py-4 font-bold text-right">{t('Rate', 'भाव')}</th>
-                                <th className="px-6 py-4 font-bold text-right">{t('P. Brok', 'खरीदार दलाली')}</th>
-                                <th className="px-6 py-4 font-bold text-right">{t('S. Brok', 'विक्रेता दलाली')}</th>
+
                                 <th className="px-6 py-4 font-bold text-center"></th>
                             </tr>
                         </thead>
@@ -211,8 +210,7 @@ const Dashboard = () => {
                                         <td className="px-6 py-4 text-right font-bold text-gray-500">{deal.numberOfPackets || '-'}</td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-700">{deal.weight}</td>
                                         <td className="px-6 py-4 text-right text-secondary font-bold">₹{deal.rate}</td>
-                                        <td className="px-6 py-4 text-right text-gray-600 font-bold">₹{deal.pBrokerage || 0}</td>
-                                        <td className="px-6 py-4 text-right text-gray-600 font-bold">₹{deal.sBrokerage || 0}</td>
+
                                         <td className="px-4 py-4 text-center">
                                             {deal.status === 'LOADED' && (
                                                 <button onClick={() => handleRevertDeal(deal)} className="text-gray-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200 ml-auto flex items-center gap-1 text-xs font-bold" title="Undo Load">
@@ -269,15 +267,18 @@ const Dashboard = () => {
                                         <span className="text-[10px] text-gray-400 uppercase">{t('Deal Date', 'सौदा')}</span>
                                         {formatDate(deal.dealDate)}
                                     </span>
+                                    {deal.loadDate && deal.status === 'LOADED' && (
+                                        <span className="font-medium flex flex-col items-center">
+                                            <span className="text-[10px] text-gray-400 uppercase">{t('Load Date', 'लोडिंग')}</span>
+                                            {formatDate(deal.loadDate)}
+                                        </span>
+                                    )}
                                     <span className="font-medium flex flex-col text-right">
                                         <span className="text-[10px] text-gray-400 uppercase">{t('Quantity', 'मात्रा')}</span>
                                         <span className="font-extrabold text-gray-800">{deal.numberOfPackets ? `${deal.numberOfPackets} ${t('Bags', 'बोरी')} / ` : ''}{deal.weight} {t('qtl', 'क्विंटल')}</span>
                                     </span>
                                 </div>
-                                <div className="flex justify-between items-center text-[11px] border-t border-gray-100 pt-3 px-1">
-                                    <span className="font-bold text-gray-500">{t('P. Brok:', 'खरीदार दलाली:')} <span className="text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded">₹{deal.pBrokerage || 0}</span></span>
-                                    <span className="font-bold text-gray-500">{t('S. Brok:', 'विक्रेता दलाली:')} <span className="text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded">₹{deal.sBrokerage || 0}</span></span>
-                                </div>
+
                                 {deal.status === 'LOADED' && (
                                     <div className="flex justify-end pt-3 mt-2">
                                         <button onClick={() => handleRevertDeal(deal)} className="text-[11px] font-bold text-gray-500 hover:text-red-600 flex items-center gap-1.5 bg-white border border-gray-200 shadow-sm px-3 py-1.5 rounded-lg active:scale-95 transition-all">

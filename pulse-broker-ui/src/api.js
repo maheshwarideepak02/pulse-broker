@@ -60,20 +60,6 @@ export const deleteBill = (id) => api.delete(`/billing/${id}`);
 
 export default api;
 // Deals Margin API
-export const clearMargins = async (dealIds) => {
-    const response = await fetch(`${API_BASE_URL}/deals/margin/clear`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dealIds),
-    });
-    if (!response.ok) throw new Error('Failed to clear margins');
-};
+export const clearMargins = (dealIds) => api.post(`/deals/margin/clear`, dealIds).then(res => res.data);
 
-export const unclearMargins = async (dealIds) => {
-    const response = await fetch(`${API_BASE_URL}/deals/margin/unclear`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dealIds),
-    });
-    if (!response.ok) throw new Error('Failed to unclear margins');
-};
+export const unclearMargins = (dealIds) => api.post(`/deals/margin/unclear`, dealIds).then(res => res.data);

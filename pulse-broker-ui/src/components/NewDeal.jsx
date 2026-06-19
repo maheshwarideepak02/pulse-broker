@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getContacts, getFirms, getItems, getMarkas, createDeal } from '../api';
 import DateInput from './DateInput';
+import { getLocalTodayDateString } from '../utils/dateUtils';
 
 const NewDeal = () => {
     const { t } = useLanguage();
@@ -14,7 +15,7 @@ const NewDeal = () => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     const [formData, setFormData] = useState({
-        dealDate: new Date().toISOString().split('T')[0],
+        dealDate: getLocalTodayDateString(),
         loadDates: [''],
         purchaserContactId: '',
         purchaserId: '',

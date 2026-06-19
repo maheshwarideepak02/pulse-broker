@@ -4,7 +4,7 @@ import { useToast } from '../context/ToastContext';
 import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
 
 const Ledger = () => {
     const { t } = useLanguage();
@@ -27,7 +27,7 @@ const Ledger = () => {
     const [showInvoice, setShowInvoice] = useState(false);
     const [invoiceData, setInvoiceData] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' }); 
-    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: new Date().toISOString().split('T')[0], discountAmount: '' });
+    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '' });
 
     useEffect(() => {
         getFirms().then(setFirms).catch(console.error);
@@ -154,7 +154,7 @@ const Ledger = () => {
         if (!billPreview) return;
         setInvoiceData({
             billNumber: 'PREVIEW',
-            billDate: new Date().toISOString().split('T')[0],
+            billDate: getLocalTodayDateString(),
             firmName: billPreview.firmName,
             totalAmount: billPreview.totalAmount,
             items: billPreview.items,
@@ -189,7 +189,7 @@ const Ledger = () => {
         setClearBillDialog({
             isOpen: true,
             id: billId,
-            clearanceDate: new Date().toISOString().split('T')[0],
+            clearanceDate: getLocalTodayDateString(),
             discountAmount: ''
         });
     };

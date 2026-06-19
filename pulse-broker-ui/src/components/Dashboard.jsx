@@ -24,9 +24,16 @@ const Dashboard = () => {
         try {
             // Check if we passed a grouped deal object
             if (typeof dealOrId === 'object' && dealOrId._childIds && dealOrId._childIds.length > 0) {
-                for (let childId of dealOrId._childIds) {
-                    await revertDeal(childId);
+                // Pre-check if any child is billed
+                const hasBilledChild = dealOrId._childIds.some(id => {
+                    const childDeal = deals.find(d => d.id === id);
+                    return childDeal && (childDeal.status === 'BILLED' || childDeal.purchaserBill || childDeal.sellerBill);
+                });
+                if (hasBilledChild) {
+                    addToast('Cannot revert: One or more partial loads have already been billed.', 'error');
+                    return;
                 }
+                await Promise.all(dealOrId._childIds.map(childId => revertDeal(childId)));
             } else {
                 await revertDeal(dealOrId);
             }

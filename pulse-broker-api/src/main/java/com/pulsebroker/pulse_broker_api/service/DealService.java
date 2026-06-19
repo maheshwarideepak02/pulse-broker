@@ -29,6 +29,10 @@ public class DealService {
             throw new RuntimeException("Only PENDING deals can be loaded");
         }
 
+        if (loadedWeight.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new RuntimeException("Loaded weight must be greater than zero");
+        }
+
         if (loadedWeight.compareTo(deal.getWeight()) > 0) {
             throw new RuntimeException("Loaded weight cannot exceed pending weight");
         }
@@ -41,12 +45,12 @@ public class DealService {
             loadedDeal.setPurchaserContact(deal.getPurchaserContact());
             loadedDeal.setSellerContact(deal.getSellerContact());
             if (purchaserId != null) {
-                loadedDeal.setPurchaser(firmRepository.findById(purchaserId).orElse(null));
+                loadedDeal.setPurchaser(firmRepository.findById(purchaserId).orElseThrow(() -> new IllegalArgumentException("Purchaser firm not found")));
             } else {
                 loadedDeal.setPurchaser(deal.getPurchaser());
             }
             if (sellerId != null) {
-                loadedDeal.setSeller(firmRepository.findById(sellerId).orElse(null));
+                loadedDeal.setSeller(firmRepository.findById(sellerId).orElseThrow(() -> new IllegalArgumentException("Seller firm not found")));
             } else {
                 loadedDeal.setSeller(deal.getSeller());
             }
@@ -94,10 +98,10 @@ public class DealService {
             deal.setStatus(DealStatus.LOADED);
             deal.setLoadDate(loadDate);
             if (purchaserId != null) {
-                deal.setPurchaser(firmRepository.findById(purchaserId).orElse(null));
+                deal.setPurchaser(firmRepository.findById(purchaserId).orElseThrow(() -> new IllegalArgumentException("Purchaser firm not found")));
             }
             if (sellerId != null) {
-                deal.setSeller(firmRepository.findById(sellerId).orElse(null));
+                deal.setSeller(firmRepository.findById(sellerId).orElseThrow(() -> new IllegalArgumentException("Seller firm not found")));
             }
             return dealRepository.save(deal);
         }

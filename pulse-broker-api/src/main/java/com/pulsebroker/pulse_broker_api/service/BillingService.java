@@ -89,7 +89,7 @@ public class BillingService {
         bill.setBillDate(LocalDate.now());
         bill.setTotalAmount(preview.getTotalAmount());
         // Generate a bill number: BILL-2026-X
-        bill.setBillNumber("BILL-" + Year.now().getValue() + "-" + System.currentTimeMillis() % 100000);
+        bill.setBillNumber("BILL-" + Year.now().getValue() + "-" + java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         
         Bill savedBill = billRepository.save(bill);
 
@@ -130,6 +130,12 @@ public class BillingService {
         bill.setStatus(BillStatus.PAID);
         bill.setClearanceDate(clearanceDate != null ? clearanceDate : LocalDate.now());
         if (discountAmount != null) {
+            if (discountAmount.compareTo(BigDecimal.ZERO) < 0) {
+                throw new IllegalArgumentException("Discount amount cannot be negative.");
+            }
+            if (discountAmount.compareTo(bill.getTotalAmount()) > 0) {
+                throw new IllegalArgumentException("Discount amount cannot exceed total bill amount.");
+            }
             bill.setDiscountAmount(discountAmount);
         }
         return billRepository.save(bill);

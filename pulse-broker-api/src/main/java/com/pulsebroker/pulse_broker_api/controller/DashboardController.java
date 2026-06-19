@@ -65,7 +65,12 @@ public class DashboardController {
         for (Deal d : unbilledDeals) {
             BigDecimal pBrok = d.getPBrokerage() != null ? d.getPBrokerage() : BigDecimal.ZERO;
             BigDecimal sBrok = d.getSBrokerage() != null ? d.getSBrokerage() : BigDecimal.ZERO;
-            totalUnbilled = totalUnbilled.add(pBrok).add(sBrok);
+            if (d.getPurchaserBill() == null) {
+                totalUnbilled = totalUnbilled.add(pBrok);
+            }
+            if (d.getSellerBill() == null) {
+                totalUnbilled = totalUnbilled.add(sBrok);
+            }
         }
         summary.setTotalUnbilled(totalUnbilled);
 

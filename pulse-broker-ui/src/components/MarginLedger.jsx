@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getContactsWithMargins, getMarginDeals, clearMargins, unclearMargins } from '../api';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -305,7 +305,7 @@ const MarginLedger = () => {
                                 </span>
                                 <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', display: 'inline-block' }}>ट्रेड मार्जिन / प्लस माइनस खाता</h2>
                                 <span style={{ position: 'absolute', right: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
-                                    दिनांक <span className="bill-line" style={{ minWidth: '100px' }}>{formatDate(new Date().toISOString().split('T')[0])}</span>
+                                    {t('Date', 'दिनांक')} <span className="bill-line" style={{ minWidth: '100px' }}>{formatDate(getLocalTodayDateString())}</span>
                                 </span>
                             </div>
                             <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '15px' }}>

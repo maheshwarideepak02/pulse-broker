@@ -22,8 +22,14 @@ const MarginLedger = () => {
     const [selectedDealIds, setSelectedDealIds] = useState([]);
     const [isClearing, setIsClearing] = useState(false);
 
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+
     useEffect(() => {
-        getContactsWithMargins().then(setContacts).catch(console.error);
+        setIsInitialLoading(true);
+        getContactsWithMargins()
+            .then(setContacts)
+            .catch(console.error)
+            .finally(() => setIsInitialLoading(false));
     }, []);
 
     useEffect(() => {
@@ -113,6 +119,13 @@ const MarginLedger = () => {
                 </div>
             </div>
 
+            {isInitialLoading ? (
+                <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-500 font-bold">{t('Loading Plus/Minus Account...', 'प्लस/माइनस खाता लोड हो रहा है...')}</p>
+                </div>
+            ) : (
+                <>
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 border-t-8 border-t-primary mb-8">
                 <div className="flex flex-col md:flex-row gap-6">
                     <div className="flex-1">
@@ -359,6 +372,8 @@ const MarginLedger = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            </>
             )}
         </div>
     );

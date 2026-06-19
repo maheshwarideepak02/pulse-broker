@@ -1,25 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Poppins", sans-serif;
-  --color-primary: #991B1B;
-  --color-secondary: #D97706;
-  --color-background: #FFFBEB;
+  --font-sans: "Inter", "Noto Sans Devanagari", system-ui, sans-serif;
+  --color-primary: #861f2b;
+  --color-secondary: #b7791f;
+  --color-background: #f7f6f3;
   --color-card: #FFFFFF;
-  --color-border: #E5E7EB;
-  --color-textMain: #111827;
-  --color-textMuted: #4B5563;
-  --color-moneyGreen: #059669;
-  --color-billRed: #9e1b22;
+  --color-border: #e7e3dc;
+  --color-textMain: #1f2937;
+  --color-textMuted: #667085;
+  --color-moneyGreen: #067647;
+  --color-billRed: #861f2b;
 }
+
+* { box-sizing: border-box; }
+
+html { background: var(--color-background); }
 
 body {
   font-family: var(--font-sans);
-  background-color: var(--color-background);
+  background:
+    radial-gradient(circle at 4% 0%, rgba(134, 31, 43, 0.055), transparent 28rem),
+    radial-gradient(circle at 96% 8%, rgba(183, 121, 31, 0.07), transparent 24rem),
+    var(--color-background);
   color: var(--color-textMain);
   margin: 0;
   padding: 0;
+  min-width: 320px;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button, a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+button, a { touch-action: manipulation; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid rgba(183, 121, 31, 0.35);
+  outline-offset: 2px;
+}
+
+.app-shell { position: relative; isolation: isolate; }
+.app-main { padding-bottom: 3rem; }
+
+/* Shared application surfaces */
+.app-main > div { animation: page-enter 260ms ease-out both; }
+.app-main .bg-white {
+  border-color: var(--color-border);
+}
+.app-main .shadow-sm { box-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .06); }
+.app-main .shadow-md,
+.app-main .shadow-lg,
+.app-main .shadow-xl {
+  box-shadow: 0 10px 30px rgba(44, 35, 28, .075), 0 2px 8px rgba(44, 35, 28, .04);
+}
+
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  min-height: 44px;
+  border-color: #d9d5ce !important;
+  border-radius: 10px !important;
+  background-color: rgba(255,255,255,.96);
+  transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+input:not([type="checkbox"]):not([type="radio"]):hover, select:hover, textarea:hover { border-color: #b9b2a7 !important; }
+input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 0 0 3px rgba(134,31,43,.10) !important;
+}
+
+table thead { letter-spacing: .035em; }
+table tbody tr { transition: background-color .16s ease; }
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Custom Scrollbar */
@@ -42,14 +95,24 @@ body {
 
 /* Mobile-specific overrides */
 @media (max-width: 640px) {
+    .app-main { padding-bottom: 6.75rem; }
+    .app-main > div { padding-left: 14px !important; padding-right: 14px !important; }
+    .app-main h1 { line-height: 1.18; }
+    .app-main button { min-height: 42px; }
+    .app-main .rounded-xl { border-radius: 16px; }
+    .app-main .rounded-2xl { border-radius: 18px; }
     .modal-content {
         padding: 16px;
         border-radius: 16px;
-        max-height: 80vh;
+        max-height: calc(100dvh - 32px);
     }
-    select, input[type="text"], input[type="number"], input[type="tel"] {
+    select, input[type="text"], input[type="number"], input[type="tel"], input[type="date"], textarea {
         font-size: 16px !important; /* Prevents iOS zoom on focus */
     }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
 /* ===== REACT DATEPICKER ENHANCEMENT ===== */
@@ -170,5 +233,4 @@ body {
         display: none !important;
     }
 }
-
 

@@ -95,35 +95,38 @@ const Dashboard = () => {
     }).slice(0, 8); // Show up to 8 matching recent deals
 
     return (
-        <div className="max-w-7xl mx-auto p-3 sm:p-4 py-6 sm:py-8">
-            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-2">
+        <div className="max-w-7xl mx-auto p-3 sm:p-6 py-6 sm:py-9">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold text-primary tracking-tight mb-1">{t('Daily Overview', 'दैनिक अवलोकन')}</h1>
-                    <p className="text-textMuted font-medium text-xs sm:text-sm">{new Date().toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
+                        <span className="w-6 h-px bg-secondary/50"></span>{t('Business overview', 'व्यापार अवलोकन')}
+                    </div>
+                    <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight mb-1">{t('Good day, welcome back', 'नमस्कार, आपका स्वागत है')}</h1>
+                    <p className="text-textMuted font-medium text-xs sm:text-sm">{new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
-                <button className="text-textMuted hover:text-primary transition-colors text-sm font-bold flex items-center gap-2" onClick={() => window.location.href='/login'}>
-                    {t('Logout', 'लॉग आउट')} <span className="text-lg">🚪</span>
+                <button className="hidden sm:flex bg-primary hover:bg-red-900 text-white transition-all text-sm font-bold items-center gap-2 px-4 py-2.5 rounded-xl shadow-sm" onClick={() => window.location.href='/app/new-deal'}>
+                    <span className="text-lg leading-none">＋</span> {t('Create new deal', 'नया सौदा बनाएं')}
                 </button>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-8 sm:mb-10">
-                <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-red-600"></div>
+                <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('Total Outstanding', 'कुल बकाया')}</p>
                     <p className="text-xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2">₹{summary.totalOutstanding?.toLocaleString()}</p>
                 </div>
-                <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-moneyGreen"></div>
+                <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-moneyGreen"></div>
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('Unbilled Brok.', 'बिना बिल दलाली')}</p>
                     <p className="text-xl sm:text-3xl font-bold text-moneyGreen mt-1 sm:mt-2">₹{summary.totalUnbilled?.toLocaleString()}</p>
                 </div>
-                <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-600"></div>
+                <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('This Month', 'इस महीने')}</p>
                     <p className="text-xl sm:text-3xl font-bold text-textMain mt-1 sm:mt-2">{summary.dealsThisMonth}</p>
                 </div>
-                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 p-4 sm:p-6 rounded-xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group cursor-pointer" onClick={() => window.location.href='/app/pending'}>
-                    <div className="absolute top-0 left-0 w-1.5 h-full bg-secondary"></div>
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group cursor-pointer" onClick={() => window.location.href='/app/pending'}>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
                     <div className="absolute right-[-10px] bottom-[-10px] text-4xl sm:text-6xl opacity-10 group-hover:scale-110 transition-transform">🚚</div>
                     <p className="text-secondary text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('Pending', 'लंबित')}</p>
                     <p className="text-xl sm:text-3xl font-bold text-secondary mt-1 sm:mt-2 flex items-baseline gap-1 sm:gap-2">
@@ -132,10 +135,10 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden relative">
-                <div className="bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-                    <h2 className="font-bold text-lg sm:text-xl text-primary flex items-center gap-2">
-                        <span className="text-secondary text-xl sm:text-2xl">📝</span> {t('Recent Deals', 'हाल के सौदे')}
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-md overflow-hidden relative">
+                <div className="bg-white px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                    <h2 className="font-extrabold text-lg sm:text-xl text-gray-900 flex items-center gap-3">
+                        <span className="w-9 h-9 rounded-xl bg-red-50 text-primary grid place-items-center text-base">↗</span> {t('Recent Deals', 'हाल के सौदे')}
                     </h2>
                     <div className="relative w-full sm:w-64">
                         <input 

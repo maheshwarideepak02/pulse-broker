@@ -29,20 +29,28 @@ const Ledger = () => {
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' }); 
     const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '' });
 
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+
     useEffect(() => {
-        getFirms().then(setFirms).catch(console.error);
-        if (activeTab === 'history') {
-            loadHistory();
-        }
+        setIsInitialLoading(true);
+        Promise.all([
+            getFirms().then(setFirms),
+            activeTab === 'history' ? getAllBills().then(setBillsHistory) : Promise.resolve()
+        ])
+        .catch(console.error)
+        .finally(() => setIsInitialLoading(false));
     }, [activeTab]);
 
     const loadHistory = async () => {
+        setIsLoading(true);
         try {
             const data = await getAllBills();
             setBillsHistory(data);
         } catch (e) {
             console.error(e);
             addToast('Failed to load bill history', 'error');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -407,6 +415,13 @@ const Ledger = () => {
                 </div>
             </div>
             
+            {isInitialLoading ? (
+                <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl shadow-sm border border-gray-100">
+                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-500 font-bold">{t('Loading Ledger...', 'खाता बही लोड हो रही है...')}</p>
+                </div>
+            ) : (
+                <>
             {activeTab === 'generate' && (
             <>
                 <div className="bg-white border border-gray-100 p-8 rounded-2xl shadow-lg mb-8 border-t-8 border-t-primary relative">
@@ -707,6 +722,8 @@ const Ledger = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            </>
             )}
         </div>
     );

@@ -14,9 +14,9 @@ import NewDeal from './components/NewDeal';
 import MarginLedger from './components/MarginLedger';
 
 const Layout = ({ children }) => (
-    <div className="bg-background text-textMain min-h-screen pb-12">
+    <div className="app-shell bg-background text-textMain min-h-screen">
         <Navbar />
-        <main>{children}</main>
+        <main className="app-main">{children}</main>
     </div>
 );
 

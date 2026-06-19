@@ -13,6 +13,7 @@ const NewDeal = () => {
     const [items, setItems] = useState([]);
     const [markas, setMarkas] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
 
     const [formData, setFormData] = useState({
         dealDate: getLocalTodayDateString(),
@@ -36,6 +37,7 @@ const NewDeal = () => {
     });
 
     useEffect(() => {
+        setIsInitialLoading(true);
         Promise.all([getContacts(), getFirms(), getItems(), getMarkas()]).then(([c, f, i, m]) => {
             setContacts(c);
             setFirms(f);
@@ -61,7 +63,9 @@ const NewDeal = () => {
                 if (!updated.markaId && m.length > 0) updated.markaId = m[0].id;
                 return updated;
             });
-        });
+        })
+        .catch(console.error)
+        .finally(() => setIsInitialLoading(false));
     }, []);
 
     const handleChange = (e) => {
@@ -196,6 +200,12 @@ const NewDeal = () => {
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-8 border-t-8 border-t-primary relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 
+                {isInitialLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 relative z-10">
+                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p className="text-gray-500 font-bold">{t('Loading Form Data...', 'फॉर्म डेटा लोड हो रहा है...')}</p>
+                    </div>
+                ) : (
                 <form onSubmit={saveDeal} className="relative z-10">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8">
                         <DateInput
@@ -392,6 +402,7 @@ const NewDeal = () => {
                         )}
                     </button>
                 </form>
+                )}
             </div>
         </div>
     );

@@ -40,15 +40,20 @@ const Pending = () => {
     const [searchQuery, setSearchQuery] = useState('');
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, id: null });
+    const [isLoading, setIsLoading] = useState(true);
 
-    const fetchDeals = () => getPendingDeals().then(setDeals).catch(console.error);
+    const fetchDeals = () => getPendingDeals().then(setDeals);
     
     useEffect(() => { 
-        fetchDeals(); 
-        // Pre-fetch reference data in case user wants to edit
-        getFirms().then(setFirms).catch(console.error);
-        getItems().then(setItems).catch(console.error);
-        getMarkas().then(setMarkas).catch(console.error);
+        setIsLoading(true);
+        Promise.all([
+            fetchDeals(),
+            getFirms().then(setFirms),
+            getItems().then(setItems),
+            getMarkas().then(setMarkas)
+        ])
+        .catch(console.error)
+        .finally(() => setIsLoading(false));
     }, []);
 
     const handleLoad = async () => {
@@ -211,6 +216,16 @@ const Pending = () => {
             
             <div className="bg-white border border-secondary rounded-xl shadow-lg overflow-hidden mb-6 relative">
                 <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-secondary to-yellow-300"></div>
+
+                {/* Loader */}
+                {isLoading && (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-secondary"></div>
+                        <p className="mt-4 text-gray-500 font-medium">{t('Loading Pending Deals...', 'लंबित सौदे लोड हो रहे हैं...')}</p>
+                    </div>
+                )}
+
+                {!isLoading && (
                 <div className="hidden md:block overflow-x-auto p-1 pl-2">
                     <table className="w-full text-left text-sm text-textMain border-collapse">
                         <thead className="bg-yellow-50 text-xs uppercase text-secondary border-b-2 border-yellow-200 sticky top-0">
@@ -314,6 +329,7 @@ const Pending = () => {
                         </div>
                     ))}
                 </div>
+                )}
             </div>
 
             {/* Edit Deal Modal */}

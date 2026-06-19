@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getPendingDeals, loadDeal, deleteDeal, getFirms, getItems, getMarkas, updateDeal } from '../api';
+import { getPendingDeals, loadDeal, deleteDeal, getFirms, getItems, getMarkas, updateDeal, getContacts } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { getLocalTodayDateString } from '../utils/dateUtils';
@@ -22,6 +22,7 @@ const Pending = () => {
     const [firms, setFirms] = useState([]);
     const [items, setItems] = useState([]);
     const [markas, setMarkas] = useState([]);
+    const [contacts, setContacts] = useState([]);
     const [editData, setEditData] = useState({
         dealDate: '',
         purchaser: { id: '' },
@@ -50,7 +51,8 @@ const Pending = () => {
             fetchDeals(),
             getFirms().then(setFirms),
             getItems().then(setItems),
-            getMarkas().then(setMarkas)
+            getMarkas().then(setMarkas),
+            getContacts().then(setContacts)
         ])
         .catch(console.error)
         .finally(() => setIsLoading(false));
@@ -130,6 +132,24 @@ const Pending = () => {
             brokeragePayer: deal.brokeragePayer || 'BOTH'
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const recalculateBrokerage = (w, r, currentEditDeal) => {
+        if (!currentEditDeal) return { pBrok: editData.pBrokerage, sBrok: editData.sBrokerage };
+        
+        const calcBrok = (val, type, weight, rate) => {
+            if (!val) return 0;
+            if (type === 'PERCENT') return (weight * rate * (parseFloat(val) || 0)) / 100;
+            return weight * (parseFloat(val) || 0); // Fixed per qtl
+        };
+
+        const pContact = contacts.find(c => c.id == currentEditDeal.purchaserContact?.id);
+        const sContact = contacts.find(c => c.id == currentEditDeal.sellerContact?.id);
+
+        const newPBrok = pContact && pContact.defaultBrokVal ? calcBrok(pContact.defaultBrokVal, pContact.defaultBrokType, w, r).toFixed(2) : editData.pBrokerage;
+        const newSBrok = sContact && sContact.defaultBrokVal ? calcBrok(sContact.defaultBrokVal, sContact.defaultBrokType, w, r).toFixed(2) : editData.sBrokerage;
+
+        return { pBrok: newPBrok, sBrok: newSBrok };
     };
 
     const handleUpdateDeal = async () => {
@@ -417,12 +437,19 @@ const Pending = () => {
                                             const pw = parseFloat(editData.packetWeight);
                                             let np = editData.numberOfPackets;
                                             if (!isNaN(w) && !isNaN(pw) && pw > 0) np = Math.round((w * 100) / pw);
-                                            setEditData({...editData, weight: e.target.value, numberOfPackets: np});
+                                            const newRate = parseFloat(editData.rate) || 0;
+                                            const { pBrok, sBrok } = recalculateBrokerage(!isNaN(w) ? w : 0, newRate, editDeal);
+                                            setEditData({...editData, weight: e.target.value, numberOfPackets: np, pBrokerage: pBrok, sBrokerage: sBrok});
                                         }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Base Rate (₹)', 'मूल दर (₹)')}</label>
-                                        <input type="number" name="rate" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                        <input type="number" name="rate" value={editData.rate} onChange={e => {
+                                            const r = parseFloat(e.target.value);
+                                            const currentW = parseFloat(editData.weight) || 0;
+                                            const { pBrok, sBrok } = recalculateBrokerage(currentW, !isNaN(r) ? r : 0, editDeal);
+                                            setEditData({...editData, rate: e.target.value, pBrokerage: pBrok, sBrokerage: sBrok});
+                                        }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div className="relative">
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Markup (± ₹)', 'मार्जिन (± ₹)')}</label>
@@ -458,7 +485,10 @@ const Pending = () => {
                                                     w = calcW.toFixed(2);
                                                 }
                                             }
-                                            setEditData({...editData, numberOfPackets: e.target.value, weight: w});
+                                            const newW = parseFloat(w) || 0;
+                                            const newRate = parseFloat(editData.rate) || 0;
+                                            const { pBrok, sBrok } = recalculateBrokerage(newW, newRate, editDeal);
+                                            setEditData({...editData, numberOfPackets: e.target.value, weight: w, pBrokerage: pBrok, sBrokerage: sBrok});
                                         }} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
                                     </div>
                                 </div>

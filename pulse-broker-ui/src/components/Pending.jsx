@@ -226,6 +226,7 @@ const Pending = () => {
                 )}
 
                 {!isLoading && (
+                <>
                 <div className="hidden md:block overflow-x-auto p-1 pl-2">
                     <table className="w-full text-left text-sm text-textMain border-collapse">
                         <thead className="bg-yellow-50 text-xs uppercase text-secondary border-b-2 border-yellow-200 sticky top-0">
@@ -329,6 +330,7 @@ const Pending = () => {
                         </div>
                     ))}
                 </div>
+                </>
                 )}
             </div>
 

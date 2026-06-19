@@ -248,7 +248,7 @@ const Pending = () => {
                                         </div>
                                     </td>
                                     <td className="px-5 py-4 text-right whitespace-nowrap">
-                                        <button onClick={() => openEditDeal(deal)} className="bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Edit Deal', 'सौदा संपादित करें')}>
+                                        <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Edit Deal', 'सौदा संपादित करें')}>
                                             ✏️ {t('Edit', 'संपादन')}
                                         </button>
                                         <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Delete Deal', 'सौदा मिटाएं')}>
@@ -301,7 +301,7 @@ const Pending = () => {
                                 <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: new Date().toISOString().split('T')[0], weight: deal.weight, purchaserId: '', sellerId: '' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md text-sm uppercase tracking-wider transition-colors">
                                     {t('Load', 'लोड')}
                                 </button>
-                                <button onClick={() => openEditDeal(deal)} className="bg-white border-2 border-gray-200 text-gray-600 font-bold py-2 px-3 rounded-lg shadow-sm text-xs">
+                                <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-white border-2 border-gray-200 text-gray-600 font-bold py-2 px-3 rounded-lg shadow-sm text-xs">
                                     ✏️
                                 </button>
                                 <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white border-2 border-red-200 text-red-600 font-bold py-2 px-3 rounded-lg shadow-sm text-xs">
@@ -371,7 +371,7 @@ const Pending = () => {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Weight (Qtl)', 'वजन (क्विंटल)')}</label>
-                                        <input type="number" value={editData.weight} onChange={e => {
+                                        <input type="number" name="weight" value={editData.weight} onChange={e => {
                                             const w = parseFloat(e.target.value);
                                             const pw = parseFloat(editData.packetWeight);
                                             let np = editData.numberOfPackets;
@@ -381,7 +381,7 @@ const Pending = () => {
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Rate (₹)', 'दर (₹)')}</label>
-                                        <input type="number" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                        <input type="number" name="rate" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">

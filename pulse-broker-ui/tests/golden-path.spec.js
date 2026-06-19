@@ -126,6 +126,15 @@ test.describe('Golden Path E2E', () => {
     // Search for our firm to ensure we don't load an old deal from a dirty database
     await page.fill('input[placeholder*="Search Firm"]', pFirm);
     await page.waitForTimeout(1000); 
+
+    // Verify Edit Deal functionality
+    const editBtn = page.getByTestId('edit-deal-btn').first();
+    await editBtn.click();
+    await expect(page.locator('h2:has-text("Edit Pending Deal")')).toBeVisible();
+    await page.fill('input[name="rate"]', '5000'); // Resave same rate to avoid changing test's total bill expectation
+    await page.click('button:has-text("Save Changes")');
+    await expect(page.locator('text=Deal Updated Successfully')).toBeVisible();
+    await page.waitForTimeout(1000);
     
     // Click Load for our specific deal
     const loadBtn = page.locator('button:has-text("Load") >> visible=true').first();

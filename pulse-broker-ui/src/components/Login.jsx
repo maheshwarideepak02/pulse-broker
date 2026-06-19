@@ -79,7 +79,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-background">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 relative bg-gradient-to-br from-red-50 via-white to-orange-50">
             <div className="absolute top-4 right-4 z-50">
                 <button 
                     onClick={toggleLang} 
@@ -121,7 +121,7 @@ const Login = () => {
                         <button 
                             key={num}
                             onClick={() => handlePinPress(num.toString())}
-                            className="bg-white hover:bg-gray-100 text-gray-800 text-2xl font-bold py-4 rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-all"
+                            className="bg-white hover:bg-red-50 hover:text-primary hover:border-red-200 text-gray-800 text-2xl font-extrabold py-5 rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-all"
                         >
                             {num}
                         </button>
@@ -129,13 +129,13 @@ const Login = () => {
                     <div></div>
                     <button 
                         onClick={() => handlePinPress('0')}
-                        className="bg-white hover:bg-gray-100 text-gray-800 text-2xl font-bold py-4 rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-all"
+                        className="bg-white hover:bg-red-50 hover:text-primary hover:border-red-200 text-gray-800 text-2xl font-extrabold py-5 rounded-2xl shadow-sm border border-gray-100 active:scale-95 transition-all"
                     >
                         0
                     </button>
                     <button 
                         onClick={handleDelete}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xl font-bold py-4 rounded-2xl shadow-sm active:scale-95 transition-all"
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-600 text-xl font-bold py-5 rounded-2xl shadow-sm active:scale-95 transition-all"
                     >
                         ⌫
                     </button>

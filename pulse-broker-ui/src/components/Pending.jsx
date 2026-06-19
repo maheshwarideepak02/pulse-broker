@@ -198,28 +198,35 @@ const Pending = () => {
                 </div>
             )}
             
-            <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <h1 className="text-3xl font-bold text-secondary tracking-tight">{t('Pending Loading Dates', 'लंबित लोडिंग तारीख')}</h1>
-                <div className="relative w-full md:w-72">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
+                        <span className="w-6 h-px bg-secondary/50"></span>{t('Dispatch Management', 'डिस्पैच प्रबंधन')}
+                    </div>
+                    <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                        <span className="text-3xl sm:text-4xl text-secondary">🚚</span> {t('Pending Deals', 'लंबित सौदे')}
+                    </h1>
+                </div>
+                <div className="relative w-full sm:w-72">
                     <input 
                         type="text" 
                         placeholder={t('Search Firm, Item, or Marka...', 'फर्म, आइटम खोजें...')} 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-4 pr-10 py-2 border-2 border-yellow-200 rounded-lg focus:ring-2 focus:ring-secondary focus:border-secondary transition-all shadow-sm outline-none bg-white"
+                        className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary transition-all shadow-sm outline-none bg-white font-medium"
                     />
-                    <div className="absolute right-3 top-2.5 text-yellow-500">
+                    <div className="absolute right-4 top-3.5 text-gray-400">
                         🔍
                     </div>
                 </div>
             </div>
             
-            <div className="bg-white border border-secondary rounded-xl shadow-lg overflow-hidden mb-6 relative">
-                <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-secondary to-yellow-300"></div>
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden mb-6 relative border-t-8 border-t-secondary">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-secondary opacity-5 rounded-bl-full pointer-events-none"></div>
 
                 {/* Loader */}
                 {isLoading && (
-                    <div className="flex flex-col items-center justify-center py-20">
+                    <div className="flex flex-col items-center justify-center py-20 relative z-10">
                         <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-secondary"></div>
                         <p className="mt-4 text-gray-500 font-medium">{t('Loading Pending Deals...', 'लंबित सौदे लोड हो रहे हैं...')}</p>
                     </div>
@@ -227,9 +234,9 @@ const Pending = () => {
 
                 {!isLoading && (
                 <>
-                <div className="hidden md:block overflow-x-auto p-1 pl-2">
+                <div className="hidden md:block overflow-x-auto relative z-10">
                     <table className="w-full text-left text-sm text-textMain border-collapse">
-                        <thead className="bg-yellow-50 text-xs uppercase text-secondary border-b-2 border-yellow-200 sticky top-0">
+                        <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200 sticky top-0">
                             <tr>
                                 <th className="px-5 py-4 font-bold whitespace-nowrap">{t('Deal Date', 'तारीख')}</th>
                                 <th className="px-5 py-4 font-bold">{t('Purchaser', 'खरीदार')}</th>

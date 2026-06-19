@@ -165,22 +165,29 @@ const Parties = () => {
 
     return (
         <div className="max-w-5xl mx-auto p-4 py-8">
-            <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-                <h1 className="text-3xl font-bold text-primary tracking-tight">{t('Directory', 'डायरेक्टरी')}</h1>
-                <div className="flex w-full md:w-auto gap-4 items-center">
-                    <div className="relative flex-1 md:w-64">
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
+                        <span className="w-6 h-px bg-primary/50"></span>{t('Contacts', 'संपर्क')}
+                    </div>
+                    <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                        <span className="text-3xl sm:text-4xl text-primary">👥</span> {t('Directory', 'डायरेक्टरी')}
+                    </h1>
+                </div>
+                <div className="flex w-full sm:w-auto gap-3 sm:gap-4 items-center">
+                    <div className="relative flex-1 sm:w-64">
                         <input 
                             type="text" 
                             placeholder={t('Search names, city, phone...', 'नाम, शहर, फ़ोन खोजें...')} 
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-4 pr-10 py-2 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none"
+                            className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none font-medium"
                         />
-                        <div className="absolute right-3 top-2.5 text-gray-400">
+                        <div className="absolute right-4 top-3.5 text-gray-400">
                             🔍
                         </div>
                     </div>
-                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); }} className="bg-primary hover:bg-red-800 transition-colors text-white px-5 py-2.5 rounded-lg font-bold text-sm shadow-md whitespace-nowrap">
+                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); }} className="bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1 transition-all text-white px-5 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap">
                         {t('+ Add New Party', '+ नई पार्टी जोड़ें')}
                     </button>
                 </div>

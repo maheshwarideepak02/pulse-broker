@@ -128,7 +128,14 @@ const Settings = () => {
 
     return (
         <div className="max-w-5xl mx-auto p-4 py-8">
-            <div className="mb-6"><h1 className="text-3xl font-bold text-primary tracking-tight">{t('Settings & Master Data', 'सेटिंग्स और मास्टर डेटा')}</h1></div>
+            <div className="mb-6 sm:mb-8">
+                <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
+                    <span className="w-6 h-px bg-primary/50"></span>{t('Configuration', 'कॉन्फ़िगरेशन')}
+                </div>
+                <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                    <span className="text-3xl sm:text-4xl text-primary">⚙️</span> {t('Settings & Master Data', 'सेटिंग्स और मास्टर डेटा')}
+                </h1>
+            </div>
             
             <div className="bg-white border border-border rounded-lg shadow-md p-6 mb-6 border-l-8 border-l-primary relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>

@@ -112,10 +112,14 @@ const MarginLedger = () => {
 
     return (
         <div className="max-w-6xl mx-auto p-4 py-8">
-            <div className="mb-8 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <span className="text-3xl">⚖️</span>
-                    <h1 className="text-3xl font-bold text-primary tracking-tight">{t('Plus/Minus Account', 'प्लस/माइनस खाता')}</h1>
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
+                        <span className="w-6 h-px bg-primary/50"></span>{t('Financials', 'वित्तीय')}
+                    </div>
+                    <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                        <span className="text-3xl sm:text-4xl text-primary">⚖️</span> {t('Plus/Minus Account', 'प्लस/माइनस खाता')}
+                    </h1>
                 </div>
             </div>
 

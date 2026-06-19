@@ -394,21 +394,25 @@ const Ledger = () => {
                 </div>
             )}
             
-            <div className="mb-8 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <span className="text-3xl">📒</span>
-                    <h1 className="text-3xl font-bold text-primary tracking-tight">{t('Ledger & Billing', 'खाता बही और बिलिंग')}</h1>
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
+                        <span className="w-6 h-px bg-primary/50"></span>{t('Financials', 'वित्तीय')}
+                    </div>
+                    <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                        <span className="text-3xl sm:text-4xl text-primary">📒</span> {t('Ledger & Billing', 'खाता बही और बिलिंग')}
+                    </h1>
                 </div>
-                <div className="flex bg-gray-100 p-1 rounded-xl shadow-sm">
+                <div className="flex bg-gray-100 p-1.5 rounded-2xl shadow-inner w-full sm:w-auto">
                     <button 
                         onClick={() => setActiveTab('generate')}
-                        className={`px-6 py-2 rounded-lg font-bold transition-all text-sm ${activeTab === 'generate' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold transition-all text-sm ${activeTab === 'generate' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         {t('Generate Bills', 'बिल जनरेट करें')}
                     </button>
                     <button 
                         onClick={() => setActiveTab('history')}
-                        className={`px-6 py-2 rounded-lg font-bold transition-all text-sm ${activeTab === 'history' ? 'bg-white text-primary shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold transition-all text-sm ${activeTab === 'history' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         {t('Invoice History', 'बिल इतिहास')}
                     </button>

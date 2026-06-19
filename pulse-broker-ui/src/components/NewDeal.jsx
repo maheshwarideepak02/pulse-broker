@@ -192,9 +192,13 @@ const NewDeal = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-4 py-8">
-            <div className="mb-8 flex items-center gap-3">
-                <span className="text-3xl">🤝</span>
-                <h1 className="text-3xl font-bold text-primary tracking-tight">{t('Enter New Deal', 'नया सौदा दर्ज करें')}</h1>
+            <div className="mb-6 sm:mb-8">
+                <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
+                    <span className="w-6 h-px bg-secondary/50"></span>{t('Trade Operations', 'ट्रेड ऑपरेशंस')}
+                </div>
+                <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                    <span className="text-3xl sm:text-4xl">🤝</span> {t('Enter New Deal', 'नया सौदा दर्ज करें')}
+                </h1>
             </div>
             
             <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-8 border-t-8 border-t-primary relative overflow-hidden">
@@ -391,7 +395,7 @@ const NewDeal = () => {
                         </div>
                     </div>
 
-                    <button type="submit" disabled={isProcessing} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all transform text-lg uppercase tracking-wider flex justify-center items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800 hover:shadow-xl hover:-translate-y-1'}`}>
+                    <button type="submit" disabled={isProcessing} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all transform text-lg uppercase tracking-wider flex justify-center items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1'}`}>
                         {isProcessing ? (
                             <>
                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

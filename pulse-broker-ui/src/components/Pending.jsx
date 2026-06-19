@@ -484,7 +484,7 @@ const Pending = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-100">
+                        <div className="flex justify-end gap-3 pt-4 pb-5 -mb-5 mt-6 border-t border-gray-100 sticky bottom-0 bg-white z-20 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] rounded-b-xl">
                             <button onClick={() => setEditDeal(null)} className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 transition-colors font-bold rounded-lg text-gray-600">{t('Cancel', 'रद्द करें')}</button>
                             <button onClick={handleUpdateDeal} disabled={isProcessing} className={`px-6 py-2.5 transition-colors text-white font-bold rounded-lg shadow-lg flex items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800'}`}>
                                 <span>{isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('Save Changes', 'परिवर्तन सहेजें')}</span>
@@ -534,7 +534,7 @@ const Pending = () => {
                                 <p className="text-xs text-moneyGreen font-bold italic animate-pulse">* {t('Automatically splits if partial', 'आंशिक होने पर स्वचालित विभाजन')}</p>
                             </div>
                         </div>
-                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <div className="flex justify-end gap-3 pt-4 pb-5 -mb-5 mt-4 border-t border-gray-100 sticky bottom-0 bg-white z-20 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] rounded-b-xl">
                             <button onClick={() => setSelectedDeal(null)} className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 transition-colors font-bold rounded-lg text-gray-600">{t('Cancel', 'रद्द करें')}</button>
                             <button onClick={handleLoad} disabled={isProcessing} className={`px-6 py-2.5 transition-colors text-white font-bold rounded-lg shadow-lg flex items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-secondary hover:bg-yellow-600'}`}>
                                 <span>{isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('Confirm Loading', 'लोडिंग पक्की करें')}</span>

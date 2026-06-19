@@ -497,11 +497,25 @@ const Pending = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('Brokerage Settings', 'दलाली सेटिंग्स')}</label>
                                     <div className="grid grid-cols-2 gap-4 mb-3">
                                         <div>
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Purchaser Brok', 'खरीदार दलाली')}</label>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center gap-1">
+                                                {t('Purchaser Brok', 'खरीदार दलाली')}
+                                                {editDeal?.purchaserContact?.id && contacts.find(c => c.id == editDeal.purchaserContact.id)?.defaultBrokVal ? (
+                                                    <span className="text-primary tracking-tighter bg-primary/10 px-1 rounded border border-primary/20">
+                                                        ({contacts.find(c => c.id == editDeal.purchaserContact.id).defaultBrokVal}{contacts.find(c => c.id == editDeal.purchaserContact.id).defaultBrokType === 'PERCENT' ? '%' : '₹/q'})
+                                                    </span>
+                                                ) : null}
+                                            </label>
                                             <input type="number" value={editData.pBrokerage} onChange={e => setEditData({...editData, pBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder={t('Empty = 0', 'खाली = 0')} />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Seller Brok', 'विक्रेता दलाली')}</label>
+                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center gap-1">
+                                                {t('Seller Brok', 'विक्रेता दलाली')}
+                                                {editDeal?.sellerContact?.id && contacts.find(c => c.id == editDeal.sellerContact.id)?.defaultBrokVal ? (
+                                                    <span className="text-secondary tracking-tighter bg-secondary/10 px-1 rounded border border-secondary/20">
+                                                        ({contacts.find(c => c.id == editDeal.sellerContact.id).defaultBrokVal}{contacts.find(c => c.id == editDeal.sellerContact.id).defaultBrokType === 'PERCENT' ? '%' : '₹/q'})
+                                                    </span>
+                                                ) : null}
+                                            </label>
                                             <input type="number" value={editData.sBrokerage} onChange={e => setEditData({...editData, sBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder={t('Empty = 0', 'खाली = 0')} />
                                         </div>
                                     </div>

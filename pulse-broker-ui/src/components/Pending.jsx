@@ -114,8 +114,27 @@ const Pending = () => {
         }
     };
 
+    const reverseBrokerage = (totalBrok, w, r, defaultVal, defaultType) => {
+        if (!totalBrok) return { val: '', type: 'FIXED' };
+        w = parseFloat(w) || 1; r = parseFloat(r) || 1;
+        const calc = (val, type) => type === 'PERCENT' ? (w * r * val) / 100 : w * val;
+        if (defaultVal && Math.abs(calc(defaultVal, defaultType) - totalBrok) < 0.1) {
+            return { val: defaultVal, type: defaultType };
+        }
+        const asPercent = (totalBrok * 100) / (w * r);
+        if (Math.abs(Math.round(asPercent * 2) / 2 - asPercent) < 0.01) {
+             return { val: asPercent.toFixed(2).replace(/\.00$/, ''), type: 'PERCENT' };
+        }
+        return { val: (totalBrok / w).toFixed(2).replace(/\.00$/, ''), type: 'FIXED' };
+    };
+
     const openEditDeal = (deal) => {
         setEditDeal(deal);
+        const pContact = contacts.find(c => c.id == deal.purchaserContact?.id);
+        const sContact = contacts.find(c => c.id == deal.sellerContact?.id);
+        const pBrokSetup = reverseBrokerage(deal.pBrokerage, deal.weight, deal.rate, pContact?.defaultBrokVal, pContact?.defaultBrokType);
+        const sBrokSetup = reverseBrokerage(deal.sBrokerage, deal.weight, deal.rate, sContact?.defaultBrokVal, sContact?.defaultBrokType);
+
         setEditData({
             dealDate: deal.dealDate || '',
             purchaser: deal.purchaser ? { id: deal.purchaser.id } : { id: '' },
@@ -127,30 +146,24 @@ const Pending = () => {
             numberOfPackets: deal.numberOfPackets || '',
             rate: deal.rate || '',
             marginMarkup: deal.marginMarkup || '',
-            pBrokerage: deal.pBrokerage || '',
-            sBrokerage: deal.sBrokerage || '',
+            pBrokVal: pBrokSetup.val,
+            pBrokType: pBrokSetup.type,
+            sBrokVal: sBrokSetup.val,
+            sBrokType: sBrokSetup.type,
             brokeragePayer: deal.brokeragePayer || 'BOTH'
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const recalculateBrokerage = (w, r, currentEditDeal) => {
-        if (!currentEditDeal) return { pBrok: editData.pBrokerage, sBrok: editData.sBrokerage };
-        
-        const calcBrok = (val, type, weight, rate) => {
-            if (!val) return 0;
-            if (type === 'PERCENT') return (weight * rate * (parseFloat(val) || 0)) / 100;
-            return weight * (parseFloat(val) || 0); // Fixed per qtl
-        };
-
-        const pContact = contacts.find(c => c.id == currentEditDeal.purchaserContact?.id);
-        const sContact = contacts.find(c => c.id == currentEditDeal.sellerContact?.id);
-
-        const newPBrok = pContact && pContact.defaultBrokVal ? calcBrok(pContact.defaultBrokVal, pContact.defaultBrokType, w, r).toFixed(2) : editData.pBrokerage;
-        const newSBrok = sContact && sContact.defaultBrokVal ? calcBrok(sContact.defaultBrokVal, sContact.defaultBrokType, w, r).toFixed(2) : editData.sBrokerage;
-
-        return { pBrok: newPBrok, sBrok: newSBrok };
+    const calcBrokerage = (val, type) => {
+        const weight = parseFloat(editData.weight) || 0;
+        const rate = parseFloat(editData.rate) || 0;
+        if (type === 'PERCENT') return (weight * rate * (parseFloat(val) || 0)) / 100;
+        return weight * (parseFloat(val) || 0);
     };
+
+    const currentPBrokerage = calcBrokerage(editData.pBrokVal, editData.pBrokType);
+    const currentSBrokerage = calcBrokerage(editData.sBrokVal, editData.sBrokType);
 
     const handleUpdateDeal = async () => {
         try {
@@ -163,7 +176,7 @@ const Pending = () => {
                 addToast('Weight and Rate must be greater than zero', 'error');
                 return;
             }
-            if ((editData.pBrokerage && parseFloat(editData.pBrokerage) < 0) || (editData.sBrokerage && parseFloat(editData.sBrokerage) < 0)) {
+            if (currentPBrokerage < 0 || currentSBrokerage < 0) {
                 addToast('Brokerage values cannot be negative', 'error');
                 return;
             }
@@ -181,8 +194,8 @@ const Pending = () => {
                 numberOfPackets: editData.numberOfPackets ? parseInt(editData.numberOfPackets) : null,
                 rate: parseFloat(editData.rate),
                 marginMarkup: editData.marginMarkup ? parseFloat(editData.marginMarkup) : 0,
-                pBrokerage: editData.pBrokerage ? parseFloat(editData.pBrokerage) : null,
-                sBrokerage: editData.sBrokerage ? parseFloat(editData.sBrokerage) : null,
+                pBrokerage: currentPBrokerage > 0 ? parseFloat(currentPBrokerage.toFixed(2)) : null,
+                sBrokerage: currentSBrokerage > 0 ? parseFloat(currentSBrokerage.toFixed(2)) : null,
                 brokeragePayer: editData.brokeragePayer
             });
             addToast('Deal Updated Successfully!', 'success');
@@ -437,19 +450,12 @@ const Pending = () => {
                                             const pw = parseFloat(editData.packetWeight);
                                             let np = editData.numberOfPackets;
                                             if (!isNaN(w) && !isNaN(pw) && pw > 0) np = Math.round((w * 100) / pw);
-                                            const newRate = parseFloat(editData.rate) || 0;
-                                            const { pBrok, sBrok } = recalculateBrokerage(!isNaN(w) ? w : 0, newRate, editDeal);
-                                            setEditData({...editData, weight: e.target.value, numberOfPackets: np, pBrokerage: pBrok, sBrokerage: sBrok});
+                                            setEditData({...editData, weight: e.target.value, numberOfPackets: np});
                                         }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Base Rate (₹)', 'मूल दर (₹)')}</label>
-                                        <input type="number" name="rate" value={editData.rate} onChange={e => {
-                                            const r = parseFloat(e.target.value);
-                                            const currentW = parseFloat(editData.weight) || 0;
-                                            const { pBrok, sBrok } = recalculateBrokerage(currentW, !isNaN(r) ? r : 0, editDeal);
-                                            setEditData({...editData, rate: e.target.value, pBrokerage: pBrok, sBrokerage: sBrok});
-                                        }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                        <input type="number" name="rate" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                     <div className="relative">
                                         <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Markup (± ₹)', 'मार्जिन (± ₹)')}</label>
@@ -485,38 +491,43 @@ const Pending = () => {
                                                     w = calcW.toFixed(2);
                                                 }
                                             }
-                                            const newW = parseFloat(w) || 0;
-                                            const newRate = parseFloat(editData.rate) || 0;
-                                            const { pBrok, sBrok } = recalculateBrokerage(newW, newRate, editDeal);
-                                            setEditData({...editData, numberOfPackets: e.target.value, weight: w, pBrokerage: pBrok, sBrokerage: sBrok});
+                                            setEditData({...editData, numberOfPackets: e.target.value, weight: w});
                                         }} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
                                     </div>
                                 </div>
                                 
                                 <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('Brokerage Settings', 'दलाली सेटिंग्स')}</label>
-                                    <div className="grid grid-cols-2 gap-4 mb-3">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center gap-1">
-                                                {t('Purchaser Brok', 'खरीदार दलाली')}
-                                                {editDeal?.purchaserContact?.id && contacts.find(c => c.id == editDeal.purchaserContact.id)?.defaultBrokVal ? (
-                                                    <span className="text-primary tracking-tighter bg-primary/10 px-1 rounded border border-primary/20">
-                                                        ({contacts.find(c => c.id == editDeal.purchaserContact.id).defaultBrokVal}{contacts.find(c => c.id == editDeal.purchaserContact.id).defaultBrokType === 'PERCENT' ? '%' : '₹/q'})
-                                                    </span>
-                                                ) : null}
-                                            </label>
-                                            <input type="number" value={editData.pBrokerage} onChange={e => setEditData({...editData, pBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder={t('Empty = 0', 'खाली = 0')} />
+                                    
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
+                                            <label className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-2">{t('Purchaser Pays', 'खरीदार की दलाली')}</label>
+                                            <div className="flex flex-col xl:flex-row gap-2">
+                                                <input type="number" value={editData.pBrokVal} onChange={e => setEditData({...editData, pBrokVal: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" />
+                                                <select value={editData.pBrokType} onChange={e => setEditData({...editData, pBrokType: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm">
+                                                    <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
+                                                    <option value="FIXED">₹ {t('Fixed/Qtl', 'प्रति क्विंटल')}</option>
+                                                </select>
+                                            </div>
+                                            <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center">
+                                                <span className="text-gray-400 font-bold text-[10px] uppercase">Calc</span> 
+                                                <span className="font-black text-sm text-primary">₹ {currentPBrokerage.toFixed(2)}</span>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 flex items-center gap-1">
-                                                {t('Seller Brok', 'विक्रेता दलाली')}
-                                                {editDeal?.sellerContact?.id && contacts.find(c => c.id == editDeal.sellerContact.id)?.defaultBrokVal ? (
-                                                    <span className="text-secondary tracking-tighter bg-secondary/10 px-1 rounded border border-secondary/20">
-                                                        ({contacts.find(c => c.id == editDeal.sellerContact.id).defaultBrokVal}{contacts.find(c => c.id == editDeal.sellerContact.id).defaultBrokType === 'PERCENT' ? '%' : '₹/q'})
-                                                    </span>
-                                                ) : null}
-                                            </label>
-                                            <input type="number" value={editData.sBrokerage} onChange={e => setEditData({...editData, sBrokerage: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" placeholder={t('Empty = 0', 'खाली = 0')} />
+
+                                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
+                                            <label className="text-[10px] font-bold text-secondary uppercase tracking-wider block mb-2">{t('Seller Pays', 'विक्रेता की दलाली')}</label>
+                                            <div className="flex flex-col xl:flex-row gap-2">
+                                                <input type="number" value={editData.sBrokVal} onChange={e => setEditData({...editData, sBrokVal: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" />
+                                                <select value={editData.sBrokType} onChange={e => setEditData({...editData, sBrokType: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm">
+                                                    <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
+                                                    <option value="FIXED">₹ {t('Fixed/Qtl', 'प्रति क्विंटल')}</option>
+                                                </select>
+                                            </div>
+                                            <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center">
+                                                <span className="text-gray-400 font-bold text-[10px] uppercase">Calc</span> 
+                                                <span className="font-black text-sm text-secondary">₹ {currentSBrokerage.toFixed(2)}</span>
+                                            </div>
                                         </div>
                                     </div>
                                     <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Who Pays Brokerage?', 'दलाली कौन देगा?')}</label>

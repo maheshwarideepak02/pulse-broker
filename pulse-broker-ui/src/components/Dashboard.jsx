@@ -230,48 +230,57 @@ const Dashboard = () => {
 
                 {/* Mobile Card Layout */}
                 {!isLoading && (
-                <div className="md:hidden divide-y divide-gray-100">
+                <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
                     {filteredLoadedDeals.length === 0 ? (
-                        <div className="p-8 text-center text-gray-500 font-medium">{t('No deals match your search.', 'आपकी खोज से कोई सौदा मेल नहीं खाता।')}</div>
+                        <div className="p-8 text-center text-gray-500 font-medium bg-white rounded-xl border border-gray-100">{t('No deals match your search.', 'आपकी खोज से कोई सौदा मेल नहीं खाता।')}</div>
                     ) : (
                         filteredLoadedDeals.map(deal => (
-                            <div key={deal.id} className="p-4 hover:bg-red-50/30 transition-colors">
-                                <div className="flex justify-between items-start mb-2">
-                                    <div>
-                                        <span className="bg-gray-100 px-2 py-0.5 rounded font-bold text-xs border border-gray-200">{deal.item?.name}</span>
-                                        <span className="text-secondary font-bold text-xs ml-1.5">{deal.marka?.name}</span>
+                            <div key={deal.id} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 hover:border-primary transition-colors relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-primary to-secondary"></div>
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex gap-2 items-center">
+                                        <span className="bg-gray-100 px-2 py-1 rounded-md font-bold text-xs text-gray-700 shadow-sm border border-gray-200">{deal.item?.name}</span>
+                                        <span className="text-secondary font-extrabold text-xs">{deal.marka?.name}</span>
                                     </div>
-                                    <span className="text-secondary font-bold text-sm">₹{deal.rate}</span>
+                                    <span className="text-primary font-black text-lg">₹{deal.rate}</span>
                                 </div>
                                 {deal.brokeragePayer && (
-                                    <div className="mb-2">
-                                        <span className="text-[10px] uppercase font-bold text-gray-400">
+                                    <div className="mb-3">
+                                        <span className="text-[10px] uppercase font-bold text-white bg-gray-800 px-2 py-0.5 rounded shadow-sm">
                                             {deal.brokeragePayer === 'PURCHASER_BOTH' ? t('Buyer Pays Brokerage', 'खरीदार दलाली देगा') : deal.brokeragePayer === 'SELLER_BOTH' ? t('Seller Pays Brokerage', 'विक्रेता दलाली देगा') : t('Separate Brokerage', 'अलग-अलग दलाली')}
                                         </span>
                                     </div>
                                 )}
-                                <div className="flex justify-between items-center mb-1">
-                                    <div className="flex flex-col">
-                                        <span className="font-bold text-sm text-textMain">{deal.purchaser?.name}</span>
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase">{deal.purchaserContact?.name}</span>
+                                <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3">
+                                    <div className="flex flex-col flex-1">
+                                        <span className="font-extrabold text-sm text-gray-900">{deal.purchaser?.name}</span>
+                                        <span className="text-[10px] text-gray-500 font-bold uppercase">{deal.purchaserContact?.name}</span>
                                     </div>
-                                    <span className="text-gray-400 text-xs px-2">→</span>
-                                    <div className="flex flex-col text-right">
-                                        <span className="font-bold text-sm text-textMain">{deal.seller?.name}</span>
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase">{deal.sellerContact?.name}</span>
+                                    <div className="flex items-center justify-center px-2">
+                                        <span className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[10px] shadow-sm">➡️</span>
+                                    </div>
+                                    <div className="flex flex-col flex-1 text-right">
+                                        <span className="font-extrabold text-sm text-gray-900">{deal.seller?.name}</span>
+                                        <span className="text-[10px] text-gray-500 font-bold uppercase">{deal.sellerContact?.name}</span>
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
-                                    <span>{formatDate(deal.dealDate)} {deal.loadDate ? `→ ${formatDate(deal.loadDate)}` : ''}</span>
-                                    <span className="font-bold text-gray-700">{deal.numberOfPackets ? `${deal.numberOfPackets} ${t('Bags', 'बोरी')} / ` : ''}{deal.weight} {t('qtl', 'क्विंटल')}</span>
+                                <div className="flex justify-between items-center text-xs text-gray-500 mb-3 px-1">
+                                    <span className="font-medium flex flex-col">
+                                        <span className="text-[10px] text-gray-400 uppercase">{t('Deal Date', 'सौदा')}</span>
+                                        {formatDate(deal.dealDate)}
+                                    </span>
+                                    <span className="font-medium flex flex-col text-right">
+                                        <span className="text-[10px] text-gray-400 uppercase">{t('Quantity', 'मात्रा')}</span>
+                                        <span className="font-extrabold text-gray-800">{deal.numberOfPackets ? `${deal.numberOfPackets} ${t('Bags', 'बोरी')} / ` : ''}{deal.weight} {t('qtl', 'क्विंटल')}</span>
+                                    </span>
                                 </div>
-                                <div className="flex justify-between items-center text-xs border-t border-gray-100 pt-2 mb-2">
-                                    <span className="font-bold text-gray-500">{t('P. Brok:', 'खरीदार दलाली:')} <span className="text-gray-700">₹{deal.pBrokerage || 0}</span></span>
-                                    <span className="font-bold text-gray-500">{t('S. Brok:', 'विक्रेता दलाली:')} <span className="text-gray-700">₹{deal.sBrokerage || 0}</span></span>
+                                <div className="flex justify-between items-center text-[11px] border-t border-gray-100 pt-3 px-1">
+                                    <span className="font-bold text-gray-500">{t('P. Brok:', 'खरीदार दलाली:')} <span className="text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded">₹{deal.pBrokerage || 0}</span></span>
+                                    <span className="font-bold text-gray-500">{t('S. Brok:', 'विक्रेता दलाली:')} <span className="text-gray-800 bg-gray-100 px-1.5 py-0.5 rounded">₹{deal.sBrokerage || 0}</span></span>
                                 </div>
                                 {deal.status === 'LOADED' && (
-                                    <div className="flex justify-end border-t border-gray-100 pt-2 mt-2">
-                                        <button onClick={() => handleRevertDeal(deal)} className="text-xs text-gray-500 hover:text-red-500 flex items-center gap-1 border border-gray-200 px-2 py-1 rounded">
+                                    <div className="flex justify-end pt-3 mt-2">
+                                        <button onClick={() => handleRevertDeal(deal)} className="text-[11px] font-bold text-gray-500 hover:text-red-600 flex items-center gap-1.5 bg-white border border-gray-200 shadow-sm px-3 py-1.5 rounded-lg active:scale-95 transition-all">
                                             ↩️ {t('Undo Load', 'लोड पूर्ववत करें')}
                                         </button>
                                     </div>

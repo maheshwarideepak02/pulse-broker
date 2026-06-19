@@ -241,28 +241,28 @@ const Parties = () => {
                     {filteredContacts.map(c => (
                         <div key={c.id} className="bg-white p-5 rounded-xl shadow-sm hover:shadow-lg transition-all hover:-translate-y-1 border border-gray-100 group relative overflow-hidden">
                             <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-primary to-secondary opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                            <div className="flex justify-between items-start mb-3 pl-2">
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-bold text-xl text-textMain group-hover:text-primary transition-colors">{c.name}</h3>
-                                        <button onClick={() => openEditContact(c)} className="text-gray-300 hover:text-primary transition-colors text-xs" title="Edit Contact">✏️</button>
-                                        <button onClick={() => handleDeleteContact(c.id)} className="text-gray-300 hover:text-red-600 transition-colors text-xs" title="Delete Contact">🗑️</button>
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4 pl-2">
+                                <div className="w-full sm:w-auto">
+                                    <div className="flex items-center gap-2 mb-1.5">
+                                        <h3 className="font-extrabold text-xl text-gray-900 group-hover:text-primary transition-colors">{c.name}</h3>
+                                        <button onClick={() => openEditContact(c)} className="text-gray-300 hover:text-primary transition-colors text-xs p-1" title="Edit Contact">✏️</button>
+                                        <button onClick={() => handleDeleteContact(c.id)} className="text-gray-300 hover:text-red-600 transition-colors text-xs p-1" title="Delete Contact">🗑️</button>
                                     </div>
-                                    <div className="flex items-center gap-3 mt-1">
-                                        <span className="text-sm font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded flex items-center gap-1">📞 {c.phone || 'N/A'}</span>
-                                        <span className="text-sm font-medium text-gray-500 bg-gray-50 px-2 py-0.5 rounded flex items-center gap-1">📍 {c.city || 'N/A'}</span>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm border border-gray-200">📞 {c.phone || 'N/A'}</span>
+                                        <span className="text-xs font-bold text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm border border-gray-200">📍 {c.city || 'N/A'}</span>
                                         {c.defaultBrokVal !== null && c.defaultBrokVal !== undefined && c.defaultBrokVal !== '' && parseFloat(c.defaultBrokVal) > 0 ? (
-                                            <span className="text-sm font-bold text-primary bg-red-50 border border-red-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                            <span className="text-xs font-extrabold text-primary bg-red-50 border border-red-200 px-2.5 py-1 rounded-md flex items-center gap-1 shadow-sm">
                                                 💰 {c.defaultBrokVal} {c.defaultBrokType === 'PERCENT' ? '%' : '₹/Qtl'}
                                             </span>
                                         ) : null}
                                     </div>
                                 </div>
-                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); }} className="text-xs bg-white text-primary hover:bg-primary hover:text-white px-3 py-1.5 rounded-md font-bold border-2 border-primary transition-colors shadow-sm whitespace-nowrap">
+                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2 rounded-lg font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
                                     {t('+ Add Firm', '+ फर्म जोड़ें')}
                                 </button>
                             </div>
-                            <div className="mt-4 pt-3 border-t border-gray-50 pl-2">
+                            <div className="mt-2 pt-4 border-t border-gray-100 pl-2">
                                 <p className="text-xs uppercase tracking-wider text-gray-400 font-bold mb-2">{t('Linked Firms', 'जुड़ी हुई फर्में')}</p>
                                 <div className="flex flex-wrap gap-2">
                                     {firms.filter(f => f.contact?.id === c.id).map(f => (

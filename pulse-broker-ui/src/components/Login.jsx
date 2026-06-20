@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { checkAuthStatus, setupApp, loginApp, resetApp } from '../api';
+import PromptModal from './PromptModal';
 
 const Login = () => {
     const { toggleLang, lang, t } = useLanguage();
@@ -13,6 +14,7 @@ const Login = () => {
     const [isSetupMode, setIsSetupMode] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [secretDialog, setSecretDialog] = useState({ isOpen: false, mode: '', pin: '' });
 
     useEffect(() => {
         checkAuthStatus().then(data => {
@@ -46,16 +48,9 @@ const Login = () => {
         setIsLoading(true);
         try {
             if (isSetupMode) {
-                const masterSecret = window.prompt(lang === 'en' ? "Enter Server Master Secret to authorize setup:" : "सेटअप को अधिकृत करने के लिए सर्वर मास्टर सीक्रेट दर्ज करें:");
-                if (!masterSecret) {
-                    setInputPin('');
-                    setIsLoading(false);
-                    return;
-                }
-                const res = await setupApp({ pin: pinStr, masterSecret });
-                localStorage.setItem('pulse_auth_token', res.token);
-                login();
-                navigate('/app/dashboard');
+                setSecretDialog({ isOpen: true, mode: 'setup', pin: pinStr });
+                setIsLoading(false);
+                return;
             } else {
                 const res = await loginApp({ pin: pinStr });
                 localStorage.setItem('pulse_auth_token', res.token);
@@ -70,20 +65,26 @@ const Login = () => {
         }
     };
 
-    const handleReset = async () => {
-        const masterSecret = window.prompt(lang === 'en' ? "Enter Server Master Secret to reset PIN:" : "पिन रीसेट करने के लिए सर्वर मास्टर सीक्रेट दर्ज करें:");
-        if (!masterSecret) return;
-        
+    const handleReset = () => setSecretDialog({ isOpen: true, mode: 'reset', pin: '' });
+
+    const handleSecretSubmit = async (masterSecret) => {
         setIsLoading(true);
         try {
-            await resetApp({ masterSecret });
-            localStorage.removeItem('pulse_auth_token');
-            setIsSetupMode(true);
-            setInputPin('');
-            setError('');
-            alert(lang === 'en' ? "PIN Reset Successful. Please set a new PIN." : "पिन रीसेट सफल रहा। कृपया नया पिन सेट करें।");
+            if (secretDialog.mode === 'setup') {
+                const res = await setupApp({ pin: secretDialog.pin, masterSecret });
+                localStorage.setItem('pulse_auth_token', res.token);
+                login();
+                navigate('/app/dashboard');
+            } else {
+                await resetApp({ masterSecret });
+                localStorage.removeItem('pulse_auth_token');
+                setIsSetupMode(true);
+                setInputPin('');
+                setError(t('PIN reset successfully. Create a new PIN.', 'पिन रीसेट सफल रहा। नया पिन बनाएं।'));
+            }
+            setSecretDialog({ isOpen: false, mode: '', pin: '' });
         } catch (e) {
-            alert(e.response?.data?.message || (lang === 'en' ? "Incorrect Master Secret" : "गलत मास्टर सीक्रेट"));
+            setError(e.response?.data?.message || t('Incorrect master secret', 'गलत मास्टर सीक्रेट'));
         } finally {
             setIsLoading(false);
         }
@@ -181,6 +182,18 @@ const Login = () => {
                 {isLoading && <div className="mt-5 flex items-center justify-center gap-2 text-xs font-semibold text-gray-400"><span className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin"></span>{t('Please wait…', 'कृपया प्रतीक्षा करें…')}</div>}
             </div>
             </div>
+            <PromptModal
+                isOpen={secretDialog.isOpen}
+                title={secretDialog.mode === 'setup' ? t('Authorise setup', 'सेटअप अधिकृत करें') : t('Reset PIN', 'पिन रीसेट करें')}
+                message={t('Enter the server master secret to continue securely.', 'सुरक्षित रूप से आगे बढ़ने के लिए सर्वर मास्टर सीक्रेट दर्ज करें।')}
+                inputLabel={t('Master secret', 'मास्टर सीक्रेट')}
+                confirmText={t('Continue', 'जारी रखें')}
+                cancelText={t('Cancel', 'रद्द करें')}
+                secret
+                isBusy={isLoading}
+                onConfirm={handleSecretSubmit}
+                onCancel={() => { setSecretDialog({ isOpen: false, mode: '', pin: '' }); setInputPin(''); }}
+            />
         </div>
     );
 };

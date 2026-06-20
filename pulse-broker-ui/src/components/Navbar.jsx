@@ -2,20 +2,7 @@ import { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-
-const Icon = ({ name, className = 'w-5 h-5' }) => {
-    const paths = {
-        dashboard: <><path d="M3 3h7v7H3zM14 3h7v4h-7zM14 11h7v10h-7zM3 14h7v7H3z" /></>,
-        parties: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
-        ledger: <><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /><path d="M8 7h8M8 11h6" /></>,
-        pending: <><path d="M3 7h11v10H3zM14 10h4l3 3v4h-7z" /><circle cx="7" cy="19" r="2" /><circle cx="18" cy="19" r="2" /></>,
-        new: <><path d="M12 5v14M5 12h14" /></>,
-        margins: <><path d="M12 3v18M5 7h14M5 7l-3 6h6L5 7zM19 7l-3 6h6l-3-6z" /></>,
-        settings: <><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-2.83 2.83-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21h-4v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06-2.83-2.83.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3v-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06 2.83-2.83.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3h4v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06 2.83 2.83-.06.06A1.65 1.65 0 0 0 19.4 9c.12.61.66 1.05 1.29 1.05H21v4h-.31c-.63 0-1.17.44-1.29 1.05z" /></>,
-        more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
-    };
-    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">{paths[name]}</svg>;
-};
+import Icon from './Icon';
 
 const Navbar = () => {
     const { toggleLang, lang, t } = useLanguage();
@@ -46,7 +33,7 @@ const Navbar = () => {
                         </span>
                     </button>
 
-                    <nav className="hidden lg:flex items-center gap-1 bg-stone-100/80 p-1.5 rounded-xl border border-stone-200/80">
+                    <nav className="hidden xl:flex items-center gap-1 bg-stone-100/80 p-1.5 rounded-xl border border-stone-200/80">
                         {links.map(link => (
                             <NavLink key={link.to} to={link.to} className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all whitespace-nowrap ${isActive ? 'bg-white text-primary shadow-sm ring-1 ring-stone-200' : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'}`}>
                                 <Icon name={link.icon} className="w-4 h-4" /> {t(link.en, link.hi)}

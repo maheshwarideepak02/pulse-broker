@@ -97,10 +97,10 @@ table tbody tr { transition: background-color .16s ease; }
 @media (max-width: 640px) {
     .modal-overlay { align-items: flex-start; padding-top: 40px; padding-bottom: 40px; overflow-y: auto; }
     .modal-content { max-height: none; margin-bottom: 40px; }
-    .app-main { padding-bottom: 6.75rem; }
+    .app-main { padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px)); }
     .app-main > div { padding-left: 14px !important; padding-right: 14px !important; }
     .app-main h1 { line-height: 1.18; }
-    .app-main button { min-height: 42px; }
+    .btn-primary { min-height: 42px; }
     .app-main .rounded-xl { border-radius: 16px; }
     .app-main .rounded-2xl { border-radius: 18px; }
     .modal-content {
@@ -112,6 +112,9 @@ table tbody tr { transition: background-color .16s ease; }
         font-size: 16px !important; /* Prevents iOS zoom on focus */
     }
 }
+
+/* Safe area utilities for modern phones */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 20px); }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }

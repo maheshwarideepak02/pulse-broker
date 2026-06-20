@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getItems, getMarkas, createItem, createMarka, updateItem, updateMarka, deleteItem, deleteMarka } from '../api';
 import ConfirmModal from './ConfirmModal';
+import PromptModal from './PromptModal';
 
 const Settings = () => {
     const { t } = useLanguage();
@@ -16,6 +17,7 @@ const Settings = () => {
     const [isLoadingData, setIsLoadingData] = useState(true);
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });
+    const [editDialog, setEditDialog] = useState({ isOpen: false, type: '', id: null, name: '' });
 
     const fetchData = async () => {
         setIsLoadingData(true);
@@ -53,18 +55,7 @@ const Settings = () => {
         }
     };
 
-    const handleEditItem = async (item) => {
-        const newName = window.prompt(t("Edit Item Name:", "आइटम का नाम संपादित करें:"), item.name);
-        if (newName && newName.trim() !== '' && newName !== item.name) {
-            try {
-                await updateItem(item.id, { name: newName });
-                addToast('Item Updated Successfully!', 'success');
-                fetchData();
-            } catch {
-                addToast('Failed to update item', 'error');
-            }
-        }
-    };
+    const handleEditItem = (item) => setEditDialog({ isOpen: true, type: 'item', id: item.id, name: item.name });
 
     const handleSaveMarka = async () => {
         if (!newMarka || newMarka.trim() === '') {
@@ -85,16 +76,24 @@ const Settings = () => {
         }
     };
 
-    const handleEditMarka = async (marka) => {
-        const newName = window.prompt(t("Edit Marka Name:", "मार्का का नाम संपादित करें:"), marka.name);
-        if (newName && newName.trim() !== '' && newName !== marka.name) {
-            try {
-                await updateMarka(marka.id, { name: newName });
-                addToast('Marka Updated Successfully!', 'success');
-                fetchData();
-            } catch {
-                addToast('Failed to update marka', 'error');
-            }
+    const handleEditMarka = (marka) => setEditDialog({ isOpen: true, type: 'marka', id: marka.id, name: marka.name });
+
+    const executeEdit = async (newName) => {
+        if (newName === editDialog.name) {
+            setEditDialog({ isOpen: false, type: '', id: null, name: '' });
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            if (editDialog.type === 'item') await updateItem(editDialog.id, { name: newName });
+            else await updateMarka(editDialog.id, { name: newName });
+            addToast(t('Updated successfully!', 'सफलतापूर्वक अपडेट किया गया!'), 'success');
+            setEditDialog({ isOpen: false, type: '', id: null, name: '' });
+            fetchData();
+        } catch {
+            addToast(t('Failed to update', 'अपडेट नहीं हो सका'), 'error');
+        } finally {
+            setIsProcessing(false);
         }
     };
 
@@ -163,10 +162,9 @@ const Settings = () => {
                 ) : (
                     <div className="flex flex-wrap gap-3 relative z-10">
                         {items.map(i => (
-                            <span key={i.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-gray-50 hover:bg-red-50 hover:border-primary transition-colors border-2 border-gray-200 px-4 py-1.5 rounded-md font-bold text-gray-700 cursor-pointer group flex items-center gap-2">
-                                <span onClick={() => handleEditItem(i)}>{i.name}</span>
-                                <span onClick={() => handleEditItem(i)} className="opacity-0 group-hover:opacity-100 text-xs text-primary transition-opacity">✏️</span>
-                                <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(i.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Item", "आइटम मिटाएं")}>×</button>
+                            <span key={i.id} className="bg-gray-50 hover:bg-red-50 hover:border-primary transition-colors border border-gray-200 pl-3 pr-1 py-1 rounded-xl font-bold text-gray-700 group inline-flex items-center gap-1">
+                                <button onClick={() => handleEditItem(i)} className="min-h-9 rounded-lg px-1 text-left hover:text-primary" aria-label={`${t('Edit', 'संपादित करें')} ${i.name}`}>{i.name}</button>
+                                <button onClick={() => handleDeleteItem(i.id)} className="grid h-9 w-9 place-items-center rounded-lg text-gray-400 hover:bg-red-100 hover:text-red-600" aria-label={`${t('Delete', 'मिटाएं')} ${i.name}`}>×</button>
                             </span>
                         ))}
                     </div>
@@ -190,10 +188,9 @@ const Settings = () => {
                 ) : (
                     <div className="flex flex-wrap gap-3 relative z-10">
                         {markas.map(m => (
-                            <span key={m.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-white hover:bg-yellow-100 hover:border-secondary transition-colors border-2 border-yellow-200 text-secondary px-4 py-1.5 rounded-md font-bold cursor-pointer group flex items-center gap-2">
-                                <span onClick={() => handleEditMarka(m)}>{m.name}</span>
-                                <span onClick={() => handleEditMarka(m)} className="opacity-0 group-hover:opacity-100 text-xs text-secondary transition-opacity">✏️</span>
-                                <button onClick={(e) => { e.stopPropagation(); handleDeleteMarka(m.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Marka", "मार्का मिटाएं")}>×</button>
+                            <span key={m.id} className="bg-white hover:bg-yellow-50 hover:border-secondary transition-colors border border-yellow-200 text-secondary pl-3 pr-1 py-1 rounded-xl font-bold group inline-flex items-center gap-1">
+                                <button onClick={() => handleEditMarka(m)} className="min-h-9 rounded-lg px-1 text-left hover:text-yellow-700" aria-label={`${t('Edit', 'संपादित करें')} ${m.name}`}>{m.name}</button>
+                                <button onClick={() => handleDeleteMarka(m.id)} className="grid h-9 w-9 place-items-center rounded-lg text-gray-400 hover:bg-red-100 hover:text-red-600" aria-label={`${t('Delete', 'मिटाएं')} ${m.name}`}>×</button>
                             </span>
                         ))}
                     </div>
@@ -206,6 +203,19 @@ const Settings = () => {
                 message={confirmDialog.message}
                 onConfirm={executeDelete}
                 onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+                cancelText={t('Cancel', 'रद्द करें')}
+            />
+            <PromptModal
+                isOpen={editDialog.isOpen}
+                title={editDialog.type === 'item' ? t('Edit item', 'आइटम संपादित करें') : t('Edit marka', 'मार्का संपादित करें')}
+                message={t('Update the name below. Existing records will keep their association.', 'नीचे नाम अपडेट करें। मौजूदा रिकॉर्ड जुड़े रहेंगे।')}
+                inputLabel={t('Name', 'नाम')}
+                defaultValue={editDialog.name}
+                confirmText={t('Save changes', 'बदलाव सहेजें')}
+                cancelText={t('Cancel', 'रद्द करें')}
+                isBusy={isProcessing}
+                onConfirm={executeEdit}
+                onCancel={() => setEditDialog({ isOpen: false, type: '', id: null, name: '' })}
             />
         </div>
     );

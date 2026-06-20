@@ -5,7 +5,11 @@ import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
-import { downloadInvoicePdf, shareInvoice, safeFileName } from '../utils/pdfExport';
+
+const safeFileName = (value, fallback = 'invoice') => {
+    const cleaned = String(value || fallback).trim().replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    return cleaned || fallback;
+};
 
 const Ledger = () => {
     const { t } = useLanguage();
@@ -39,6 +43,7 @@ const Ledger = () => {
     const handlePdfDownload = async () => {
         setIsExporting(true);
         try {
+            const { downloadInvoicePdf } = await import('../utils/pdfExport');
             await downloadInvoicePdf(invoiceRef.current, invoiceFileName());
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
         } catch (error) {
@@ -52,6 +57,7 @@ const Ledger = () => {
     const handleInvoiceShare = async () => {
         setIsExporting(true);
         try {
+            const { shareInvoice } = await import('../utils/pdfExport');
             const total = Number(invoiceData?.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
             const result = await shareInvoice({
                 element: invoiceRef.current,
@@ -344,8 +350,9 @@ const Ledger = () => {
                     </div>
                 </div>
                 
-                <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
+                <div className="overflow-x-auto w-full pb-4">
+                    <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200 min-w-[600px] sm:min-w-0">
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
                         <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
                     </div>
                     <div style={{ textAlign: 'center', marginBottom: '10px' }}>
@@ -425,6 +432,7 @@ const Ledger = () => {
                         </div>
                         <div style={{ position: 'absolute', right: 0, bottom: '20px', border: '1px solid #9e1b22', padding: '2px 10px', fontWeight: 'bold', fontSize: '14px' }}>
                             कुल दलाली: <span className="bill-line" style={{ minWidth: '80px' }}>₹ {invoiceData.totalAmount?.toFixed(2)}</span>
+                        </div>
                         </div>
                     </div>
                 </div>

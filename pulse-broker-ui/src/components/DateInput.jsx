@@ -57,14 +57,6 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
                 </div>
             </div>
             
-            {/* Show badge for selected date */}
-            {dateInfo && (
-                <div className="mt-2">
-                    <div className={`date-label-chip ${chipClass} text-xs px-2 py-1 rounded-md inline-block`}>
-                        <span>{dateInfo.formatted}</span>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

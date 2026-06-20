@@ -113,7 +113,7 @@ const Dashboard = () => {
                     <p className="text-textMuted font-medium text-xs sm:text-sm">{new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
                 </div>
                 <div className="w-full sm:w-auto flex justify-center sm:justify-end mt-2 sm:mt-0">
-                    <button className="flex bg-primary hover:bg-red-900 text-white transition-all text-sm font-bold items-center gap-2 px-6 py-3 sm:px-4 sm:py-2.5 rounded-xl shadow-md sm:shadow-sm w-full sm:w-auto justify-center" onClick={() => window.location.href='/app/new-deal'}>
+                    <button className="flex bg-primary hover:bg-red-900 text-white transition-all text-sm font-bold items-center gap-2 px-6 py-3 sm:px-4 sm:py-2.5 rounded-xl shadow-md sm:shadow-sm w-full sm:w-auto justify-center" onClick={() => navigate('/app/new-deal')}>
                         <span className="text-lg leading-none">＋</span> {t('Create new deal', 'नया सौदा बनाएं')}
                     </button>
                 </div>
@@ -135,7 +135,7 @@ const Dashboard = () => {
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('This Month', 'इस महीने')}</p>
                     <p className="text-xl sm:text-3xl font-bold text-textMain mt-1 sm:mt-2">{summary.dealsThisMonth}</p>
                 </div>
-                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group cursor-pointer" onClick={() => window.location.href='/app/pending'}>
+                <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group cursor-pointer" onClick={() => navigate('/app/pending')}>
                     <div className="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
                     <div className="absolute right-[-10px] bottom-[-10px] text-4xl sm:text-6xl opacity-10 group-hover:scale-110 transition-transform">🚚</div>
                     <p className="text-secondary text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('Pending', 'लंबित')}</p>

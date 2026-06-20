@@ -20,7 +20,9 @@ export const ToastProvider = ({ children }) => {
                 {toasts.map(toast => (
                     <div 
                         key={toast.id} 
-                        className={`animate-slide-in flex items-center p-4 mb-2 text-white rounded-lg shadow-xl min-w-[250px] transition-all transform ${
+                        role="status"
+                        aria-live="polite"
+                        className={`animate-slide-in flex items-center p-4 mb-2 text-white rounded-lg shadow-xl max-w-[90vw] min-w-[250px] transition-all transform ${
                             toast.type === 'success' ? 'bg-moneyGreen' : 'bg-primary'
                         }`}
                         style={{ animation: 'slideIn 0.3s ease-out forwards' }}

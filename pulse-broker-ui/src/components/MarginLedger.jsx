@@ -5,7 +5,11 @@ import { getContactsWithMargins, getMarginDeals, clearMargins, unclearMargins } 
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { downloadInvoicePdf, shareInvoice, safeFileName } from '../utils/pdfExport';
+
+const safeFileName = (value, fallback = 'invoice') => {
+    const cleaned = String(value || fallback).trim().replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+    return cleaned || fallback;
+};
 
 const MarginLedger = () => {
     const { t } = useLanguage();
@@ -33,6 +37,7 @@ const MarginLedger = () => {
     const handlePdfDownload = async () => {
         setIsExporting(true);
         try {
+            const { downloadInvoicePdf } = await import('../utils/pdfExport');
             await downloadInvoicePdf(invoiceRef.current, marginFileName());
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
         } catch (error) {
@@ -46,6 +51,7 @@ const MarginLedger = () => {
     const handleMarginShare = async () => {
         setIsExporting(true);
         try {
+            const { shareInvoice } = await import('../utils/pdfExport');
             const total = Number(totalMargin || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
             const result = await shareInvoice({
                 element: invoiceRef.current,
@@ -84,7 +90,6 @@ const MarginLedger = () => {
             setMarginDeals(data);
             setSelectedDealIds([]); // reset selection on fetch
         } catch {
-            console.error(err);
             addToast('Failed to load margin ledger', 'error');
         } finally {
             setIsLoading(false);
@@ -393,16 +398,17 @@ const MarginLedger = () => {
                             </div>
                         </div>
 
-                        <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
-                                <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
-                            </div>
-                            <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                                <div style={{ fontSize: '24px', color: '#9e1b22', marginBottom: '-5px' }}>ॐ</div>
-                                <div style={{ fontSize: '13px', fontWeight: 'bold' }}>श्री गुरुचरण कमलेभ्यो: नम:</div>
-                                <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: '4px 0' }}>संजीव कुमार माहेश्वरी</h1>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold' }}>ब्रोकर: दलहन, गल्ला, चावल आदि</div>
-                            </div>
+                        <div className="overflow-x-auto w-full pb-4">
+                            <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200 min-w-[600px] sm:min-w-0">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
+                                    <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
+                                </div>
+                                <div style={{ textAlign: 'center', marginBottom: '10px' }}>
+                                    <div style={{ fontSize: '24px', color: '#9e1b22', marginBottom: '-5px' }}>ॐ</div>
+                                    <div style={{ fontSize: '13px', fontWeight: 'bold' }}>श्री गुरुचरण कमलेभ्यो: नम:</div>
+                                    <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: '4px 0' }}>संजीव कुमार माहेश्वरी</h1>
+                                    <div style={{ fontSize: '14px', fontWeight: 'bold' }}>ब्रोकर: दलहन, गल्ला, चावल आदि</div>
+                                </div>
                             <div style={{ textAlign: 'center', borderTop: '1px solid #9e1b22', borderBottom: '1px solid #9e1b22', padding: '4px 0', marginBottom: '10px', position: 'relative' }}>
                                 <span style={{ position: 'absolute', left: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
                                     क्रमांक <span className="bill-line" style={{ minWidth: '80px' }}>-</span>
@@ -463,6 +469,7 @@ const MarginLedger = () => {
                         </div>
                     </div>
                 </div>
+            </div>
             )}
             </>
             )}

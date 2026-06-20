@@ -46,9 +46,13 @@ public class BillingService {
                     return include;
                 })
                 .filter(d -> {
-                    if (d.getDealDate() == null) return true; // Include deals without dates so they don't get lost
-                    boolean afterFrom = fromDate == null || !d.getDealDate().isBefore(fromDate);
-                    boolean beforeTo = toDate == null || !d.getDealDate().isAfter(toDate);
+                    LocalDate effectiveDate = d.getDealDate();
+                    if (d.getPurchaser() != null && d.getPurchaser().getId().equals(firmId) && d.getPurchaserDealDate() != null) {
+                        effectiveDate = d.getPurchaserDealDate();
+                    }
+                    if (effectiveDate == null) return true; // Include deals without dates so they don't get lost
+                    boolean afterFrom = fromDate == null || !effectiveDate.isBefore(fromDate);
+                    boolean beforeTo = toDate == null || !effectiveDate.isAfter(toDate);
                     return afterFrom && beforeTo;
                 })
                 .collect(Collectors.toList());
@@ -181,7 +185,11 @@ public class BillingService {
         if (d.getParentDeal() != null) {
             dto.setParentDealId(d.getParentDeal().getId());
         }
-        dto.setDealDate(d.getDealDate());
+        LocalDate effectiveDate = d.getDealDate();
+        if (d.getPurchaser() != null && d.getPurchaser().getId().equals(firmId) && d.getPurchaserDealDate() != null) {
+            effectiveDate = d.getPurchaserDealDate();
+        }
+        dto.setDealDate(effectiveDate);
         dto.setLoadDate(d.getLoadDate());
         dto.setOppositePartyName(getOppositePartyName(d, firmId));
         String itemName = d.getItem() != null ? d.getItem().getName() : "Unknown Item";

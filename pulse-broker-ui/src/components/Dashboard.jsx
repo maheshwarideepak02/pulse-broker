@@ -215,7 +215,18 @@ const Dashboard = () => {
                             ) : (
                                 filteredLoadedDeals.map(deal => (
                                     <tr key={deal.id} className="hover:bg-red-50/30 transition-colors">
-                                        <td className="px-6 py-4 text-gray-500 font-medium">{formatDate(deal.dealDate)}</td>
+                                        <td className="px-6 py-4 text-gray-500 font-medium">
+                                            <div className="flex flex-col gap-1">
+                                                {deal.purchaserDealDate && deal.purchaserDealDate !== deal.dealDate ? (
+                                                    <>
+                                                        <span className="text-secondary text-xs" title="Seller Date">S: {formatDate(deal.dealDate)}</span>
+                                                        <span className="text-primary text-xs" title="Buyer Date">P: {formatDate(deal.purchaserDealDate)}</span>
+                                                    </>
+                                                ) : (
+                                                    <span>{formatDate(deal.dealDate)}</span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 text-gray-500 font-medium">{formatDate(deal.loadDate)}</td>
                                         <td className="px-6 py-4">
                                             <div className="font-bold text-textMain">{deal.purchaser?.name}</div>
@@ -302,7 +313,14 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-center text-xs text-gray-500 mb-3 px-1">
                                     <span className="font-medium flex flex-col">
                                         <span className="text-[10px] text-gray-400 uppercase">{t('Deal Date', 'सौदा')}</span>
-                                        {formatDate(deal.dealDate)}
+                                        {deal.purchaserDealDate && deal.purchaserDealDate !== deal.dealDate ? (
+                                            <>
+                                                <span className="text-secondary">S: {formatDate(deal.dealDate)}</span>
+                                                <span className="text-primary">P: {formatDate(deal.purchaserDealDate)}</span>
+                                            </>
+                                        ) : (
+                                            <span>{formatDate(deal.dealDate)}</span>
+                                        )}
                                     </span>
                                     {deal.loadDate && deal.status === 'LOADED' && (
                                         <span className="font-medium flex flex-col items-center">

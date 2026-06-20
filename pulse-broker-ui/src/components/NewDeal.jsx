@@ -16,9 +16,11 @@ const NewDeal = () => {
     const [markas, setMarkas] = useState([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [showPurchaserDate, setShowPurchaserDate] = useState(false);
 
     const [formData, setFormData] = useState({
         dealDate: getLocalTodayDateString(),
+        purchaserDealDate: '',
         loadDates: [''],
         purchaserContactId: '',
         purchaserId: '',
@@ -162,6 +164,7 @@ const NewDeal = () => {
         try {
             await createDeal({
                 dealDate: formData.dealDate,
+                purchaserDealDate: showPurchaserDate && formData.purchaserDealDate ? formData.purchaserDealDate : null,
                 loadDate: finalLoadDate,
                 purchaserContact: { id: formData.purchaserContactId },
                 sellerContact: { id: formData.sellerContactId },
@@ -210,13 +213,32 @@ const NewDeal = () => {
                 ) : (
                 <form onSubmit={saveDeal} className="relative z-10">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8">
-                        <DateInput
-                            label={t('Dealing Date', 'सौदे की तारीख')}
-                            value={formData.dealDate}
-                            onChange={e => setFormData(prev => ({...prev, dealDate: e.target.value}))}
-                            variant="deal"
-                            required
-                        />
+                        <div className="flex flex-col gap-2 relative group">
+                            <DateInput
+                                label={showPurchaserDate ? t('Seller Deal Date', 'विक्रेता की सौदे की तारीख') : t('Dealing Date', 'सौदे की तारीख')}
+                                value={formData.dealDate}
+                                onChange={e => setFormData(prev => ({...prev, dealDate: e.target.value}))}
+                                variant="deal"
+                                required
+                            />
+                            {!showPurchaserDate ? (
+                                <button type="button" onClick={() => setShowPurchaserDate(true)} className="text-[10px] uppercase font-bold text-gray-400 hover:text-secondary self-start transition-colors flex items-center gap-1 mt-1">
+                                    <span className="text-lg leading-none">+</span> {t('Add separate Buyer date', 'खरीदार के लिए अलग तारीख')}
+                                </button>
+                            ) : (
+                                <div className="mt-2 animate-slide-in relative">
+                                    <button type="button" onClick={() => { setShowPurchaserDate(false); setFormData(prev => ({...prev, purchaserDealDate: ''})); }} className="absolute -top-6 right-0 text-[10px] uppercase font-bold text-red-400 hover:text-red-600 z-10 transition-colors">
+                                        ✕ {t('Remove', 'हटाएं')}
+                                    </button>
+                                    <DateInput
+                                        label={t('Buyer Deal Date', 'खरीदार की सौदे की तारीख')}
+                                        value={formData.purchaserDealDate}
+                                        onChange={e => setFormData(prev => ({...prev, purchaserDealDate: e.target.value}))}
+                                        variant="default"
+                                    />
+                                </div>
+                            )}
+                        </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                 {t('Loading Dates', 'लोडिंग की तारीख')}

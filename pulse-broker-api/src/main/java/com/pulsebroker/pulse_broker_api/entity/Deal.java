@@ -22,6 +22,8 @@ public class Deal {
 
     private LocalDate dealDate;
     
+    private LocalDate purchaserDealDate;
+    
     private String loadDate;
 
     @ManyToOne(fetch = FetchType.LAZY)

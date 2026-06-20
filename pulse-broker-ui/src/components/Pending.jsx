@@ -143,6 +143,7 @@ const Pending = () => {
 
         setEditData({
             dealDate: deal.dealDate || '',
+            purchaserDealDate: deal.purchaserDealDate || '',
             purchaserContact: deal.purchaserContact ? { id: deal.purchaserContact.id } : { id: '' },
             purchaser: deal.purchaser ? { id: deal.purchaser.id } : { id: '' },
             sellerContact: deal.sellerContact ? { id: deal.sellerContact.id } : { id: '' },
@@ -191,6 +192,7 @@ const Pending = () => {
             setIsProcessing(true);
             await updateDeal(editDeal.id, {
                 dealDate: editData.dealDate || null,
+                purchaserDealDate: editData.purchaserDealDate || null,
                 purchaserContact: editData.purchaserContact.id ? { id: editData.purchaserContact.id } : null,
                 sellerContact: editData.sellerContact.id ? { id: editData.sellerContact.id } : null,
                 purchaser: editData.purchaser.id ? { id: editData.purchaser.id } : null,
@@ -311,7 +313,18 @@ const Pending = () => {
                                 </tr>
                             ) : filteredDeals.map(deal => (
                                 <tr key={deal.id} className="hover:bg-yellow-50/50 transition-colors group">
-                                    <td className="px-5 py-4 font-semibold text-gray-600">{formatDate(deal.dealDate)}</td>
+                                    <td className="px-5 py-4 font-semibold text-gray-600">
+                                        <div className="flex flex-col gap-1">
+                                            {deal.purchaserDealDate && deal.purchaserDealDate !== deal.dealDate ? (
+                                                <>
+                                                    <span className="text-secondary text-xs" title="Seller Date">S: {formatDate(deal.dealDate)}</span>
+                                                    <span className="text-primary text-xs" title="Buyer Date">P: {formatDate(deal.purchaserDealDate)}</span>
+                                                </>
+                                            ) : (
+                                                <span>{formatDate(deal.dealDate)}</span>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td className="px-5 py-4 font-bold text-primary group-hover:text-red-900 transition-colors">
                                         {deal.purchaserContact?.name || deal.purchaser?.name}
                                         {deal.purchaserContact && deal.purchaser && <div className="text-xs font-normal text-gray-500">{deal.purchaser.name}</div>}
@@ -362,7 +375,16 @@ const Pending = () => {
                                     <span className="bg-gray-100 px-2 py-1 rounded-md font-bold text-xs text-gray-700 shadow-sm border border-gray-200">{deal.item?.name}</span>
                                     <span className="text-secondary font-extrabold text-xs">{deal.marka?.name}</span>
                                 </div>
-                                <div className="text-xs text-gray-500 font-bold border border-gray-200 px-2 py-1 rounded-md bg-gray-50 shadow-sm">{formatDate(deal.dealDate)}</div>
+                                <div className="text-xs text-gray-500 font-bold border border-gray-200 px-2 py-1 rounded-md bg-gray-50 shadow-sm flex flex-col items-end">
+                                    {deal.purchaserDealDate && deal.purchaserDealDate !== deal.dealDate ? (
+                                        <>
+                                            <span className="text-secondary">S: {formatDate(deal.dealDate)}</span>
+                                            <span className="text-primary">P: {formatDate(deal.purchaserDealDate)}</span>
+                                        </>
+                                    ) : (
+                                        <span>{formatDate(deal.dealDate)}</span>
+                                    )}
+                                </div>
                             </div>
                             
                             <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3">
@@ -429,14 +451,24 @@ const Pending = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                             {/* Left Column */}
                             <div className="space-y-4">
-                                <div>
-                                    <DateInput
-                                        label={t('Deal Date', 'तारीख')}
-                                        value={editData.dealDate}
-                                        onChange={e => setEditData({...editData, dealDate: e.target.value})}
-                                        variant="deal"
-                                        required
-                                    />
+                                <div className="flex gap-4">
+                                    <div className="flex-1">
+                                        <DateInput
+                                            label={t('Seller Date', 'विक्रेता तारीख')}
+                                            value={editData.dealDate}
+                                            onChange={e => setEditData({...editData, dealDate: e.target.value})}
+                                            variant="deal"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex-1">
+                                        <DateInput
+                                            label={t('Buyer Date', 'खरीदार तारीख')}
+                                            value={editData.purchaserDealDate}
+                                            onChange={e => setEditData({...editData, purchaserDealDate: e.target.value})}
+                                            variant="default"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="bg-red-50/30 p-3 rounded-lg border border-red-100">
                                     <label className="block text-xs font-bold text-primary uppercase mb-1">{t('Purchaser Party', 'खरीदार पार्टी')}</label>

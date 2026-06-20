@@ -89,6 +89,7 @@ public class DealController {
         }
         
         deal.setDealDate(dealDetails.getDealDate());
+        deal.setPurchaserDealDate(dealDetails.getPurchaserDealDate());
         deal.setPurchaserContact(dealDetails.getPurchaserContact());
         deal.setSellerContact(dealDetails.getSellerContact());
         deal.setPurchaser(dealDetails.getPurchaser());

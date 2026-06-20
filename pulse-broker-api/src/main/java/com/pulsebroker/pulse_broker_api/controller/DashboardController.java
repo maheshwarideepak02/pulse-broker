@@ -59,7 +59,6 @@ public class DashboardController {
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate endOfMonth = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
         long dealsThisMonth = allDeals.stream()
-                .filter(d -> d.getStatus() != DealStatus.CANCELLED)
                 .filter(d -> d.getDealDate() != null && !d.getDealDate().isBefore(startOfMonth) && !d.getDealDate().isAfter(endOfMonth))
                 .count();
         summary.setDealsThisMonth(dealsThisMonth);

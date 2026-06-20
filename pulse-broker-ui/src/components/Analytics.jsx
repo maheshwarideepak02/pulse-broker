@@ -12,6 +12,7 @@ const Analytics = () => {
     const { t } = useLanguage();
     const [deals, setDeals] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedPartyName, setSelectedPartyName] = useState('');
 
     useEffect(() => {
         getDeals().then(data => {
@@ -131,6 +132,83 @@ const Analytics = () => {
         };
     }, [deals]);
 
+    const allParties = useMemo(() => {
+        const parties = new Set();
+        deals.forEach(d => {
+            if (d.purchaser?.name) parties.add(d.purchaser.name);
+            if (d.seller?.name) parties.add(d.seller.name);
+        });
+        return Array.from(parties).sort();
+    }, [deals]);
+
+    const partyStats = useMemo(() => {
+        if (!selectedPartyName || !deals.length) return null;
+
+        let totalVolume = 0;
+        let totalBrokerageGenerated = 0;
+        let boughtVolume = 0;
+        let soldVolume = 0;
+        let billedVolume = 0;
+        let pendingVolume = 0;
+        
+        const itemMap = {};
+        const markaMap = {};
+
+        deals.forEach(deal => {
+            if (deal.status === 'CANCELLED') return;
+            
+            const isBuyer = deal.purchaser?.name === selectedPartyName;
+            const isSeller = deal.seller?.name === selectedPartyName;
+            
+            if (!isBuyer && !isSeller) return;
+
+            const vol = deal.weight || 0;
+            totalVolume += vol;
+            
+            if (isBuyer) {
+                boughtVolume += vol;
+                totalBrokerageGenerated += (deal.pBrokerage || 0);
+            }
+            if (isSeller) {
+                soldVolume += vol;
+                totalBrokerageGenerated += (deal.sBrokerage || 0);
+            }
+
+            if (deal.status === 'BILLED') {
+                billedVolume += vol;
+            } else if (['PENDING', 'OPEN_UNASSIGNED', 'LOADED'].includes(deal.status)) {
+                pendingVolume += vol;
+            }
+
+            if (deal.item?.name) {
+                itemMap[deal.item.name] = (itemMap[deal.item.name] || 0) + vol;
+            }
+            if (deal.marka?.name) {
+                markaMap[deal.marka?.name] = (markaMap[deal.marka?.name] || 0) + vol;
+            }
+        });
+
+        const getTop = (map) => Object.entries(map).sort((a,b) => b[1] - a[1])[0];
+        const topItem = getTop(itemMap);
+        const topMarka = getTop(markaMap);
+
+        let roleProfile = "Balanced Trader";
+        if (boughtVolume > soldVolume * 1.5) roleProfile = "Primary Buyer";
+        if (soldVolume > boughtVolume * 1.5) roleProfile = "Primary Seller";
+        if (boughtVolume === 0 && soldVolume > 0) roleProfile = "Exclusive Seller";
+        if (soldVolume === 0 && boughtVolume > 0) roleProfile = "Exclusive Buyer";
+
+        return {
+            totalVolume,
+            totalBrokerageGenerated,
+            roleProfile,
+            topItem: topItem ? { name: topItem[0], vol: topItem[1] } : null,
+            topMarka: topMarka ? { name: topMarka[0], vol: topMarka[1] } : null,
+            billedVolume,
+            pendingVolume
+        };
+    }, [deals, selectedPartyName]);
+
     if (isLoading) {
         return (
             <div className="flex items-center justify-center min-h-[60vh]">
@@ -227,6 +305,51 @@ const Analytics = () => {
                         <p className="text-sm text-amber-700 mt-2 font-medium">No deals recorded yet</p>
                     )}
                 </div>
+            </div>
+
+            {/* Party Level Insights */}
+            <div className="mb-6 sm:mb-8 pt-4 sm:pt-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                    <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">🏢 {t('Party-Level Insights', 'पार्टी की जानकारी')}</h2>
+                    <select 
+                        value={selectedPartyName} 
+                        onChange={e => setSelectedPartyName(e.target.value)}
+                        className="p-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-700 bg-white shadow-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none min-w-[250px]"
+                    >
+                        <option value="">-- {t('Select a Party to view stats', 'आंकड़े देखने के लिए एक पार्टी चुनें')} --</option>
+                        {allParties.map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                </div>
+
+                {partyStats && (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <div className="bg-gradient-to-br from-stone-50 to-gray-50 border border-stone-200 p-4 rounded-2xl shadow-sm">
+                            <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Trading Role</p>
+                            <p className="text-lg font-black text-gray-900 mt-1">{partyStats.roleProfile}</p>
+                            <p className="text-xs font-bold text-gray-400 mt-0.5">Based on volume</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-4 rounded-2xl shadow-sm">
+                            <p className="text-[10px] uppercase font-bold text-blue-800 tracking-wider">Total Volume</p>
+                            <p className="text-xl font-black text-blue-900 mt-1">{partyStats.totalVolume} Qtl</p>
+                            <p className="text-xs font-bold text-blue-700 mt-0.5">Billed: {partyStats.billedVolume} | Pending: {partyStats.pendingVolume}</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 p-4 rounded-2xl shadow-sm">
+                            <p className="text-[10px] uppercase font-bold text-green-800 tracking-wider">Brokerage Given</p>
+                            <p className="text-xl font-black text-green-900 mt-1">₹{partyStats.totalBrokerageGenerated.toLocaleString()}</p>
+                            <p className="text-xs font-bold text-green-700 mt-0.5">Total revenue generated</p>
+                        </div>
+                        <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 p-4 rounded-2xl shadow-sm">
+                            <p className="text-[10px] uppercase font-bold text-orange-800 tracking-wider">Favorites</p>
+                            <p className="text-sm font-bold text-orange-900 mt-1 truncate">Item: {partyStats.topItem?.name || 'N/A'}</p>
+                            <p className="text-sm font-bold text-orange-800 truncate">Marka: {partyStats.topMarka?.name || 'N/A'}</p>
+                        </div>
+                    </div>
+                )}
+                {!partyStats && selectedPartyName === '' && (
+                    <div className="bg-stone-50 border border-stone-100 rounded-xl p-6 text-center text-gray-400 font-bold text-sm">
+                        Select a party from the dropdown above to view their actionable insights.
+                    </div>
+                )}
             </div>
 
             {/* Top Standings */}

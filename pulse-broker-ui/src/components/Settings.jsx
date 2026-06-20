@@ -158,7 +158,7 @@ const Settings = () => {
                 </div>
                 {isLoadingData ? (
                     <div className="flex justify-center py-6">
-                        <div className="w-8 h-8 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin"></div>
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-primary"></div>
                     </div>
                 ) : (
                     <div className="flex flex-wrap gap-3 relative z-10">
@@ -185,7 +185,7 @@ const Settings = () => {
                 </div>
                 {isLoadingData ? (
                     <div className="flex justify-center py-6">
-                        <div className="w-8 h-8 border-[3px] border-yellow-100 border-t-secondary rounded-full animate-spin"></div>
+                        <div className="animate-spin rounded-full h-10 w-10 border-b-4 border-secondary"></div>
                     </div>
                 ) : (
                     <div className="flex flex-wrap gap-3 relative z-10">

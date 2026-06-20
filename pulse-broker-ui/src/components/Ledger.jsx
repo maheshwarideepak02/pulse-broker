@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
+import { downloadInvoicePdf, shareInvoice, safeFileName } from '../utils/pdfExport';
 
 const Ledger = () => {
     const { t } = useLanguage();
@@ -28,8 +29,43 @@ const Ledger = () => {
     const [invoiceData, setInvoiceData] = useState(null);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' }); 
     const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '' });
+    const [isExporting, setIsExporting] = useState(false);
+    const invoiceRef = useRef(null);
 
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+    const invoiceFileName = () => safeFileName(`${invoiceData?.billNumber || 'brokerage-invoice'}-${invoiceData?.firmName || ''}`);
+
+    const handlePdfDownload = async () => {
+        setIsExporting(true);
+        try {
+            await downloadInvoicePdf(invoiceRef.current, invoiceFileName());
+            addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
+        } catch (error) {
+            console.error(error);
+            addToast(t('Could not create PDF', 'पीडीएफ नहीं बन सका'), 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleInvoiceShare = async () => {
+        setIsExporting(true);
+        try {
+            const total = Number(invoiceData?.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            const result = await shareInvoice({
+                element: invoiceRef.current,
+                fileName: invoiceFileName(),
+                title: `${t('Brokerage Invoice', 'दलाली बिल')} ${invoiceData?.billNumber || ''}`,
+                text: `${t('Brokerage invoice for', 'दलाली बिल')}: ${invoiceData?.firmName || ''}\n${t('Total', 'कुल')}: ₹${total}`,
+            });
+            addToast(result.method === 'native' ? t('Invoice ready to share', 'बिल साझा करने के लिए तैयार है') : t('PDF downloaded; WhatsApp opened', 'पीडीएफ डाउनलोड हुआ; व्हाट्सऐप खोला गया'), 'success');
+        } catch (error) {
+            if (error?.name !== 'AbortError') addToast(t('Could not share invoice', 'बिल साझा नहीं हो सका'), 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     useEffect(() => {
         setIsInitialLoading(true);
@@ -264,8 +300,6 @@ const Ledger = () => {
         if (isBothMode && item.pBrokerage != null && item.sBrokerage != null) {
             const pBrok = parseFloat(item.pBrokerage) || 0;
             const sBrok = parseFloat(item.sBrokerage) || 0;
-            const payerLabel = item.brokeragePayer === 'PURCHASER_BOTH' ? 'Purchaser' : 'Seller';
-            
             return (
                 <div>
                     <div className="font-black text-primary">₹ {item.computedBrokerage?.toFixed(2)}</div>
@@ -288,23 +322,29 @@ const Ledger = () => {
     if (showInvoice && invoiceData) {
         return (
             <div className="max-w-5xl mx-auto p-4 py-8 animate-slide-in">
-                <div className="mb-8 flex justify-between items-center bg-white p-5 rounded-xl shadow-md border border-gray-100 print:hidden sticky top-4 z-50">
+                <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white p-4 sm:p-5 rounded-xl shadow-md border border-gray-100 print:hidden sticky top-4 z-50">
                     <button onClick={() => { setShowInvoice(false); setInvoiceData(null); if(activeTab==='generate') fetchPreview(); else loadHistory(); }} className="text-gray-500 hover:text-primary transition-colors font-bold flex items-center gap-2 bg-gray-50 hover:bg-red-50 px-4 py-2 rounded-lg">
                         {t('← Back', '← वापस')}
                     </button>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                         {invoiceData.status !== 'PREVIEW' && (
                             <span className={`text-xs font-bold uppercase px-3 py-1 rounded-full ${invoiceData.status === 'PAID' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-yellow-100 text-yellow-800 border border-yellow-200'}`}>
                                 {invoiceData.status === 'PAID' ? t('✓ CLEARED', '✓ भुगतान') : t('⏳ UNPAID', '⏳ बकाया')}
                             </span>
                         )}
-                        <button onClick={() => window.print()} className="bg-primary hover:bg-red-800 transition-colors text-white px-8 py-2.5 rounded-lg font-bold shadow-lg hover:-translate-y-0.5 hover:shadow-xl uppercase tracking-wider flex items-center gap-2">
-                            <span>🖨️</span> {t('Print / Download PDF', 'प्रिंट करें')}
+                        <button onClick={handlePdfDownload} disabled={isExporting} className="bg-primary hover:bg-red-800 disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                            <span>↓</span> {isExporting ? t('Preparing…', 'बन रहा है…') : t('Download PDF', 'पीडीएफ डाउनलोड')}
+                        </button>
+                        <button onClick={handleInvoiceShare} disabled={isExporting} className="bg-[#128c4b] hover:bg-[#0d713c] disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                            <span>↗</span> {t('Share / WhatsApp', 'शेयर / व्हाट्सऐप')}
+                        </button>
+                        <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2">
+                            <span>⎙</span> {t('Print', 'प्रिंट')}
                         </button>
                     </div>
                 </div>
                 
-                <div className="invoice-preview relative bg-white border border-gray-200">
+                <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200">
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
                         <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
                     </div>
@@ -397,7 +437,7 @@ const Ledger = () => {
             {isProcessing && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
                     <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">
-                        <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mb-4"></div>
                         <p className="text-gray-900 font-extrabold text-lg tracking-tight">{t('Processing...', 'प्रक्रिया चल रही है...')}</p>
                         <p className="text-xs text-gray-400 mt-2">{t('Please do not close this window', 'कृपया इस विंडो को बंद न करें')}</p>
                     </div>
@@ -431,7 +471,7 @@ const Ledger = () => {
             
             {isInitialLoading ? (
                 <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mb-4"></div>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading Ledger...', 'लोड हो रहा है...')}</p>
                 </div>
             ) : (

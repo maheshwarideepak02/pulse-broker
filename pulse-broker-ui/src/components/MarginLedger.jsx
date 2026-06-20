@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getContactsWithMargins, getMarginDeals, clearMargins, unclearMargins } from '../api';
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import { downloadInvoicePdf, shareInvoice, safeFileName } from '../utils/pdfExport';
 
 const MarginLedger = () => {
     const { t } = useLanguage();
@@ -21,8 +22,44 @@ const MarginLedger = () => {
     const [activeTab, setActiveTab] = useState('pending'); // 'pending' or 'cleared'
     const [selectedDealIds, setSelectedDealIds] = useState([]);
     const [isClearing, setIsClearing] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const invoiceRef = useRef(null);
 
     const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+    const selectedPartyName = contacts.find(c => c.id == selectedParty)?.name || t('Party', 'पार्टी');
+    const marginFileName = () => safeFileName(`trade-margin-${selectedPartyName}-${getLocalTodayDateString()}`);
+
+    const handlePdfDownload = async () => {
+        setIsExporting(true);
+        try {
+            await downloadInvoicePdf(invoiceRef.current, marginFileName());
+            addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
+        } catch (error) {
+            console.error(error);
+            addToast(t('Could not create PDF', 'पीडीएफ नहीं बन सका'), 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleMarginShare = async () => {
+        setIsExporting(true);
+        try {
+            const total = Number(totalMargin || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+            const result = await shareInvoice({
+                element: invoiceRef.current,
+                fileName: marginFileName(),
+                title: t('Trade Margin Statement', 'ट्रेड मार्जिन स्टेटमेंट'),
+                text: `${t('Trade margin statement for', 'ट्रेड मार्जिन स्टेटमेंट')}: ${selectedPartyName}\n${t('Balance', 'बैलेंस')}: ₹${total}`,
+            });
+            addToast(result.method === 'native' ? t('Statement ready to share', 'स्टेटमेंट साझा करने के लिए तैयार है') : t('PDF downloaded; WhatsApp opened', 'पीडीएफ डाउनलोड हुआ; व्हाट्सऐप खोला गया'), 'success');
+        } catch (error) {
+            if (error?.name !== 'AbortError') addToast(t('Could not share statement', 'स्टेटमेंट साझा नहीं हो सका'), 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     useEffect(() => {
         setIsInitialLoading(true);
@@ -46,7 +83,7 @@ const MarginLedger = () => {
             const data = await getMarginDeals(partyId);
             setMarginDeals(data);
             setSelectedDealIds([]); // reset selection on fetch
-        } catch (err) {
+        } catch {
             console.error(err);
             addToast('Failed to load margin ledger', 'error');
         } finally {
@@ -125,7 +162,7 @@ const MarginLedger = () => {
 
             {isInitialLoading ? (
                 <div className="flex flex-col items-center justify-center py-32 col-span-full">
-                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mb-4"></div>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading Margins...', 'लोड हो रहा है...')}</p>
                 </div>
             ) : (
@@ -345,16 +382,18 @@ const MarginLedger = () => {
             {showInvoice && (
                 <div className="fixed inset-0 z-50 bg-white overflow-y-auto print:bg-white print:p-0">
                     <div className="max-w-5xl mx-auto p-4 py-8">
-                        <div className="mb-8 flex justify-between items-center bg-gray-50 p-5 rounded-xl shadow-sm border border-gray-200 print:hidden sticky top-4 z-50">
+                        <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-gray-50 p-4 sm:p-5 rounded-xl shadow-sm border border-gray-200 print:hidden sticky top-4 z-50">
                             <button onClick={() => setShowInvoice(false)} className="text-gray-500 hover:text-primary transition-colors font-bold flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-gray-300">
                                 {t('← Back', '← वापस')}
                             </button>
-                            <button onClick={() => window.print()} className="bg-primary hover:bg-red-800 transition-colors text-white px-8 py-2.5 rounded-lg font-bold shadow-lg hover:-translate-y-0.5 uppercase tracking-wider flex items-center gap-2">
-                                <span>🖨️</span> {t('Print / Download PDF', 'प्रिंट करें')}
-                            </button>
+                            <div className="flex flex-wrap gap-2">
+                                <button onClick={handlePdfDownload} disabled={isExporting} className="bg-primary hover:bg-red-800 disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2"><span>↓</span>{isExporting ? t('Preparing…', 'बन रहा है…') : t('Download PDF', 'पीडीएफ डाउनलोड')}</button>
+                                <button onClick={handleMarginShare} disabled={isExporting} className="bg-[#128c4b] hover:bg-[#0d713c] disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2"><span>↗</span>{t('Share / WhatsApp', 'शेयर / व्हाट्सऐप')}</button>
+                                <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2"><span>⎙</span>{t('Print', 'प्रिंट')}</button>
+                            </div>
                         </div>
 
-                        <div className="invoice-preview relative bg-white border border-gray-200">
+                        <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200">
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
                                 <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
                             </div>

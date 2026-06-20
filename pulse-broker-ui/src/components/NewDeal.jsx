@@ -205,7 +205,7 @@ const NewDeal = () => {
                 
                 {isInitialLoading ? (
                     <div className="flex flex-col items-center justify-center py-32 h-[50vh]">
-                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-primary mb-4"></div>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading form...', 'लोड हो रहा है...')}</p>
                 </div>
                 ) : (

@@ -149,6 +149,9 @@ const Dashboard = () => {
                     <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('This Month', 'इस महीने')}</p>
                     <p className="text-xl sm:text-3xl font-bold text-textMain mt-1 sm:mt-2">{summary.dealsThisMonth}</p>
+                    <p className="text-[10px] sm:text-xs font-bold text-indigo-700 mt-2">
+                        {t('Prev Month', 'पिछले महीने')}: {summary.dealsPreviousMonth || 0} {t('Deals', 'सौदे')}
+                    </p>
                 </div>
                 <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-200 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group cursor-pointer" onClick={() => navigate('/app/pending')}>
                     <div className="absolute top-0 left-0 w-full h-1 bg-secondary"></div>

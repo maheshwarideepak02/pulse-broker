@@ -63,6 +63,14 @@ public class DashboardController {
                 .count();
         summary.setDealsThisMonth(dealsThisMonth);
 
+        // 3.1 Deals Previous Month
+        LocalDate startOfPrevMonth = LocalDate.now().minusMonths(1).withDayOfMonth(1);
+        LocalDate endOfPrevMonth = LocalDate.now().minusMonths(1).withDayOfMonth(LocalDate.now().minusMonths(1).lengthOfMonth());
+        long dealsPrevMonth = allDeals.stream()
+                .filter(d -> d.getDealDate() != null && !d.getDealDate().isBefore(startOfPrevMonth) && !d.getDealDate().isAfter(endOfPrevMonth))
+                .count();
+        summary.setDealsPreviousMonth(dealsPrevMonth);
+
         // 4. Total Unbilled (Sum of all PENDING, OPEN_UNASSIGNED, and LOADED deals' brokerages)
         List<Deal> unbilledDeals = allDeals.stream()
                 .filter(d -> d.getStatus() == DealStatus.PENDING || d.getStatus() == DealStatus.OPEN_UNASSIGNED || d.getStatus() == DealStatus.LOADED)

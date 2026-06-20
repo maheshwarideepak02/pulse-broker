@@ -9,5 +9,6 @@ public class DashboardSummaryDTO {
     private BigDecimal totalOutstanding;
     private BigDecimal totalUnbilled;
     private long dealsThisMonth;
+    private long dealsPreviousMonth;
     private long pendingLoads;
 }

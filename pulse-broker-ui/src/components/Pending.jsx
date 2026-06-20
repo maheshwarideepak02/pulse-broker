@@ -136,7 +136,9 @@ const Pending = () => {
 
         setEditData({
             dealDate: deal.dealDate || '',
+            purchaserContact: deal.purchaserContact ? { id: deal.purchaserContact.id } : { id: '' },
             purchaser: deal.purchaser ? { id: deal.purchaser.id } : { id: '' },
+            sellerContact: deal.sellerContact ? { id: deal.sellerContact.id } : { id: '' },
             seller: deal.seller ? { id: deal.seller.id } : { id: '' },
             item: deal.item ? { id: deal.item.id } : { id: '' },
             marka: deal.marka ? { id: deal.marka.id } : { id: '' },
@@ -182,8 +184,8 @@ const Pending = () => {
             setIsProcessing(true);
             await updateDeal(editDeal.id, {
                 dealDate: editData.dealDate || null,
-                purchaserContact: editDeal.purchaserContact ? { id: editDeal.purchaserContact.id } : null,
-                sellerContact: editDeal.sellerContact ? { id: editDeal.sellerContact.id } : null,
+                purchaserContact: editData.purchaserContact.id ? { id: editData.purchaserContact.id } : null,
+                sellerContact: editData.sellerContact.id ? { id: editData.sellerContact.id } : null,
                 purchaser: editData.purchaser.id ? { id: editData.purchaser.id } : null,
                 seller: editData.seller.id ? { id: editData.seller.id } : null,
                 item: editData.item.id ? { id: editData.item.id } : null,
@@ -231,6 +233,8 @@ const Pending = () => {
                 </div>
             )}
             
+            {!editDeal && (
+                <>
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
@@ -383,16 +387,24 @@ const Pending = () => {
                 </>
                 )}
             </div>
+            </>
+            )}
 
-            {/* Edit Deal Modal */}
+            {/* Edit Deal Form */}
             {editDeal && (
-                <div className="modal-overlay">
-                    <div className="modal-content border-t-8 border-primary relative animate-slide-in" style={{ maxWidth: '900px', display: 'flex', flexDirection: 'column', padding: 0 }}>
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-primary opacity-5 rounded-bl-full rounded-tr-xl pointer-events-none"></div>
-                        <div className="p-5 overflow-y-auto flex-1">
-                            <h2 className="text-2xl font-bold mb-5 flex items-center gap-2">
-                            <span className="text-primary">✏️</span> {t('Edit Pending Deal', 'सौदा संपादित करें')}
-                        </h2>
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 animate-slide-in relative overflow-hidden mb-8">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
+                    <div className="p-6 sm:p-8 relative z-10">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
+                            <div className="flex items-center gap-4">
+                                <button onClick={() => setEditDeal(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors shadow-sm font-bold text-lg" title="Back to Deals">
+                                    ←
+                                </button>
+                                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                                    <span className="text-primary">✏️</span> {t('Edit Pending Deal', 'सौदा संपादित करें')}
+                                </h2>
+                            </div>
+                        </div>
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                             {/* Left Column */}
@@ -406,18 +418,34 @@ const Pending = () => {
                                         required
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Purchaser', 'खरीदार')}</label>
-                                    <select value={editData.purchaser.id} onChange={e => setEditData({...editData, purchaser: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                        <option value="">{t('Select Purchaser', 'खरीदार चुनें')}</option>
-                                        {firms.filter(f => !editDeal.purchaserContact || f.contact?.id === editDeal.purchaserContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                <div className="bg-red-50/30 p-3 rounded-lg border border-red-100">
+                                    <label className="block text-xs font-bold text-primary uppercase mb-1">{t('Purchaser Party', 'खरीदार पार्टी')}</label>
+                                    <select value={editData.purchaserContact.id} onChange={e => {
+                                        setEditData({...editData, purchaserContact: { id: e.target.value }, purchaser: { id: '' }})
+                                    }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white mb-3">
+                                        <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
+                                        {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Purchaser Firm', 'खरीदार फर्म')}</label>
+                                    <select value={editData.purchaser.id} onChange={e => setEditData({...editData, purchaser: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white" disabled={!editData.purchaserContact.id}>
+                                        <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
+                                        {firms.filter(f => f.contact?.id == editData.purchaserContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Seller', 'विक्रेता')}</label>
-                                    <select value={editData.seller.id} onChange={e => setEditData({...editData, seller: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                        <option value="">{t('Select Seller', 'विक्रेता चुनें')}</option>
-                                        {firms.filter(f => !editDeal.sellerContact || f.contact?.id === editDeal.sellerContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                <div className="bg-blue-50/30 p-3 rounded-lg border border-blue-100">
+                                    <label className="block text-xs font-bold text-blue-800 uppercase mb-1">{t('Seller Party', 'विक्रेता पार्टी')}</label>
+                                    <select value={editData.sellerContact.id} onChange={e => {
+                                        setEditData({...editData, sellerContact: { id: e.target.value }, seller: { id: '' }})
+                                    }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none bg-white mb-3">
+                                        <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
+                                        {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                    </select>
+
+                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Seller Firm', 'विक्रेता फर्म')}</label>
+                                    <select value={editData.seller.id} onChange={e => setEditData({...editData, seller: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none bg-white" disabled={!editData.sellerContact.id}>
+                                        <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
+                                        {firms.filter(f => f.contact?.id == editData.sellerContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -536,10 +564,9 @@ const Pending = () => {
                             </div>
                         </div>
 
-                        </div>
-                        <div className="flex justify-end gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50 z-20 rounded-b-xl flex-shrink-0">
-                            <button onClick={() => setEditDeal(null)} className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-100 transition-colors font-bold rounded-lg text-gray-600">{t('Cancel', 'रद्द करें')}</button>
-                            <button onClick={handleUpdateDeal} disabled={isProcessing} className={`px-6 py-2.5 transition-colors text-white font-bold rounded-lg shadow-lg flex items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800'}`}>
+                        <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
+                            <button onClick={() => setEditDeal(null)} className="px-6 py-3 bg-white border-2 border-gray-200 hover:bg-gray-50 transition-colors font-bold rounded-xl text-gray-600">{t('Cancel', 'रद्द करें')}</button>
+                            <button onClick={handleUpdateDeal} disabled={isProcessing} className={`px-8 py-3 transition-all text-white font-bold rounded-xl shadow-lg flex items-center gap-2 text-lg ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800 hover:-translate-y-0.5'}`}>
                                 <span>{isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('Save Changes', 'परिवर्तन सहेजें')}</span>
                             </button>
                         </div>

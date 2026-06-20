@@ -387,9 +387,10 @@ const Pending = () => {
             {/* Edit Deal Modal */}
             {editDeal && (
                 <div className="modal-overlay">
-                    <div className="modal-content border-t-8 border-primary relative animate-slide-in max-w-4xl">
+                    <div className="modal-content border-t-8 border-primary relative animate-slide-in" style={{ maxWidth: '900px', display: 'flex', flexDirection: 'column', padding: 0 }}>
                         <div className="absolute top-0 right-0 w-40 h-40 bg-primary opacity-5 rounded-bl-full rounded-tr-xl pointer-events-none"></div>
-                        <h2 className="text-2xl font-bold mb-5 flex items-center gap-2">
+                        <div className="p-5 overflow-y-auto flex-1">
+                            <h2 className="text-2xl font-bold mb-5 flex items-center gap-2">
                             <span className="text-primary">✏️</span> {t('Edit Pending Deal', 'सौदा संपादित करें')}
                         </h2>
                         
@@ -483,10 +484,8 @@ const Pending = () => {
                                             let w = editData.weight;
                                             if (!isNaN(np) && !isNaN(pw) && pw > 0) {
                                                 const calcW = (np * pw) / 100;
-                                                const currW = parseFloat(w);
-                                                if (isNaN(currW) || Math.abs(calcW - currW) > 0.5) {
-                                                    w = calcW.toFixed(2);
-                                                }
+                                                // Always recalculate weight when packet count or packet weight explicitly changes
+                                                w = calcW.toFixed(2);
                                             }
                                             setEditData({...editData, numberOfPackets: e.target.value, weight: w});
                                         }} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
@@ -499,7 +498,7 @@ const Pending = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                                         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
                                             <label className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-2">{t('Purchaser Pays', 'खरीदार की दलाली')}</label>
-                                            <div className="flex flex-col xl:flex-row gap-2">
+                                            <div className="flex flex-col sm:flex-row gap-2">
                                                 <input type="number" value={editData.pBrokVal} onChange={e => setEditData({...editData, pBrokVal: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" />
                                                 <select value={editData.pBrokType} onChange={e => setEditData({...editData, pBrokType: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm">
                                                     <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
@@ -514,7 +513,7 @@ const Pending = () => {
 
                                         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
                                             <label className="text-[10px] font-bold text-secondary uppercase tracking-wider block mb-2">{t('Seller Pays', 'विक्रेता की दलाली')}</label>
-                                            <div className="flex flex-col xl:flex-row gap-2">
+                                            <div className="flex flex-col sm:flex-row gap-2">
                                                 <input type="number" value={editData.sBrokVal} onChange={e => setEditData({...editData, sBrokVal: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" />
                                                 <select value={editData.sBrokType} onChange={e => setEditData({...editData, sBrokType: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm">
                                                     <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
@@ -537,8 +536,9 @@ const Pending = () => {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 pt-4 pb-5 -mb-5 mt-6 border-t border-gray-100 sticky bottom-0 bg-white z-20 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] rounded-b-xl">
-                            <button onClick={() => setEditDeal(null)} className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 transition-colors font-bold rounded-lg text-gray-600">{t('Cancel', 'रद्द करें')}</button>
+                        </div>
+                        <div className="flex justify-end gap-3 px-5 py-4 border-t border-gray-100 bg-gray-50 z-20 rounded-b-xl flex-shrink-0">
+                            <button onClick={() => setEditDeal(null)} className="px-6 py-2.5 bg-white border border-gray-200 hover:bg-gray-100 transition-colors font-bold rounded-lg text-gray-600">{t('Cancel', 'रद्द करें')}</button>
                             <button onClick={handleUpdateDeal} disabled={isProcessing} className={`px-6 py-2.5 transition-colors text-white font-bold rounded-lg shadow-lg flex items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800'}`}>
                                 <span>{isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('Save Changes', 'परिवर्तन सहेजें')}</span>
                             </button>

@@ -124,9 +124,9 @@ const MarginLedger = () => {
             </div>
 
             {isInitialLoading ? (
-                <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-500 font-bold">{t('Loading Plus/Minus Account...', 'प्लस/माइनस खाता लोड हो रहा है...')}</p>
+                <div className="flex flex-col items-center justify-center py-32 col-span-full">
+                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading Margins...', 'लोड हो रहा है...')}</p>
                 </div>
             ) : (
                 <>

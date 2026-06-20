@@ -397,8 +397,8 @@ const Ledger = () => {
             {isProcessing && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
                     <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">
-                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p className="text-primary font-bold text-lg">{t('Processing...', 'प्रक्रिया चल रही है...')}</p>
+                        <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                        <p className="text-gray-900 font-extrabold text-lg tracking-tight">{t('Processing...', 'प्रक्रिया चल रही है...')}</p>
                         <p className="text-xs text-gray-400 mt-2">{t('Please do not close this window', 'कृपया इस विंडो को बंद न करें')}</p>
                     </div>
                 </div>
@@ -431,8 +431,8 @@ const Ledger = () => {
             
             {isInitialLoading ? (
                 <div className="flex flex-col items-center justify-center py-32 bg-white rounded-2xl shadow-sm border border-gray-100">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-500 font-bold">{t('Loading Ledger...', 'खाता बही लोड हो रही है...')}</p>
+                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading Ledger...', 'लोड हो रहा है...')}</p>
                 </div>
             ) : (
                 <>

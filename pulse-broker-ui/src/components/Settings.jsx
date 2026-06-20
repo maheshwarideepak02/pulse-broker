@@ -13,12 +13,21 @@ const Settings = () => {
     const [newMarka, setNewMarka] = useState('');
 
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(true);
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });
 
-    const fetchData = () => {
-        getItems().then(setItems).catch(console.error);
-        getMarkas().then(setMarkas).catch(console.error);
+    const fetchData = async () => {
+        setIsLoadingData(true);
+        try {
+            const [i, m] = await Promise.all([getItems(), getMarkas()]);
+            setItems(i);
+            setMarkas(m);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoadingData(false);
+        }
     }
 
     useEffect(() => {
@@ -147,15 +156,21 @@ const Settings = () => {
                         {isProcessing ? t('Saving...', 'सहेजा जा रहा है...') : t('+ Add Item', '+ आइटम जोड़ें')}
                     </button>
                 </div>
-                <div className="flex flex-wrap gap-3 relative z-10">
-                    {items.map(i => (
-                        <span key={i.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-gray-50 hover:bg-red-50 hover:border-primary transition-colors border-2 border-gray-200 px-4 py-1.5 rounded-md font-bold text-gray-700 cursor-pointer group flex items-center gap-2">
-                            <span onClick={() => handleEditItem(i)}>{i.name}</span>
-                            <span onClick={() => handleEditItem(i)} className="opacity-0 group-hover:opacity-100 text-xs text-primary transition-opacity">✏️</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(i.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Item", "आइटम मिटाएं")}>×</button>
-                        </span>
-                    ))}
-                </div>
+                {isLoadingData ? (
+                    <div className="flex justify-center py-6">
+                        <div className="w-8 h-8 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin"></div>
+                    </div>
+                ) : (
+                    <div className="flex flex-wrap gap-3 relative z-10">
+                        {items.map(i => (
+                            <span key={i.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-gray-50 hover:bg-red-50 hover:border-primary transition-colors border-2 border-gray-200 px-4 py-1.5 rounded-md font-bold text-gray-700 cursor-pointer group flex items-center gap-2">
+                                <span onClick={() => handleEditItem(i)}>{i.name}</span>
+                                <span onClick={() => handleEditItem(i)} className="opacity-0 group-hover:opacity-100 text-xs text-primary transition-opacity">✏️</span>
+                                <button onClick={(e) => { e.stopPropagation(); handleDeleteItem(i.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Item", "आइटम मिटाएं")}>×</button>
+                            </span>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="bg-white border border-yellow-100 rounded-2xl shadow-xl p-5 sm:p-6 mb-6 relative overflow-hidden">
@@ -168,15 +183,21 @@ const Settings = () => {
                         {isProcessing ? t('Saving...', 'सहेजा जा रहा है...') : t('+ Add Marka', '+ मार्का जोड़ें')}
                     </button>
                 </div>
-                <div className="flex flex-wrap gap-3 relative z-10">
-                    {markas.map(m => (
-                        <span key={m.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-white hover:bg-yellow-100 hover:border-secondary transition-colors border-2 border-yellow-200 text-secondary px-4 py-1.5 rounded-md font-bold cursor-pointer group flex items-center gap-2">
-                            <span onClick={() => handleEditMarka(m)}>{m.name}</span>
-                            <span onClick={() => handleEditMarka(m)} className="opacity-0 group-hover:opacity-100 text-xs text-secondary transition-opacity">✏️</span>
-                            <button onClick={(e) => { e.stopPropagation(); handleDeleteMarka(m.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Marka", "मार्का मिटाएं")}>×</button>
-                        </span>
-                    ))}
-                </div>
+                {isLoadingData ? (
+                    <div className="flex justify-center py-6">
+                        <div className="w-8 h-8 border-[3px] border-yellow-100 border-t-secondary rounded-full animate-spin"></div>
+                    </div>
+                ) : (
+                    <div className="flex flex-wrap gap-3 relative z-10">
+                        {markas.map(m => (
+                            <span key={m.id} title={t("Click to Edit", "संपादित करने के लिए क्लिक करें")} className="bg-white hover:bg-yellow-100 hover:border-secondary transition-colors border-2 border-yellow-200 text-secondary px-4 py-1.5 rounded-md font-bold cursor-pointer group flex items-center gap-2">
+                                <span onClick={() => handleEditMarka(m)}>{m.name}</span>
+                                <span onClick={() => handleEditMarka(m)} className="opacity-0 group-hover:opacity-100 text-xs text-secondary transition-opacity">✏️</span>
+                                <button onClick={(e) => { e.stopPropagation(); handleDeleteMarka(m.id); }} className="text-gray-400 hover:text-red-500 font-bold ml-1 text-xs" title={t("Delete Marka", "मार्का मिटाएं")}>×</button>
+                            </span>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <ConfirmModal 

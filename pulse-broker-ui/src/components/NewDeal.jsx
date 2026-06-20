@@ -204,10 +204,10 @@ const NewDeal = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 
                 {isInitialLoading ? (
-                    <div className="flex flex-col items-center justify-center py-20 relative z-10">
-                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p className="text-gray-500 font-bold">{t('Loading Form Data...', 'फॉर्म डेटा लोड हो रहा है...')}</p>
-                    </div>
+                    <div className="flex flex-col items-center justify-center py-32 h-[50vh]">
+                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading form...', 'लोड हो रहा है...')}</p>
+                </div>
                 ) : (
                 <form onSubmit={saveDeal} className="relative z-10">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8 mb-8">

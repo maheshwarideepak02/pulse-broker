@@ -258,14 +258,12 @@ const Pending = () => {
                 <div className="absolute top-0 right-0 w-64 h-64 bg-secondary opacity-5 rounded-bl-full pointer-events-none"></div>
 
                 {/* Loader */}
-                {isLoading && (
-                    <div className="flex flex-col items-center justify-center py-20 relative z-10">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-4 border-secondary"></div>
-                        <p className="mt-4 text-gray-500 font-medium">{t('Loading Pending Deals...', 'लंबित सौदे लोड हो रहे हैं...')}</p>
+                {isLoading ? (
+                    <div className="flex flex-col items-center justify-center py-32 col-span-full">
+                        <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                        <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading Deals...', 'लोड हो रहा है...')}</p>
                     </div>
-                )}
-
-                {!isLoading && (
+                ) : (
                 <>
                 <div className="hidden md:block overflow-x-auto relative z-10">
                     <table className="w-full text-left text-sm text-textMain border-collapse">

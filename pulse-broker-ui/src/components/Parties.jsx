@@ -22,11 +22,20 @@ const Parties = () => {
     const [fc, setFc] = useState({ name: '' });
 
     const [isProcessing, setIsProcessing] = useState(false);
+    const [isLoadingData, setIsLoadingData] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, title: '', message: '' });
 
-    const fetchData = () => {
-        getContacts().then(setContacts).catch(console.error);
-        getFirms().then(setFirms).catch(console.error);
+    const fetchData = async () => {
+        setIsLoadingData(true);
+        try {
+            const [c, f] = await Promise.all([getContacts(), getFirms()]);
+            setContacts(c);
+            setFirms(f);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsLoadingData(false);
+        }
     }
 
     useEffect(() => {
@@ -236,7 +245,12 @@ const Parties = () => {
                 </div>
             )}
 
-            {filteredContacts.length === 0 ? (
+            {isLoadingData ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                    <div className="w-10 h-10 border-[3px] border-gray-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">{t('Loading directory...', 'लोड हो रहा है...')}</p>
+                </div>
+            ) : filteredContacts.length === 0 ? (
                 <div className="text-center py-20 bg-white rounded-2xl shadow-sm border border-dashed border-gray-300">
                     <div className="text-4xl mb-3 opacity-50">🔍</div>
                     <h3 className="text-lg font-bold text-gray-900">{t('No Parties Found', 'कोई पार्टी नहीं मिली')}</h3>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getContacts, getFirms, getItems, getMarkas, createDeal } from '../api';
@@ -37,7 +37,6 @@ const NewDeal = () => {
     });
 
     useEffect(() => {
-        setIsInitialLoading(true);
         Promise.all([getContacts(), getFirms(), getItems(), getMarkas()]).then(([c, f, i, m]) => {
             setContacts(c);
             setFirms(f);
@@ -201,7 +200,7 @@ const NewDeal = () => {
                 </h1>
             </div>
             
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-8 border-t-8 border-t-primary relative overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-4 sm:p-8 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 
                 {isInitialLoading ? (

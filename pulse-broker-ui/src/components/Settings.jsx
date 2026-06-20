@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getItems, getMarkas, createItem, createMarka, updateItem, updateMarka, deleteItem, deleteMarka } from '../api';
@@ -37,7 +37,7 @@ const Settings = () => {
             addToast('Item Added Successfully!', 'success');
             fetchData();
             setNewItem('');
-        } catch (e) {
+        } catch {
             addToast('Failed to save item', 'error');
         } finally {
             setIsProcessing(false);
@@ -51,7 +51,7 @@ const Settings = () => {
                 await updateItem(item.id, { name: newName });
                 addToast('Item Updated Successfully!', 'success');
                 fetchData();
-            } catch (e) {
+            } catch {
                 addToast('Failed to update item', 'error');
             }
         }
@@ -69,7 +69,7 @@ const Settings = () => {
             addToast('Marka Added Successfully!', 'success');
             fetchData();
             setNewMarka('');
-        } catch (e) {
+        } catch {
             addToast('Failed to save marka', 'error');
         } finally {
             setIsProcessing(false);
@@ -83,7 +83,7 @@ const Settings = () => {
                 await updateMarka(marka.id, { name: newName });
                 addToast('Marka Updated Successfully!', 'success');
                 fetchData();
-            } catch (e) {
+            } catch {
                 addToast('Failed to update marka', 'error');
             }
         }
@@ -137,7 +137,8 @@ const Settings = () => {
                 </h1>
             </div>
             
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 mb-6 border-l-8 border-l-primary relative overflow-hidden">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-5 sm:p-6 mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-primary">🌾</span> {t('Manage Pulse Categories (Items)', 'आइटम प्रबंधित करें')}</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">
@@ -157,7 +158,8 @@ const Settings = () => {
                 </div>
             </div>
 
-            <div className="bg-white border border-yellow-100 rounded-2xl shadow-xl p-6 mb-6 border-l-8 border-l-secondary relative overflow-hidden">
+            <div className="bg-white border border-yellow-100 rounded-2xl shadow-xl p-5 sm:p-6 mb-6 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-secondary"></div>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-secondary opacity-10 rounded-bl-full pointer-events-none"></div>
                 <h2 className="text-xl font-bold text-textMain mb-4 flex items-center gap-2"><span className="text-secondary">🏷️</span> {t('Manage Marka (Brands)', 'मार्का प्रबंधित करें')}</h2>
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 relative z-10">

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getPendingDeals, loadDeal, deleteDeal, getFirms, getItems, getMarkas, updateDeal, getContacts } from '../api';
@@ -46,7 +46,6 @@ const Pending = () => {
     const fetchDeals = () => getPendingDeals().then(setDeals);
     
     useEffect(() => { 
-        setIsLoading(true);
         Promise.all([
             fetchDeals(),
             getFirms().then(setFirms),
@@ -255,7 +254,7 @@ const Pending = () => {
                 </div>
             </div>
             
-            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden mb-6 relative border-t-8 border-t-secondary">
+            <div className="bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden mb-6 relative">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-secondary opacity-5 rounded-bl-full pointer-events-none"></div>
 
                 {/* Loader */}

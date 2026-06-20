@@ -331,16 +331,16 @@ const NewDeal = () => {
                             </div>
                         </div>
                         <div className="col-span-2 md:col-span-1">
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t('Weight (Qtl)', 'वजन')}</label>
-                            <input type="number" name="weight" value={formData.weight} onChange={handleChange} min="0.01" step="0.01" className="w-full border-2 border-gray-300 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-white text-right" required />
+                            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">{t('Total Bags/Packets', 'कुल बोरे/कट्टे')}</label>
+                            <input type="number" name="numberOfPackets" value={formData.numberOfPackets} onChange={handleChange} min="1" className="w-full border-2 border-yellow-200 rounded-lg px-3 py-3 font-black focus:ring-2 focus:ring-secondary outline-none transition-all shadow-sm bg-yellow-50 text-right text-secondary" placeholder={t('Auto', 'स्वचालित')} required />
                         </div>
                         <div className="col-span-2 md:col-span-1">
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Packet Weight (kg)', 'बोरे का वजन')}</label>
                             <input type="number" name="packetWeight" value={formData.packetWeight} onChange={handleChange} min="1" step="0.5" className="w-full border-2 border-gray-200 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-gray-50 text-right text-gray-600" required />
                         </div>
-                        <div className="col-span-2 md:col-span-1">
-                            <label className="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">{t('Total Bags/Packets', 'कुल बोरे/कट्टे')}</label>
-                            <input type="number" name="numberOfPackets" value={formData.numberOfPackets} onChange={handleChange} min="1" className="w-full border-2 border-yellow-200 rounded-lg px-3 py-3 font-black focus:ring-2 focus:ring-secondary outline-none transition-all shadow-sm bg-yellow-50 text-right text-secondary" placeholder={t('Auto-calculated', 'स्वचालित गणना')} required />
+                        <div className="col-span-2 md:col-span-2">
+                            <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('Total Weight (Qtl)', 'वजन')}</label>
+                            <input type="number" name="weight" value={formData.weight} onChange={handleChange} min="0.01" step="0.01" className="w-full border-2 border-primary/30 rounded-lg px-3 py-3 font-bold focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm bg-white text-right text-lg text-primary" required />
                         </div>
                     </div>
 

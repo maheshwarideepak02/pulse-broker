@@ -183,7 +183,7 @@ const NewDeal = () => {
                 status: finalLoadDate ? 'LOADED' : 'PENDING'
             });
             addToast('Deal Saved Successfully!', 'success');
-            setTimeout(() => { navigate('/app/dashboard'); }, 1000);
+            setTimeout(() => { navigate('/app/dashboard', { state: { sort: 'original' } }); }, 1000);
         } catch (err) {
             console.error(err);
             addToast('Failed to save deal', 'error');

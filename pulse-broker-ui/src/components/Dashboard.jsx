@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getDeals, getDashboardSummary, revertDeal, revertBulkDeals } from '../api';
@@ -13,7 +13,8 @@ const Dashboard = () => {
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
     const [searchQuery, setSearchQuery] = useState('');
-    const [dateSort, setDateSort] = useState('desc'); // 'original', 'asc', 'desc'
+    const location = useLocation();
+    const [dateSort, setDateSort] = useState(location.state?.sort || 'desc'); // 'original', 'asc', 'desc'
     const [isLoading, setIsLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, dealOrId: null });
 

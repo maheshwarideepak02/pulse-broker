@@ -47,18 +47,25 @@ public class DashboardController {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setTotalOutstanding(totalOutstanding);
 
+        List<Deal> allDeals = dealRepository.findAll();
+
         // 2. Pending Loads (Count of PENDING and OPEN_UNASSIGNED deals)
-        long pendingCount = dealRepository.findByStatusIn(java.util.Arrays.asList(DealStatus.PENDING, DealStatus.OPEN_UNASSIGNED)).size();
+        long pendingCount = allDeals.stream()
+                .filter(d -> d.getStatus() == DealStatus.PENDING || d.getStatus() == DealStatus.OPEN_UNASSIGNED)
+                .count();
         summary.setPendingLoads(pendingCount);
 
-        // 3. Deals This Month (Count of all deals created this month)
+        // 3. Deals This Month (Count of all non-cancelled deals with dealDate this month)
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
         LocalDate endOfMonth = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
-        long dealsThisMonth = dealRepository.countByDealDateBetween(startOfMonth, endOfMonth);
+        long dealsThisMonth = allDeals.stream()
+                .filter(d -> d.getStatus() != DealStatus.CANCELLED)
+                .filter(d -> d.getDealDate() != null && !d.getDealDate().isBefore(startOfMonth) && !d.getDealDate().isAfter(endOfMonth))
+                .count();
         summary.setDealsThisMonth(dealsThisMonth);
 
         // 4. Total Unbilled (Sum of all PENDING, OPEN_UNASSIGNED, and LOADED deals' brokerages)
-        List<Deal> unbilledDeals = dealRepository.findAll().stream()
+        List<Deal> unbilledDeals = allDeals.stream()
                 .filter(d -> d.getStatus() == DealStatus.PENDING || d.getStatus() == DealStatus.OPEN_UNASSIGNED || d.getStatus() == DealStatus.LOADED)
                 .toList();
                 

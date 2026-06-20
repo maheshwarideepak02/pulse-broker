@@ -2,25 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { checkAuthStatus, setupApp, loginApp } from '../api';
 
 const Login = () => {
     const { toggleLang, lang, t } = useLanguage();
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    const [savedPin, setSavedPin] = useState(null);
     const [inputPin, setInputPin] = useState('');
     const [isSetupMode, setIsSetupMode] = useState(false);
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const pin = localStorage.getItem('pulse_broker_pin');
-        if (pin) {
-            setSavedPin(pin);
-            setIsSetupMode(false);
-        } else {
-            setIsSetupMode(true);
-        }
+        checkAuthStatus().then(data => {
+            setIsSetupMode(!data.isSetup);
+        }).catch(err => {
+            console.error("Auth check failed:", err);
+            setError("Server connection failed");
+        }).finally(() => {
+            setIsLoading(false);
+        });
     }, []);
 
     const handlePinPress = (digit) => {
@@ -40,42 +42,36 @@ const Login = () => {
         setError('');
     };
 
-    const processPin = (pinStr) => {
-        if (isSetupMode) {
-            localStorage.setItem('pulse_broker_pin', pinStr);
-            setSavedPin(pinStr);
-            setIsSetupMode(false);
-            setInputPin('');
-            login();
-            navigate('/app/dashboard');
-        } else {
-            if (pinStr === savedPin) {
+    const processPin = async (pinStr) => {
+        setIsLoading(true);
+        try {
+            if (isSetupMode) {
+                const masterSecret = window.prompt(lang === 'en' ? "Enter Server Master Secret to authorize setup:" : "सेटअप को अधिकृत करने के लिए सर्वर मास्टर सीक्रेट दर्ज करें:");
+                if (!masterSecret) {
+                    setInputPin('');
+                    setIsLoading(false);
+                    return;
+                }
+                const res = await setupApp({ pin: pinStr, masterSecret });
+                localStorage.setItem('pulse_auth_token', res.token);
                 login();
                 navigate('/app/dashboard');
             } else {
-                setError(t('Incorrect PIN', 'गलत पिन'));
-                setTimeout(() => setInputPin(''), 500);
+                const res = await loginApp({ pin: pinStr });
+                localStorage.setItem('pulse_auth_token', res.token);
+                login();
+                navigate('/app/dashboard');
             }
+        } catch (e) {
+            setError(e.response?.data?.message || t('Incorrect PIN', 'गलत पिन'));
+            setTimeout(() => setInputPin(''), 500);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-
-
     const handleReset = () => {
-        const masterCode = window.prompt(
-            lang === 'en' ? "Enter Master Recovery Code:" : "मास्टर रिकवरी कोड दर्ज करें:"
-        );
-        
-        // Hardcoded Master Recovery Code: PULSE99
-        if (masterCode === "PULSE99") {
-            localStorage.removeItem('pulse_broker_pin');
-            setSavedPin(null);
-            setIsSetupMode(true);
-            setInputPin('');
-            alert(lang === 'en' ? "PIN Reset Successful. Please set a new PIN." : "पिन रीसेट सफल रहा। कृपया नया पिन सेट करें।");
-        } else if (masterCode !== null) {
-            alert(lang === 'en' ? "Incorrect Master Recovery Code." : "गलत मास्टर कोड।");
-        }
+        alert(lang === 'en' ? "To reset the PIN, please clear the APP_PIN_KEY from the database manually for security reasons." : "सुरक्षा कारणों से पिन रीसेट करने के लिए कृपया डेटाबेस से APP_PIN_KEY मैन्युअल रूप से हटाएं।");
     };
 
     return (

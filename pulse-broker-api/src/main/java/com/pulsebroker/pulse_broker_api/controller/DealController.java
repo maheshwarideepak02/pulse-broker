@@ -42,6 +42,15 @@ public class DealController {
 
     @PostMapping
     public Deal create(@RequestBody Deal deal) {
+        if (deal.getWeight() == null || deal.getWeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Weight must be greater than zero.");
+        }
+        if (deal.getRate() != null && deal.getRate().compareTo(java.math.BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Rate cannot be negative.");
+        }
+        if (deal.getPurchaser() != null && deal.getSeller() != null && deal.getPurchaser().getId().equals(deal.getSeller().getId())) {
+            throw new IllegalArgumentException("Purchaser and Seller firms cannot be the same.");
+        }
         if (deal.getStatus() == null) {
             deal.setStatus(DealStatus.PENDING);
         }
@@ -69,6 +78,16 @@ public class DealController {
         if (deal.getStatus() == DealStatus.BILLED) {
             throw new IllegalArgumentException("Cannot edit a billed deal.");
         }
+        if (deal.getStatus() == DealStatus.LOADED && deal.getParentDeal() != null) {
+            throw new IllegalArgumentException("Cannot directly edit the weight or rate of a loaded deal dispatch. Please revert the dispatch instead.");
+        }
+        if (dealDetails.getWeight() == null || dealDetails.getWeight().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Weight must be greater than zero.");
+        }
+        if (dealDetails.getPurchaser() != null && dealDetails.getSeller() != null && dealDetails.getPurchaser().getId().equals(dealDetails.getSeller().getId())) {
+            throw new IllegalArgumentException("Purchaser and Seller firms cannot be the same.");
+        }
+        
         deal.setDealDate(dealDetails.getDealDate());
         deal.setPurchaserContact(dealDetails.getPurchaserContact());
         deal.setSellerContact(dealDetails.getSellerContact());
@@ -135,6 +154,11 @@ public class DealController {
         
         if (deal.getStatus() == com.pulsebroker.pulse_broker_api.entity.DealStatus.BILLED || deal.getPurchaserBill() != null || deal.getSellerBill() != null) {
             throw new IllegalArgumentException("Cannot delete a billed deal. Cancel the bill first.");
+        }
+        
+        // Prevent deleting a parent deal if it has children
+        if (dealRepository.existsById(id) && dealRepository.countByParentDeal(deal) > 0) {
+            throw new IllegalArgumentException("Cannot delete this deal because it has active loaded dispatches. Please revert the dispatches first.");
         }
         
         if (deal.getParentDeal() != null) {

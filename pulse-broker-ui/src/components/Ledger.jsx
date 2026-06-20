@@ -108,7 +108,16 @@ const Ledger = () => {
         else setBillPreview(null);
     }, [filterFirm, fromDate, toDate, activeTab]);
 
-    const handleRevertDeal = async (dealId) => {
+    const handleRevertDeal = (dealId) => {
+        setConfirmDialog({
+            isOpen: true,
+            type: 'revert',
+            id: dealId,
+            message: t('Are you sure you want to revert this loaded dispatch back to pending?', 'क्या आप इस लोड किए गए सौदे को वापस लंबित करना चाहते हैं?')
+        });
+    };
+
+    const executeRevertDeal = async (dealId) => {
         setIsProcessing(true);
         try {
             await revertDeal(dealId);
@@ -244,6 +253,7 @@ const Ledger = () => {
     const executeConfirmAction = async () => {
         if (confirmDialog.type === 'finalize') await executeFinalize();
         if (confirmDialog.type === 'delete') await executeDeleteBill(confirmDialog.id);
+        if (confirmDialog.type === 'revert') await executeRevertDeal(confirmDialog.id);
         setConfirmDialog({ isOpen: false, type: '', id: null, message: '' });
     };
 

@@ -4,6 +4,34 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
+api.interceptors.request.use(config => {
+    const token = localStorage.getItem('pulse_auth_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response && error.response.status === 401) {
+            localStorage.removeItem('pulse_auth_token');
+            // If we are not already on the login page and the request wasn't an auth request
+            if (!window.location.pathname.includes('/login') && !error.config.url.includes('/auth/')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
+// Auth APIs
+export const checkAuthStatus = () => api.get('/auth/status').then(res => res.data);
+export const setupApp = (payload) => api.post('/auth/setup', payload).then(res => res.data);
+export const loginApp = (payload) => api.post('/auth/login', payload).then(res => res.data);
+export const logoutApp = () => api.post('/auth/logout').then(res => res.data);
+
 export const checkServerHealth = () => api.get('/health').then(res => res.data);
 export const getItems = () => api.get('/items').then(res => res.data);
 export const getMarkas = () => api.get('/markas').then(res => res.data);

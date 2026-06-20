@@ -105,7 +105,7 @@ public class ControllerIntegrationTest {
         // Test GET all
         mockMvc.perform(get("/api/contacts"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("Test Contact"));
+                .andExpect(jsonPath("$[0].name").value("Purchaser Contact"));
 
         // Test POST (create)
         Contact newContact = new Contact();

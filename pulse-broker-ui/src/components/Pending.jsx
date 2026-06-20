@@ -150,7 +150,7 @@ const Pending = () => {
             pBrokType: pBrokSetup.type,
             sBrokVal: sBrokSetup.val,
             sBrokType: sBrokSetup.type,
-            brokeragePayer: deal.brokeragePayer || 'BOTH'
+            brokeragePayer: deal.brokeragePayer || 'SEPARATE'
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
@@ -412,14 +412,14 @@ const Pending = () => {
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Purchaser', 'खरीदार')}</label>
                                     <select value={editData.purchaser.id} onChange={e => setEditData({...editData, purchaser: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
                                         <option value="">{t('Select Purchaser', 'खरीदार चुनें')}</option>
-                                        {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                        {firms.filter(f => !editDeal.purchaserContact || f.contact?.id === editDeal.purchaserContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Seller', 'विक्रेता')}</label>
                                     <select value={editData.seller.id} onChange={e => setEditData({...editData, seller: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
                                         <option value="">{t('Select Seller', 'विक्रेता चुनें')}</option>
-                                        {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                        {firms.filter(f => !editDeal.sellerContact || f.contact?.id === editDeal.sellerContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">

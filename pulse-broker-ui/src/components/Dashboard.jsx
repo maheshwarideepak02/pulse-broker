@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getDeals, getDashboardSummary, revertDeal, revertBulkDeals } from '../api';
 import { formatDate } from '../utils/dateUtils';
+import ConfirmModal from './ConfirmModal';
 
 const Dashboard = () => {
     const { t, lang } = useLanguage();
@@ -11,6 +12,7 @@ const Dashboard = () => {
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
     const [searchQuery, setSearchQuery] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, dealOrId: null });
 
     const fetchData = () => {
         setIsLoading(true);
@@ -26,7 +28,13 @@ const Dashboard = () => {
         fetchData();
     }, []);
 
-    const handleRevertDeal = async (dealOrId) => {
+    const handleRevertDeal = (dealOrId) => {
+        setConfirmDialog({ isOpen: true, dealOrId });
+    };
+
+    const executeRevertDeal = async () => {
+        const dealOrId = confirmDialog.dealOrId;
+        setConfirmDialog({ isOpen: false, dealOrId: null });
         try {
             // Check if we passed a grouped deal object
             if (typeof dealOrId === 'object' && dealOrId._childIds && dealOrId._childIds.length > 0) {
@@ -300,6 +308,16 @@ const Dashboard = () => {
                 </div>
                 )}
             </div>
+            
+            <ConfirmModal 
+                isOpen={confirmDialog.isOpen}
+                title={t('Undo Load', 'लोड पूर्ववत करें')}
+                message={t('Are you sure you want to revert this loaded dispatch back to pending?', 'क्या आप इस लोड किए गए सौदे को वापस लंबित करना चाहते हैं?')}
+                confirmText={t('Yes, Undo Load', 'हां, वापस करें')}
+                confirmColor="red"
+                onConfirm={executeRevertDeal}
+                onCancel={() => setConfirmDialog({ isOpen: false, dealOrId: null })}
+            />
         </div>
     );
 };

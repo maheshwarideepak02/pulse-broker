@@ -259,17 +259,28 @@ const Pending = () => {
                         <span className="text-3xl sm:text-4xl text-secondary">🚚</span> {t('Pending Deals', 'लंबित सौदे')}
                     </h1>
                 </div>
-                <div className="relative w-full sm:w-72">
-                    <input 
-                        type="text" 
-                        placeholder={t('Search Firm, Item, or Marka...', 'फर्म, आइटम खोजें...')} 
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary transition-all shadow-sm outline-none bg-white font-medium"
-                    />
-                    <div className="absolute right-4 top-3.5 text-gray-400">
-                        🔍
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-72">
+                        <input 
+                            type="text" 
+                            placeholder={t('Search Firm, Item, or Marka...', 'फर्म, आइटम खोजें...')} 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="w-full pl-4 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary transition-all shadow-sm outline-none bg-white font-medium"
+                        />
+                        <div className="absolute right-4 top-3.5 text-gray-400">
+                            🔍
+                        </div>
                     </div>
+                    <button 
+                        onClick={handleSortToggle} 
+                        className="sm:hidden flex items-center justify-center p-3 border-2 border-gray-200 rounded-xl bg-white text-gray-500 hover:text-secondary transition-colors"
+                        title={t('Sort by Date', 'तारीख के अनुसार क्रमबद्ध करें')}
+                    >
+                        <span className="text-lg leading-none">
+                            {dateSort === 'desc' ? '▼' : dateSort === 'asc' ? '▲' : '↕'}
+                        </span>
+                    </button>
                 </div>
             </div>
             

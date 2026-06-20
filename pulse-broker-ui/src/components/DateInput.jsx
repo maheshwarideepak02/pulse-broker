@@ -30,10 +30,10 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
             onChange({ target: { value: '' } });
             return;
         }
-        // Format to YYYY-MM-DD
-        const offset = date.getTimezoneOffset();
-        date = new Date(date.getTime() - (offset * 60 * 1000));
-        const formatted = date.toISOString().split('T')[0];
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        const formatted = `${y}-${m}-${d}`;
         onChange({ target: { value: formatted } });
     };
 

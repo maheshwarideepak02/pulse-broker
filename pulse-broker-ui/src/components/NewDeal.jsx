@@ -227,7 +227,7 @@ const NewDeal = () => {
                                 </button>
                             ) : (
                                 <div className="mt-2 animate-slide-in relative">
-                                    <button type="button" onClick={() => { setShowPurchaserDate(false); setFormData(prev => ({...prev, purchaserDealDate: ''})); }} className="absolute -top-6 right-0 text-[10px] uppercase font-bold text-red-400 hover:text-red-600 z-10 transition-colors">
+                                    <button type="button" onClick={() => { setShowPurchaserDate(false); setFormData(prev => ({...prev, purchaserDealDate: ''})); }} className="absolute top-0 right-0 text-[10px] uppercase font-bold text-red-400 hover:text-red-600 z-10 transition-colors">
                                         ✕ {t('Remove', 'हटाएं')}
                                     </button>
                                     <DateInput

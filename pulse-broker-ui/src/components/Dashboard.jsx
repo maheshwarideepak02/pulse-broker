@@ -164,15 +164,26 @@ const Dashboard = () => {
                     <h2 className="font-extrabold text-lg sm:text-xl text-gray-900 flex items-center gap-3">
                         <span className="w-9 h-9 rounded-xl bg-red-50 text-primary grid place-items-center text-base">↗</span> {t('Recent Deals', 'हाल के सौदे')}
                     </h2>
-                    <div className="relative w-full sm:w-64">
-                        <input 
-                            type="text" 
-                            placeholder={t('Search deals...', 'सौदे खोजें...')} 
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none text-sm font-medium"
-                        />
-                        <div className="absolute right-3 top-2 text-gray-400">🔍</div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:w-64">
+                            <input 
+                                type="text" 
+                                placeholder={t('Search deals...', 'सौदे खोजें...')} 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all shadow-sm outline-none text-sm font-medium"
+                            />
+                            <div className="absolute right-3 top-2 text-gray-400">🔍</div>
+                        </div>
+                        <button 
+                            onClick={handleSortToggle} 
+                            className="sm:hidden flex items-center justify-center p-2 border border-gray-300 rounded-lg bg-white text-gray-500 hover:text-primary transition-colors"
+                            title={t('Sort by Date', 'तारीख के अनुसार क्रमबद्ध करें')}
+                        >
+                            <span className="text-sm leading-none">
+                                {dateSort === 'desc' ? '▼' : dateSort === 'asc' ? '▲' : '↕'}
+                            </span>
+                        </button>
                     </div>
                 </div>
                 

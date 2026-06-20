@@ -13,8 +13,15 @@ const Dashboard = () => {
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
     const [searchQuery, setSearchQuery] = useState('');
+    const [dateSort, setDateSort] = useState('original'); // 'original', 'asc', 'desc'
     const [isLoading, setIsLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, dealOrId: null });
+
+    const handleSortToggle = () => {
+        if (dateSort === 'original') setDateSort('desc');
+        else if (dateSort === 'desc') setDateSort('asc');
+        else setDateSort('original');
+    };
 
     const fetchData = () => {
         setIsLoading(true);
@@ -91,6 +98,10 @@ const Dashboard = () => {
         }
         return d;
     }).sort((a, b) => {
+        if (dateSort === 'desc' || dateSort === 'asc') {
+            const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
+            if (dateDiff !== 0) return dateSort === 'desc' ? dateDiff : -dateDiff;
+        }
         const bId = b._childIds ? Math.max(...b._childIds) : b.id;
         const aId = a._childIds ? Math.max(...a._childIds) : a.id;
         return bId - aId;
@@ -179,7 +190,14 @@ const Dashboard = () => {
                     <table className="w-full text-left text-sm text-textMain">
                         <thead className="bg-white text-xs uppercase text-gray-500 border-b border-gray-200">
                             <tr>
-                                <th className="px-6 py-4 font-bold">{t('Dealing Date', 'सौदे की तारीख')}</th>
+                                <th className="px-6 py-4 font-bold cursor-pointer select-none hover:text-gray-700 transition-colors" onClick={handleSortToggle}>
+                                    <div className="flex items-center gap-2">
+                                        {t('Dealing Date', 'सौदे की तारीख')}
+                                        <span className="text-gray-400 text-[10px]">
+                                            {dateSort === 'desc' ? '▼' : dateSort === 'asc' ? '▲' : '↕'}
+                                        </span>
+                                    </div>
+                                </th>
                                 <th className="px-6 py-4 font-bold">{t('Loading Date', 'लोडिंग की तारीख')}</th>
                                 <th className="px-6 py-4 font-bold">{t('Purchaser', 'खरीदार')}</th>
                                 <th className="px-6 py-4 font-bold">{t('Seller', 'विक्रेता')}</th>

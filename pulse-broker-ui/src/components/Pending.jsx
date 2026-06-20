@@ -4,7 +4,7 @@ import { useToast } from '../context/ToastContext';
 import { getPendingDeals, loadDeal, deleteDeal, getFirms, getItems, getMarkas, updateDeal, getContacts } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
-import { getLocalTodayDateString } from '../utils/dateUtils';
+import { getLocalTodayDateString, formatDate } from '../utils/dateUtils';
 
 
 const Pending = () => {
@@ -39,6 +39,13 @@ const Pending = () => {
     });
 
     const [searchQuery, setSearchQuery] = useState('');
+    const [dateSort, setDateSort] = useState('original'); // 'original', 'asc', 'desc'
+
+    const handleSortToggle = () => {
+        if (dateSort === 'original') setDateSort('desc');
+        else if (dateSort === 'desc') setDateSort('asc');
+        else setDateSort('original');
+    };
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, id: null });
     const [isLoading, setIsLoading] = useState(true);
@@ -219,6 +226,12 @@ const Pending = () => {
             (deal.item?.name || '').toLowerCase().includes(q) ||
             (deal.marka?.name || '').toLowerCase().includes(q)
         );
+    }).sort((a, b) => {
+        if (dateSort === 'desc' || dateSort === 'asc') {
+            const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
+            if (dateDiff !== 0) return dateSort === 'desc' ? dateDiff : -dateDiff;
+        }
+        return b.id - a.id;
     });
 
     return (
@@ -273,7 +286,14 @@ const Pending = () => {
                     <table className="w-full text-left text-sm text-textMain border-collapse">
                         <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200 sticky top-0">
                             <tr>
-                                <th className="px-5 py-4 font-bold whitespace-nowrap">{t('Deal Date', 'तारीख')}</th>
+                                <th className="px-5 py-4 font-bold whitespace-nowrap cursor-pointer select-none hover:text-gray-700 transition-colors" onClick={handleSortToggle}>
+                                    <div className="flex items-center gap-2">
+                                        {t('Deal Date', 'तारीख')}
+                                        <span className="text-gray-400 text-[10px]">
+                                            {dateSort === 'desc' ? '▼' : dateSort === 'asc' ? '▲' : '↕'}
+                                        </span>
+                                    </div>
+                                </th>
                                 <th className="px-5 py-4 font-bold">{t('Purchaser', 'खरीदार')}</th>
                                 <th className="px-5 py-4 font-bold">{t('Seller', 'विक्रेता')}</th>
                                 <th className="px-5 py-4 font-bold">{t('Item & Marka', 'आइटम और मार्का')}</th>
@@ -291,7 +311,7 @@ const Pending = () => {
                                 </tr>
                             ) : filteredDeals.map(deal => (
                                 <tr key={deal.id} className="hover:bg-yellow-50/50 transition-colors group">
-                                    <td className="px-5 py-4 font-semibold text-gray-600">{deal.dealDate}</td>
+                                    <td className="px-5 py-4 font-semibold text-gray-600">{formatDate(deal.dealDate)}</td>
                                     <td className="px-5 py-4 font-bold text-primary group-hover:text-red-900 transition-colors">
                                         {deal.purchaserContact?.name || deal.purchaser?.name}
                                         {deal.purchaserContact && deal.purchaser && <div className="text-xs font-normal text-gray-500">{deal.purchaser.name}</div>}
@@ -342,7 +362,7 @@ const Pending = () => {
                                     <span className="bg-gray-100 px-2 py-1 rounded-md font-bold text-xs text-gray-700 shadow-sm border border-gray-200">{deal.item?.name}</span>
                                     <span className="text-secondary font-extrabold text-xs">{deal.marka?.name}</span>
                                 </div>
-                                <div className="text-xs text-gray-500 font-bold border border-gray-200 px-2 py-1 rounded-md bg-gray-50 shadow-sm">{deal.dealDate}</div>
+                                <div className="text-xs text-gray-500 font-bold border border-gray-200 px-2 py-1 rounded-md bg-gray-50 shadow-sm">{formatDate(deal.dealDate)}</div>
                             </div>
                             
                             <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3">

@@ -91,8 +91,9 @@ const Dashboard = () => {
         }
         return d;
     }).sort((a, b) => {
-        const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
-        return dateDiff !== 0 ? dateDiff : b.id - a.id;
+        const bId = b._childIds ? Math.max(...b._childIds) : b.id;
+        const aId = a._childIds ? Math.max(...a._childIds) : a.id;
+        return bId - aId;
     });
     
     const filteredLoadedDeals = loadedDeals.filter(deal => {
@@ -102,7 +103,7 @@ const Dashboard = () => {
             (deal.seller?.name || '').toLowerCase().includes(q) ||
             (deal.item?.name || '').toLowerCase().includes(q)
         );
-    }).slice(0, 8); // Show up to 8 matching recent deals
+    });
 
     return (
         <div className="max-w-7xl mx-auto p-3 sm:p-6 py-6 sm:py-9">

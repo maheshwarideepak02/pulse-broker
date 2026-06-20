@@ -40,6 +40,14 @@ public class AuthService {
         configRepository.save(new AppConfig(APP_PIN_KEY, hashPin(pin)));
     }
 
+    public void resetApp(String providedMasterSecret) {
+        if (!masterSecret.equals(providedMasterSecret)) {
+            throw new IllegalArgumentException("Invalid master secret");
+        }
+        configRepository.deleteById(APP_PIN_KEY);
+        configRepository.deleteById(AUTH_TOKEN_KEY);
+    }
+
     public String login(String pin) {
         AppConfig pinConfig = configRepository.findById(APP_PIN_KEY)
                 .orElseThrow(() -> new IllegalStateException("App is not set up"));

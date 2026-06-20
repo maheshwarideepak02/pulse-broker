@@ -31,6 +31,7 @@ export const checkAuthStatus = () => api.get('/auth/status').then(res => res.dat
 export const setupApp = (payload) => api.post('/auth/setup', payload).then(res => res.data);
 export const loginApp = (payload) => api.post('/auth/login', payload).then(res => res.data);
 export const logoutApp = () => api.post('/auth/logout').then(res => res.data);
+export const resetApp = (payload) => api.post('/auth/reset', payload).then(res => res.data);
 
 export const checkServerHealth = () => api.get('/health').then(res => res.data);
 export const getItems = () => api.get('/items').then(res => res.data);

@@ -64,4 +64,19 @@ public class AuthController {
         authService.logout();
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/reset")
+    public ResponseEntity<Map<String, String>> reset(@RequestBody Map<String, String> payload) {
+        String masterSecret = payload.get("masterSecret");
+        try {
+            authService.resetApp(masterSecret);
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "App reset successfully");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> response = new HashMap<>();
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
 }

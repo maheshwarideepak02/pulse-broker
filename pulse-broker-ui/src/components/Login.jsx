@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { checkAuthStatus, setupApp, loginApp } from '../api';
+import { checkAuthStatus, setupApp, loginApp, resetApp } from '../api';
 
 const Login = () => {
     const { toggleLang, lang, t } = useLanguage();
@@ -70,8 +70,23 @@ const Login = () => {
         }
     };
 
-    const handleReset = () => {
-        alert(lang === 'en' ? "To reset the PIN, please clear the APP_PIN_KEY from the database manually for security reasons." : "सुरक्षा कारणों से पिन रीसेट करने के लिए कृपया डेटाबेस से APP_PIN_KEY मैन्युअल रूप से हटाएं।");
+    const handleReset = async () => {
+        const masterSecret = window.prompt(lang === 'en' ? "Enter Server Master Secret to reset PIN:" : "पिन रीसेट करने के लिए सर्वर मास्टर सीक्रेट दर्ज करें:");
+        if (!masterSecret) return;
+        
+        setIsLoading(true);
+        try {
+            await resetApp({ masterSecret });
+            localStorage.removeItem('pulse_auth_token');
+            setIsSetupMode(true);
+            setInputPin('');
+            setError('');
+            alert(lang === 'en' ? "PIN Reset Successful. Please set a new PIN." : "पिन रीसेट सफल रहा। कृपया नया पिन सेट करें।");
+        } catch (e) {
+            alert(e.response?.data?.message || (lang === 'en' ? "Incorrect Master Secret" : "गलत मास्टर सीक्रेट"));
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

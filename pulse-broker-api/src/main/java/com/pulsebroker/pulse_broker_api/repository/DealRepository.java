@@ -13,7 +13,7 @@ import java.time.LocalDate;
 public interface DealRepository extends JpaRepository<Deal, Long> {
     List<Deal> findByStatus(DealStatus status);
     List<Deal> findByStatusIn(List<DealStatus> statuses);
-    long countByDealDateGreaterThanEqual(LocalDate date);
+    long countByDealDateBetween(LocalDate start, LocalDate end);
     boolean existsByPurchaserIdOrSellerId(Long purchaserId, Long sellerId);
     boolean existsByItemId(Long itemId);
     boolean existsByMarkaId(Long markaId);

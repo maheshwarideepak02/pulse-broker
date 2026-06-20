@@ -53,7 +53,8 @@ public class DashboardController {
 
         // 3. Deals This Month (Count of all deals created this month)
         LocalDate startOfMonth = LocalDate.now().withDayOfMonth(1);
-        long dealsThisMonth = dealRepository.countByDealDateGreaterThanEqual(startOfMonth);
+        LocalDate endOfMonth = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth());
+        long dealsThisMonth = dealRepository.countByDealDateBetween(startOfMonth, endOfMonth);
         summary.setDealsThisMonth(dealsThisMonth);
 
         // 4. Total Unbilled (Sum of all PENDING, OPEN_UNASSIGNED, and LOADED deals' brokerages)

@@ -13,7 +13,7 @@ const Dashboard = () => {
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
     const [searchQuery, setSearchQuery] = useState('');
-    const [dateSort, setDateSort] = useState('original'); // 'original', 'asc', 'desc'
+    const [dateSort, setDateSort] = useState('desc'); // 'original', 'asc', 'desc'
     const [isLoading, setIsLoading] = useState(true);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, dealOrId: null });
 

@@ -39,7 +39,7 @@ const Pending = () => {
     });
 
     const [searchQuery, setSearchQuery] = useState('');
-    const [dateSort, setDateSort] = useState('original'); // 'original', 'asc', 'desc'
+    const [dateSort, setDateSort] = useState('desc'); // 'original', 'asc', 'desc'
 
     const handleSortToggle = () => {
         if (dateSort === 'original') setDateSort('desc');

@@ -27,6 +27,8 @@ const Analytics = () => {
         if (!deals.length) return null;
 
         const currentYear = new Date().getFullYear();
+        const currentMonthIndex = new Date().getMonth();
+        
         const monthlyData = Array(12).fill(0).map((_, i) => ({
             name: new Date(2000, i, 1).toLocaleString('default', { month: 'short' }),
             brokerage: 0,
@@ -36,63 +38,98 @@ const Analytics = () => {
         const buyerMap = {};
         const sellerMap = {};
         const itemMap = {};
+        const markaMap = {};
+        
+        let biggestDeal = null;
+        let biggestDealBrokerage = 0;
+        
+        let totalBrokerageYTD = 0;
+        let totalDealsYTD = 0;
+        
+        let totalVolumeBilled = 0;
+        let totalVolumePending = 0;
 
         deals.forEach(deal => {
             if (deal.status === 'CANCELLED') return;
 
-            // Monthly Aggregation (Current Year)
+            const dealBrokerage = (deal.pBrokerage || 0) + (deal.sBrokerage || 0);
+            const dealVolume = (deal.weight || 0);
+
+            // Time aggregations
             const dateStr = deal.dealDate || deal.createdAt;
             if (dateStr) {
                 const date = new Date(dateStr);
                 if (date.getFullYear() === currentYear) {
                     const mIndex = date.getMonth();
-                    monthlyData[mIndex].brokerage += (deal.pBrokerage || 0) + (deal.sBrokerage || 0);
-                    monthlyData[mIndex].volume += (deal.weight || 0);
+                    monthlyData[mIndex].brokerage += dealBrokerage;
+                    monthlyData[mIndex].volume += dealVolume;
+                    
+                    totalBrokerageYTD += dealBrokerage;
+                    totalDealsYTD += 1;
+                    
+                    if (dealBrokerage > biggestDealBrokerage) {
+                        biggestDealBrokerage = dealBrokerage;
+                        biggestDeal = deal;
+                    }
                 }
             }
 
             // Top Buyers
             if (deal.purchaser?.name) {
-                buyerMap[deal.purchaser.name] = (buyerMap[deal.purchaser.name] || 0) + (deal.weight || 0);
+                buyerMap[deal.purchaser.name] = (buyerMap[deal.purchaser.name] || 0) + dealVolume;
             }
             // Top Sellers
             if (deal.seller?.name) {
-                sellerMap[deal.seller.name] = (sellerMap[deal.seller.name] || 0) + (deal.weight || 0);
+                sellerMap[deal.seller.name] = (sellerMap[deal.seller.name] || 0) + dealVolume;
             }
             // Top Items
             if (deal.item?.name) {
-                itemMap[deal.item.name] = (itemMap[deal.item.name] || 0) + (deal.weight || 0);
+                itemMap[deal.item.name] = (itemMap[deal.item.name] || 0) + dealVolume;
+            }
+            // Top Markas
+            if (deal.marka?.name) {
+                markaMap[deal.marka?.name] = (markaMap[deal.marka?.name] || 0) + dealVolume;
+            }
+            
+            // Billed vs Pending
+            if (deal.status === 'BILLED') {
+                totalVolumeBilled += dealVolume;
+            } else if (deal.status === 'PENDING' || deal.status === 'OPEN_UNASSIGNED' || deal.status === 'LOADED') {
+                totalVolumePending += dealVolume;
             }
         });
 
-        const topBuyers = Object.entries(buyerMap)
+        const sortMap = (map) => Object.entries(map)
             .map(([name, value]) => ({ name, value }))
             .sort((a, b) => b.value - a.value)
             .slice(0, 5);
 
-        const topSellers = Object.entries(sellerMap)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 5);
+        // MoM Growth Calculation
+        const thisMonthBrok = monthlyData[currentMonthIndex].brokerage;
+        const lastMonthBrok = currentMonthIndex > 0 ? monthlyData[currentMonthIndex - 1].brokerage : 0;
+        let momGrowth = 0;
+        if (lastMonthBrok > 0) {
+            momGrowth = ((thisMonthBrok - lastMonthBrok) / lastMonthBrok) * 100;
+        } else if (thisMonthBrok > 0) {
+            momGrowth = 100; // infinite growth from 0
+        }
 
-        const topItems = Object.entries(itemMap)
-            .map(([name, value]) => ({ name, value }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 5);
-
-        return { monthlyData, topBuyers, topSellers, topItems };
-    }, [deals]);
-
-    const insights = useMemo(() => {
-        if (!stats) return null;
-        const totalBrokerage = stats.monthlyData.reduce((acc, curr) => acc + curr.brokerage, 0);
-        return {
-            totalBrokerage,
-            topBuyer: stats.topBuyers[0],
-            topSeller: stats.topSellers[0],
-            topItem: stats.topItems[0]
+        return { 
+            monthlyData, 
+            topBuyers: sortMap(buyerMap), 
+            topSellers: sortMap(sellerMap), 
+            topItems: sortMap(itemMap),
+            topMarkas: sortMap(markaMap),
+            totalBrokerageYTD,
+            avgBrokeragePerDeal: totalDealsYTD > 0 ? (totalBrokerageYTD / totalDealsYTD) : 0,
+            biggestDeal,
+            biggestDealBrokerage,
+            momGrowth,
+            thisMonthBrok,
+            totalVolumeBilled,
+            totalVolumePending
         };
-    }, [stats]);
+    }, [deals]);
 
     if (isLoading) {
         return (
@@ -111,7 +148,7 @@ const Analytics = () => {
                     <p className="font-bold text-gray-800 mb-1">{label}</p>
                     {payload.map((entry, index) => (
                         <p key={index} style={{ color: entry.color }} className="text-sm font-medium">
-                            {entry.name === 'brokerage' ? '₹' : ''}{entry.value.toLocaleString()} {entry.name === 'value' || entry.name === 'volume' ? 'Qtl' : ''}
+                            {entry.name === 'brokerage' ? '₹' : ''}{entry.value.toLocaleString(undefined, {maximumFractionDigits: 2})} {entry.name === 'value' || entry.name === 'volume' ? 'Qtl' : ''}
                         </p>
                     ))}
                 </div>
@@ -120,43 +157,104 @@ const Analytics = () => {
         return null;
     };
 
+    const isGrowthPositive = stats.momGrowth >= 0;
+
     return (
         <div className="max-w-7xl mx-auto p-4 sm:p-8">
-            <div className="mb-6 sm:mb-8">
-                <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
-                    <span className="w-6 h-px bg-primary/50"></span>{t('Business Intelligence', 'व्यापारिक विश्लेषण')}
+            <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                <div>
+                    <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
+                        <span className="w-6 h-px bg-primary/50"></span>{t('Business Intelligence', 'व्यापारिक विश्लेषण')}
+                    </div>
+                    <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                        📊 {t('Analytics Dashboard', 'एनालिटिक्स डैशबोर्ड')}
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium mt-2">{t('Actionable insights for', 'रुझान और जानकारी वर्ष के लिए')} {new Date().getFullYear()}</p>
                 </div>
-                <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-                    📊 {t('Analytics Dashboard', 'एनालिटिक्स डैशबोर्ड')}
-                </h1>
-                <p className="text-xs sm:text-sm text-gray-500 font-medium mt-2">{t('Insights and trends for', 'रुझान और जानकारी वर्ष के लिए')} {new Date().getFullYear()}</p>
+                
+                {/* Outstanding vs Cleared Mini Bar */}
+                <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm w-full sm:w-64">
+                    <div className="flex justify-between text-[10px] uppercase font-bold mb-1.5">
+                        <span className="text-gray-500">Volume Status</span>
+                        <span className="text-gray-700">{((stats.totalVolumeBilled / (stats.totalVolumeBilled + stats.totalVolumePending || 1)) * 100).toFixed(0)}% Billed</span>
+                    </div>
+                    <div className="w-full h-2 bg-yellow-100 rounded-full overflow-hidden flex">
+                        <div className="h-full bg-green-500" style={{ width: `${(stats.totalVolumeBilled / (stats.totalVolumeBilled + stats.totalVolumePending || 1)) * 100}%` }}></div>
+                        <div className="h-full bg-yellow-400" style={{ width: `${(stats.totalVolumePending / (stats.totalVolumeBilled + stats.totalVolumePending || 1)) * 100}%` }}></div>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-semibold mt-1.5">
+                        <span className="text-green-600">Billed: {stats.totalVolumeBilled}</span>
+                        <span className="text-yellow-600">Pending: {stats.totalVolumePending}</span>
+                    </div>
+                </div>
             </div>
 
-            {/* Quick Text Insights */}
-            {insights && (
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-100 p-4 rounded-2xl shadow-sm">
-                        <p className="text-[9px] sm:text-[10px] uppercase font-bold text-green-800 tracking-wider">{t('Total Brokerage', 'कुल दलाली')} (YTD)</p>
-                        <p className="text-xl sm:text-2xl font-black text-green-900 mt-1">₹{insights.totalBrokerage.toLocaleString()}</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-4 rounded-2xl shadow-sm">
-                        <p className="text-[9px] sm:text-[10px] uppercase font-bold text-blue-800 tracking-wider">{t('Top Buyer', 'शीर्ष खरीदार')}</p>
-                        <p className="text-base sm:text-lg font-black text-blue-900 mt-1 truncate">{insights.topBuyer?.name || 'N/A'}</p>
-                        <p className="text-xs font-bold text-blue-700">{insights.topBuyer?.value || 0} Qtl</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-100 p-4 rounded-2xl shadow-sm">
-                        <p className="text-[9px] sm:text-[10px] uppercase font-bold text-red-800 tracking-wider">{t('Top Seller', 'शीर्ष विक्रेता')}</p>
-                        <p className="text-base sm:text-lg font-black text-red-900 mt-1 truncate">{insights.topSeller?.name || 'N/A'}</p>
-                        <p className="text-xs font-bold text-red-700">{insights.topSeller?.value || 0} Qtl</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 p-4 rounded-2xl shadow-sm">
-                        <p className="text-[9px] sm:text-[10px] uppercase font-bold text-orange-800 tracking-wider">{t('Most Traded Item', 'सर्वाधिक ट्रेड आइटम')}</p>
-                        <p className="text-base sm:text-lg font-black text-orange-900 mt-1 truncate">{insights.topItem?.name || 'N/A'}</p>
-                        <p className="text-xs font-bold text-orange-700">{insights.topItem?.value || 0} Qtl</p>
-                    </div>
+            {/* Smart Actionable Insights */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                {/* 1. Monthly Performance */}
+                <div className="bg-white border border-gray-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                    <div className="absolute right-[-10px] bottom-[-10px] text-5xl opacity-5">📈</div>
+                    <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">This Month's Brokerage</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">₹{stats.thisMonthBrok.toLocaleString()}</p>
+                    <p className={`text-xs font-bold mt-2 flex items-center gap-1 ${isGrowthPositive ? 'text-green-600' : 'text-red-500'}`}>
+                        {isGrowthPositive ? '▲' : '▼'} {Math.abs(stats.momGrowth).toFixed(1)}% vs last month
+                    </p>
                 </div>
-            )}
+                
+                {/* 2. Average Deal Value */}
+                <div className="bg-white border border-gray-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                    <div className="absolute right-[-10px] bottom-[-10px] text-5xl opacity-5">💰</div>
+                    <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Avg Brokerage / Deal</p>
+                    <p className="text-2xl font-black text-gray-900 mt-1">₹{Math.round(stats.avgBrokeragePerDeal).toLocaleString()}</p>
+                    <p className="text-xs font-medium text-gray-400 mt-2">Average value of a single deal</p>
+                </div>
 
+                {/* 3. Biggest Deal */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden lg:col-span-2">
+                    <div className="absolute right-[-10px] bottom-[-10px] text-5xl opacity-10">🏆</div>
+                    <p className="text-[10px] uppercase font-bold text-amber-800 tracking-wider flex items-center gap-1">🏆 Biggest Deal of the Year</p>
+                    {stats.biggestDeal ? (
+                        <>
+                            <div className="flex items-end gap-3 mt-1">
+                                <p className="text-2xl font-black text-amber-900">₹{stats.biggestDealBrokerage.toLocaleString()}</p>
+                                <p className="text-sm font-bold text-amber-700 mb-1">{stats.biggestDeal.weight} Qtl</p>
+                            </div>
+                            <p className="text-xs font-medium text-amber-800 mt-2 truncate">
+                                <strong>{stats.biggestDeal.purchaser?.name || 'N/A'}</strong> bought from <strong>{stats.biggestDeal.seller?.name || 'N/A'}</strong>
+                            </p>
+                        </>
+                    ) : (
+                        <p className="text-sm text-amber-700 mt-2 font-medium">No deals recorded yet</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Top Standings */}
+            <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">⭐ Top Standings (By Volume)</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] sm:text-[10px] uppercase font-bold text-blue-800 tracking-wider">{t('Top Buyer', 'शीर्ष खरीदार')}</p>
+                    <p className="text-base sm:text-lg font-black text-blue-900 mt-1 truncate">{stats.topBuyers[0]?.name || 'N/A'}</p>
+                    <p className="text-xs font-bold text-blue-700">{stats.topBuyers[0]?.value || 0} Qtl</p>
+                </div>
+                <div className="bg-gradient-to-br from-red-50 to-rose-50 border border-red-100 p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] sm:text-[10px] uppercase font-bold text-red-800 tracking-wider">{t('Top Seller', 'शीर्ष विक्रेता')}</p>
+                    <p className="text-base sm:text-lg font-black text-red-900 mt-1 truncate">{stats.topSellers[0]?.name || 'N/A'}</p>
+                    <p className="text-xs font-bold text-red-700">{stats.topSellers[0]?.value || 0} Qtl</p>
+                </div>
+                <div className="bg-gradient-to-br from-orange-50 to-amber-50 border border-orange-100 p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] sm:text-[10px] uppercase font-bold text-orange-800 tracking-wider">{t('Top Item', 'सर्वाधिक ट्रेड आइटम')}</p>
+                    <p className="text-base sm:text-lg font-black text-orange-900 mt-1 truncate">{stats.topItems[0]?.name || 'N/A'}</p>
+                    <p className="text-xs font-bold text-orange-700">{stats.topItems[0]?.value || 0} Qtl</p>
+                </div>
+                <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 p-4 rounded-2xl shadow-sm">
+                    <p className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-800 tracking-wider">{t('Top Marka', 'शीर्ष मार्का')}</p>
+                    <p className="text-base sm:text-lg font-black text-emerald-900 mt-1 truncate">{stats.topMarkas[0]?.name || 'N/A'}</p>
+                    <p className="text-xs font-bold text-emerald-700">{stats.topMarkas[0]?.value || 0} Qtl</p>
+                </div>
+            </div>
+
+            {/* Charts Area */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 {/* Revenue Trend */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
@@ -168,15 +266,15 @@ const Analytics = () => {
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
                                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} tickFormatter={(val) => `₹${val}`} width={60} />
                                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
-                                <Bar dataKey="brokerage" fill="#1a365d" radius={[4, 4, 0, 0]} name="Brokerage" maxBarSize={50} />
+                                <Bar dataKey="brokerage" fill="#1a365d" radius={[4, 4, 0, 0]} name="brokerage" maxBarSize={50} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Top Buyers */}
+                {/* Top Buyers Pie */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-2 sm:mb-6">{t('Top Buyers (by Volume)', 'शीर्ष खरीदार (मात्रा के अनुसार)')}</h3>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-2 sm:mb-6">{t('Buyer Distribution', 'खरीदार (मात्रा के अनुसार)')}</h3>
                     <div className="h-[280px] sm:h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
@@ -192,9 +290,9 @@ const Analytics = () => {
                     </div>
                 </div>
 
-                {/* Top Sellers */}
+                {/* Top Sellers Pie */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-2 sm:mb-6">{t('Top Sellers (by Volume)', 'शीर्ष विक्रेता (मात्रा के अनुसार)')}</h3>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-2 sm:mb-6">{t('Seller Distribution', 'विक्रेता (मात्रा के अनुसार)')}</h3>
                     <div className="h-[280px] sm:h-[300px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart margin={{ top: 0, right: 0, bottom: 20, left: 0 }}>
@@ -209,20 +307,35 @@ const Analytics = () => {
                         </ResponsiveContainer>
                     </div>
                 </div>
-
-                {/* Monthly Volume Trend */}
+                
+                {/* Item vs Marka Bar Chart */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Trading Volume Trend', 'ट्रेडिंग मात्रा का रुझान')}</h3>
-                    <div className="h-[250px] sm:h-[300px] w-full -ml-4 sm:ml-0">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={stats.monthlyData} margin={{ left: 0, right: 10, bottom: 0, top: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
-                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} width={50} />
-                                <RechartsTooltip content={<CustomTooltip />} />
-                                <Line type="monotone" dataKey="volume" stroke="#d92027" strokeWidth={3} dot={{ r: 4, fill: '#d92027', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} name="Volume" />
-                            </LineChart>
-                        </ResponsiveContainer>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Top Items & Markas', 'शीर्ष आइटम और मार्का')}</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="h-[250px] w-full">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center mb-4">Top Items</h4>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={stats.topItems} layout="vertical" margin={{ left: 20, right: 10, bottom: 0, top: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
+                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+                                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 11, fontWeight: 600 }} width={80} />
+                                    <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
+                                    <Bar dataKey="value" fill="#f43f5e" radius={[0, 4, 4, 0]} name="volume" barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="h-[250px] w-full">
+                            <h4 className="text-xs font-bold text-gray-500 uppercase tracking-widest text-center mb-4">Top Markas</h4>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={stats.topMarkas} layout="vertical" margin={{ left: 20, right: 10, bottom: 0, top: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f3f4f6" />
+                                    <XAxis type="number" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+                                    <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fill: '#4b5563', fontSize: 11, fontWeight: 600 }} width={80} />
+                                    <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(0,0,0,0.02)' }} />
+                                    <Bar dataKey="value" fill="#10b981" radius={[0, 4, 4, 0]} name="volume" barSize={20} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
             </div>

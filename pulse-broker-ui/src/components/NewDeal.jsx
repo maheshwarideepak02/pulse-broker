@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getContacts, getFirms, getItems, getMarkas, createDeal } from '../api';
@@ -6,6 +7,7 @@ import DateInput from './DateInput';
 import { getLocalTodayDateString } from '../utils/dateUtils';
 
 const NewDeal = () => {
+    const navigate = useNavigate();
     const { t } = useLanguage();
     const { addToast } = useToast();
     const [contacts, setContacts] = useState([]);

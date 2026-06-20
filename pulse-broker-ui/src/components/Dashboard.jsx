@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getDeals, getDashboardSummary, revertDeal, revertBulkDeals } from '../api';
@@ -6,6 +7,7 @@ import { formatDate } from '../utils/dateUtils';
 import ConfirmModal from './ConfirmModal';
 
 const Dashboard = () => {
+    const navigate = useNavigate();
     const { t, lang } = useLanguage();
     const { addToast } = useToast();
     const [deals, setDeals] = useState([]);

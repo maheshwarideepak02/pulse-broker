@@ -16,6 +16,7 @@ const Navbar = () => {
         { to: '/app/ledger', icon: 'ledger', en: 'Ledger & Bills', hi: 'खाता और बिल' },
         { to: '/app/margins', icon: 'margins', en: 'Trade Margins', hi: 'ट्रेड मार्जिन' },
         { to: '/app/pending', icon: 'pending', en: 'Pending', hi: 'लंबित' },
+        { to: '/app/analytics', icon: 'analytics', en: 'Analytics', hi: 'एनालिटिक्स' },
         { to: '/app/settings', icon: 'settings', en: 'Settings', hi: 'सेटिंग्स' },
     ];
 
@@ -58,7 +59,7 @@ const Navbar = () => {
             {menuOpen && <button className="lg:hidden fixed inset-0 z-40 bg-gray-950/30 backdrop-blur-[2px]" onClick={() => setMenuOpen(false)} aria-label="Close menu" />}
             <div className={`lg:hidden fixed z-50 left-3 right-3 bottom-[86px] bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 transition-all duration-200 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 <div className="grid grid-cols-2 gap-2">
-                    {links.filter((_, i) => [2, 3, 5].includes(i)).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${isActive ? 'bg-red-50 text-primary' : 'text-gray-600 bg-stone-50'}`}><Icon name={link.icon}/>{t(link.en,link.hi)}</NavLink>)}
+                    {links.filter((_, i) => [2, 3, 5, 6].includes(i)).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${isActive ? 'bg-red-50 text-primary' : 'text-gray-600 bg-stone-50'}`}><Icon name={link.icon}/>{t(link.en,link.hi)}</NavLink>)}
                     <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="flex items-center gap-3 p-3 rounded-xl text-sm font-bold text-red-700 bg-red-50">↪ {t('Logout','लॉग आउट')}</button>
                 </div>
             </div>

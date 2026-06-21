@@ -79,6 +79,10 @@ const Settings = () => {
     const handleEditMarka = (marka) => setEditDialog({ isOpen: true, type: 'marka', id: marka.id, name: marka.name });
 
     const executeEdit = async (newName) => {
+        if (!newName || newName.trim() === '') {
+            addToast(t('Name is required', 'नाम आवश्यक है'), 'error');
+            return;
+        }
         if (newName === editDialog.name) {
             setEditDialog({ isOpen: false, type: '', id: null, name: '' });
             return;

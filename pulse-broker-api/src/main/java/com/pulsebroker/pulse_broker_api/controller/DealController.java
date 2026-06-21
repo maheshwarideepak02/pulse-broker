@@ -78,8 +78,8 @@ public class DealController {
     @PutMapping("/{id}")
     public Deal updateDeal(@PathVariable Long id, @RequestBody Deal dealDetails) {
         Deal deal = dealRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Deal not found"));
-        if (deal.getStatus() == DealStatus.BILLED) {
-            throw new IllegalArgumentException("Cannot edit a billed deal.");
+        if (deal.getStatus() == DealStatus.BILLED || deal.getPurchaserBill() != null || deal.getSellerBill() != null) {
+            throw new IllegalArgumentException("Cannot edit a deal that has been billed or partially billed. Cancel the bill(s) first.");
         }
         if (deal.getStatus() == DealStatus.LOADED && deal.getParentDeal() != null) {
             throw new IllegalArgumentException("Cannot directly edit the weight or rate of a loaded deal dispatch. Please revert the dispatch instead.");

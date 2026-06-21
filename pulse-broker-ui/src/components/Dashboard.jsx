@@ -100,7 +100,9 @@ const Dashboard = () => {
         return d;
     }).sort((a, b) => {
         if (dateSort === 'desc' || dateSort === 'asc') {
-            const dateDiff = new Date(b.dealDate) - new Date(a.dealDate);
+            const dateB = new Date(b.purchaserDealDate || b.dealDate);
+            const dateA = new Date(a.purchaserDealDate || a.dealDate);
+            const dateDiff = dateB - dateA;
             if (dateDiff !== 0) return dateSort === 'desc' ? dateDiff : -dateDiff;
         }
         const bId = b._childIds ? Math.max(...b._childIds) : b.id;

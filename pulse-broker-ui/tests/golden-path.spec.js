@@ -12,7 +12,11 @@ test.describe('Golden Path E2E', () => {
     const testMarka = `Marka ${timestamp}`;
     
     // 1. Login
+    // 1. Login
     await page.goto('/');
+    
+    // Wait for keypad to be visible
+    await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible', timeout: 10000 });
     
     // Check if we are on the setup PIN screen
     const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
@@ -29,30 +33,37 @@ test.describe('Golden Path E2E', () => {
       await dialogInput.fill('PULSE99');
       await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
     } else {
-      // Enter existing PIN or reset it
-      const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
-      if (await resetBtn.isVisible()) {
+      // Try existing PIN 1234
+      await page.locator('button', { hasText: /^1$/ }).click();
+      await page.locator('button', { hasText: /^2$/ }).click();
+      await page.locator('button', { hasText: /^3$/ }).click();
+      await page.locator('button', { hasText: /^4$/ }).click();
+      
+      try {
+          await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
+      } catch (e) {
+          // If we didn't navigate, the PIN was probably wrong. Reset it.
+          const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
+          await resetBtn.waitFor({ state: 'visible' });
           await resetBtn.click();
-          const dialogInput = page.locator('div[role="dialog"] input');
+          
+          const dialogInput = page.locator('div[role="dialog"] input').first();
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
           
-          // Now set new PIN
+          // Wait for keypad to appear again
+          await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
+          
+          // Now set new PIN (1234)
           await page.locator('button', { hasText: /^1$/ }).click();
           await page.locator('button', { hasText: /^2$/ }).click();
           await page.locator('button', { hasText: /^3$/ }).click();
           await page.locator('button', { hasText: /^4$/ }).click();
-
+    
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
-      } else {
-          // Just login
-          await page.locator('button', { hasText: /^1$/ }).click();
-          await page.locator('button', { hasText: /^2$/ }).click();
-          await page.locator('button', { hasText: /^3$/ }).click();
-          await page.locator('button', { hasText: /^4$/ }).click();
       }
     }
 

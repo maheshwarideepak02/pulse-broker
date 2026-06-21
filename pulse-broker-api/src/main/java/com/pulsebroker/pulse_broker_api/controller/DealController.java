@@ -107,6 +107,10 @@ public class DealController {
         deal.setPBrokerage(dealDetails.getPBrokerage());
         deal.setSBrokerage(dealDetails.getSBrokerage());
         deal.setBrokeragePayer(dealDetails.getBrokeragePayer());
+        deal.setLoadDate(dealDetails.getLoadDate());
+        if (dealDetails.getStatus() != null) {
+            deal.setStatus(dealDetails.getStatus());
+        }
         return dealRepository.save(deal);
     }
 

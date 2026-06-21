@@ -75,7 +75,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
             setFirms(f);
             setItems(i);
             setMarkas(m);
-            if (!initialData) {
+            if (!initialData || !initialData.purchaserContact) {
                 setFormData(prev => {
                     const updated = { ...prev };
                     if (!updated.purchaserContactId && c.length > 0) {
@@ -101,6 +101,33 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
         .catch(console.error)
         .finally(() => setIsInitialLoading(false));
     }, []);
+
+    // Auto-select first firm if none is selected, since native select visual defaults to the first option
+    useEffect(() => {
+        setFormData(prev => {
+            let updated = { ...prev };
+            let changed = false;
+
+            if (firms.length > 0) {
+                if (!updated.purchaserId && updated.purchaserContactId) {
+                    const availableFirms = firms.filter(f => f.contact?.id == updated.purchaserContactId);
+                    if (availableFirms.length > 0) {
+                        updated.purchaserId = availableFirms[0].id;
+                        changed = true;
+                    }
+                }
+                if (!updated.sellerId && updated.sellerContactId) {
+                    const availableFirms = firms.filter(f => f.contact?.id == updated.sellerContactId);
+                    if (availableFirms.length > 0) {
+                        updated.sellerId = availableFirms[0].id;
+                        changed = true;
+                    }
+                }
+            }
+
+            return changed ? updated : prev;
+        });
+    }, [firms, formData.purchaserContactId, formData.sellerContactId]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;

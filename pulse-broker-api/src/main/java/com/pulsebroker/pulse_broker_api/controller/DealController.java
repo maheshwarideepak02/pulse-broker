@@ -88,6 +88,14 @@ public class DealController {
             throw new IllegalArgumentException("Purchaser and Seller firms cannot be the same.");
         }
         
+        if (Boolean.TRUE.equals(deal.getMarginCleared())) {
+            boolean weightChanged = dealDetails.getWeight() != null && deal.getWeight() != null && dealDetails.getWeight().compareTo(deal.getWeight()) != 0;
+            boolean markupChanged = dealDetails.getMarginMarkup() != null && (deal.getMarginMarkup() == null || dealDetails.getMarginMarkup().compareTo(deal.getMarginMarkup()) != 0);
+            if (weightChanged || markupChanged) {
+                throw new IllegalArgumentException("Cannot edit weight or margin markup of this deal because its margin has already been settled. Please unclear the margin from the Ledger first.");
+            }
+        }
+        
         deal.setDealDate(dealDetails.getDealDate());
         deal.setPurchaserDealDate(dealDetails.getPurchaserDealDate());
         deal.setPurchaserContact(dealDetails.getPurchaserContact());
@@ -185,6 +193,9 @@ public class DealController {
         
         if (deal.getStatus() == com.pulsebroker.pulse_broker_api.entity.DealStatus.BILLED || deal.getPurchaserBill() != null || deal.getSellerBill() != null) {
             throw new IllegalArgumentException("Cannot delete a billed deal. Cancel the bill first.");
+        }
+        if (Boolean.TRUE.equals(deal.getMarginCleared())) {
+            throw new IllegalArgumentException("Cannot delete this deal because its margin has already been settled. Please unclear the margin from the Ledger first.");
         }
         
         // Prevent deleting a parent deal if it has children

@@ -77,10 +77,24 @@ public class Deal {
     @Column(precision = 19, scale = 2)
     @JsonProperty("pBrokerage")
     private BigDecimal pBrokerage; // Purchaser brokerage calculated
-    
+
+    @JsonProperty("pBrokType")
+    private String pBrokType; // 'PERCENT' or 'FIXED'
+
+    @Column(precision = 19, scale = 2)
+    @JsonProperty("pBrokVal")
+    private BigDecimal pBrokVal; // The raw value entered by user
+
     @Column(precision = 19, scale = 2)
     @JsonProperty("sBrokerage")
     private BigDecimal sBrokerage; // Seller brokerage calculated
+
+    @JsonProperty("sBrokType")
+    private String sBrokType; // 'PERCENT' or 'FIXED'
+
+    @Column(precision = 19, scale = 2)
+    @JsonProperty("sBrokVal")
+    private BigDecimal sBrokVal; // The raw value entered by user
 
     @Column(precision = 19, scale = 2)
     private BigDecimal packetWeight;

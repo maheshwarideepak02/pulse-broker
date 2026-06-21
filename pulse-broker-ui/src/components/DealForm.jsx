@@ -23,7 +23,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
             let sbType = 'FIXED';
             let sbVal = initialData.weight && initialData.sBrokerage ? (initialData.sBrokerage / initialData.weight).toFixed(2) : '0';
 
-            if (initialData.weight && initialData.rate) {
+            if (initialData.weight && initialData.rate && !initialData.pBrokType) {
                 const totalValue = initialData.weight * initialData.rate;
                 
                 const matchesPercent = (absoluteVal, testPercent) => {
@@ -52,6 +52,16 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
                         sbVal = initialData.sellerContact.defaultBrokVal;
                     }
                 }
+            }
+
+            // Natively read the stored explicit values if they exist in the DB
+            if (initialData.pBrokType) {
+                pbType = initialData.pBrokType;
+                pbVal = initialData.pBrokVal;
+            }
+            if (initialData.sBrokType) {
+                sbType = initialData.sBrokType;
+                sbVal = initialData.sBrokVal;
             }
 
             return {
@@ -276,7 +286,11 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
             rate: formData.rate,
             marginMarkup: formData.marginMarkup ? parseFloat(formData.marginMarkup) : 0,
             pBrokerage: pBrokerage,
+            pBrokType: formData.pBrokType,
+            pBrokVal: parseFloat(formData.pBrokVal) || 0,
             sBrokerage: sBrokerage,
+            sBrokType: formData.sBrokType,
+            sBrokVal: parseFloat(formData.sBrokVal) || 0,
             brokeragePayer: formData.brokeragePayer,
             status: calculatedStatus
         });

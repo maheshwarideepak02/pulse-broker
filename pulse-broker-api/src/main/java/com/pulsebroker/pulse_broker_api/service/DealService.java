@@ -61,6 +61,10 @@ public class DealService {
             loadedDeal.setPurchaserRate(deal.getPurchaserRate() != null ? deal.getPurchaserRate() : deal.getRate());
             loadedDeal.setPacketWeight(deal.getPacketWeight());
             loadedDeal.setBrokeragePayer(deal.getBrokeragePayer());
+            loadedDeal.setPBrokType(deal.getPBrokType());
+            loadedDeal.setPBrokVal(deal.getPBrokVal());
+            loadedDeal.setSBrokType(deal.getSBrokType());
+            loadedDeal.setSBrokVal(deal.getSBrokVal());
             loadedDeal.setParentDeal(deal); // Link to parent
 
             loadedDeal.setWeight(loadedWeight);

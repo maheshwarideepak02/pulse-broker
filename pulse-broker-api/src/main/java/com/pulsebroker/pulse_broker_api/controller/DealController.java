@@ -105,7 +105,13 @@ public class DealController {
             deal.setPurchaserRate(deal.getRate().add(deal.getMarginMarkup()));
         }
         deal.setPBrokerage(dealDetails.getPBrokerage());
+        deal.setPBrokType(dealDetails.getPBrokType());
+        deal.setPBrokVal(dealDetails.getPBrokVal());
+        
         deal.setSBrokerage(dealDetails.getSBrokerage());
+        deal.setSBrokType(dealDetails.getSBrokType());
+        deal.setSBrokVal(dealDetails.getSBrokVal());
+        
         deal.setBrokeragePayer(dealDetails.getBrokeragePayer());
         deal.setLoadDate(dealDetails.getLoadDate());
         if (dealDetails.getStatus() != null) {

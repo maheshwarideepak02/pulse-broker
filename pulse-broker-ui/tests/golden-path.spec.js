@@ -23,21 +23,32 @@ test.describe('Golden Path E2E', () => {
       await page.locator('button', { hasText: /^2$/ }).click();
       await page.locator('button', { hasText: /^3$/ }).click();
       await page.locator('button', { hasText: /^4$/ }).click();
+
+      const dialogInput = page.locator('div[role="dialog"] input');
+      await dialogInput.waitFor({ state: 'visible' });
+      await dialogInput.fill('PULSE99');
+      await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
     } else {
       // Enter existing PIN or reset it
       const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
       if (await resetBtn.isVisible()) {
-          // We can't handle window.prompt easily without setting up dialog handlers.
-          // Playwright auto-dismisses dialogs. Let's configure it to accept prompt with MASTER CODE.
-          page.on('dialog', async dialog => {
-              if (dialog.type() === 'prompt') {
-                  await dialog.accept('PULSE99');
-              } else {
-                  await dialog.accept();
-              }
-          });
           await resetBtn.click();
+          const dialogInput = page.locator('div[role="dialog"] input');
+          await dialogInput.waitFor({ state: 'visible' });
+          await dialogInput.fill('PULSE99');
+          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          
           // Now set new PIN
+          await page.locator('button', { hasText: /^1$/ }).click();
+          await page.locator('button', { hasText: /^2$/ }).click();
+          await page.locator('button', { hasText: /^3$/ }).click();
+          await page.locator('button', { hasText: /^4$/ }).click();
+
+          await dialogInput.waitFor({ state: 'visible' });
+          await dialogInput.fill('PULSE99');
+          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+      } else {
+          // Just login
           await page.locator('button', { hasText: /^1$/ }).click();
           await page.locator('button', { hasText: /^2$/ }).click();
           await page.locator('button', { hasText: /^3$/ }).click();

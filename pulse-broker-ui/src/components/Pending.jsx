@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getPendingDeals, loadDeal, deleteDeal, getFirms, getItems, getMarkas, updateDeal, getContacts } from '../api';
@@ -15,28 +16,12 @@ const Pending = () => {
     
     // Load Action State
     const [selectedDeal, setSelectedDeal] = useState(null);
-    const [loadData, setLoadData] = useState({ date: getLocalTodayDateString(), weight: '', purchaserId: '', sellerId: '' });
+    const [loadData, setLoadData] = useState({ loadDates: [getLocalTodayDateString()], weight: '', purchaserId: '', sellerId: '' });
     
-    // Edit Action State
-    const [editDeal, setEditDeal] = useState(null);
     const [firms, setFirms] = useState([]);
     const [items, setItems] = useState([]);
     const [markas, setMarkas] = useState([]);
     const [contacts, setContacts] = useState([]);
-    const [editData, setEditData] = useState({
-        dealDate: '',
-        purchaser: { id: '' },
-        seller: { id: '' },
-        item: { id: '' },
-        marka: { id: '' },
-        weight: '',
-        packetWeight: 30,
-        numberOfPackets: '',
-        rate: '',
-        pBrokerage: '',
-        sBrokerage: '',
-        brokeragePayer: 'BOTH'
-    });
 
     const [searchQuery, setSearchQuery] = useState('');
     const [dateSort, setDateSort] = useState('desc'); // 'original', 'asc', 'desc'
@@ -65,7 +50,8 @@ const Pending = () => {
     }, []);
 
     const handleLoad = async () => {
-        if (!selectedDeal || !loadData.weight || !loadData.date) return;
+        const finalLoadDate = loadData.loadDates.filter(d => d).join(', ');
+        if (!selectedDeal || !loadData.weight || !finalLoadDate) return;
         const weightToLoad = parseFloat(loadData.weight);
         if (weightToLoad <= 0) {
             addToast('Loading weight must be greater than zero.', 'error');
@@ -86,7 +72,7 @@ const Pending = () => {
         setIsProcessing(true);
         try {
             await loadDeal(selectedDeal.id, {
-                loadDate: loadData.date,
+                loadDate: finalLoadDate,
                 weight: weightToLoad,
                 purchaserId: loadData.purchaserId || null,
                 sellerId: loadData.sellerId || null
@@ -120,102 +106,9 @@ const Pending = () => {
         }
     };
 
-    const reverseBrokerage = (totalBrok, w, r, defaultVal, defaultType) => {
-        if (!totalBrok) return { val: '', type: 'FIXED' };
-        w = parseFloat(w) || 1; r = parseFloat(r) || 1;
-        const calc = (val, type) => type === 'PERCENT' ? (w * r * val) / 100 : w * val;
-        if (defaultVal && Math.abs(calc(defaultVal, defaultType) - totalBrok) < 0.1) {
-            return { val: defaultVal, type: defaultType };
-        }
-        const asPercent = (totalBrok * 100) / (w * r);
-        if (Math.abs(Math.round(asPercent * 2) / 2 - asPercent) < 0.01) {
-             return { val: asPercent.toFixed(2).replace(/\.00$/, ''), type: 'PERCENT' };
-        }
-        return { val: (totalBrok / w).toFixed(2).replace(/\.00$/, ''), type: 'FIXED' };
-    };
-
+    const navigate = useNavigate();
     const openEditDeal = (deal) => {
-        setEditDeal(deal);
-        const pContact = contacts.find(c => c.id == deal.purchaserContact?.id);
-        const sContact = contacts.find(c => c.id == deal.sellerContact?.id);
-        const pBrokSetup = reverseBrokerage(deal.pBrokerage, deal.weight, deal.rate, pContact?.defaultBrokVal, pContact?.defaultBrokType);
-        const sBrokSetup = reverseBrokerage(deal.sBrokerage, deal.weight, deal.rate, sContact?.defaultBrokVal, sContact?.defaultBrokType);
-
-        setEditData({
-            dealDate: deal.dealDate || '',
-            purchaserDealDate: deal.purchaserDealDate || '',
-            purchaserContact: deal.purchaserContact ? { id: deal.purchaserContact.id } : { id: '' },
-            purchaser: deal.purchaser ? { id: deal.purchaser.id } : { id: '' },
-            sellerContact: deal.sellerContact ? { id: deal.sellerContact.id } : { id: '' },
-            seller: deal.seller ? { id: deal.seller.id } : { id: '' },
-            item: deal.item ? { id: deal.item.id } : { id: '' },
-            marka: deal.marka ? { id: deal.marka.id } : { id: '' },
-            weight: deal.weight || '',
-            packetWeight: deal.packetWeight || 30,
-            numberOfPackets: deal.numberOfPackets || '',
-            rate: deal.rate || '',
-            marginMarkup: deal.marginMarkup || '',
-            pBrokVal: pBrokSetup.val,
-            pBrokType: pBrokSetup.type,
-            sBrokVal: sBrokSetup.val,
-            sBrokType: sBrokSetup.type,
-            brokeragePayer: deal.brokeragePayer || 'SEPARATE'
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    const calcBrokerage = (val, type) => {
-        const weight = parseFloat(editData.weight) || 0;
-        const rate = parseFloat(editData.rate) || 0;
-        if (type === 'PERCENT') return (weight * rate * (parseFloat(val) || 0)) / 100;
-        return weight * (parseFloat(val) || 0);
-    };
-
-    const currentPBrokerage = calcBrokerage(editData.pBrokVal, editData.pBrokType);
-    const currentSBrokerage = calcBrokerage(editData.sBrokVal, editData.sBrokType);
-
-    const handleUpdateDeal = async () => {
-        try {
-            // Data validation (Firms are optional until load)
-            if (editData.purchaser.id && editData.seller.id && editData.purchaser.id === editData.seller.id) {
-                addToast('Purchaser and Seller cannot be the same', 'error');
-                return;
-            }
-            if (parseFloat(editData.weight) <= 0 || parseFloat(editData.rate) <= 0) {
-                addToast('Weight and Rate must be greater than zero', 'error');
-                return;
-            }
-            if (currentPBrokerage < 0 || currentSBrokerage < 0) {
-                addToast('Brokerage values cannot be negative', 'error');
-                return;
-            }
-            setIsProcessing(true);
-            await updateDeal(editDeal.id, {
-                dealDate: editData.dealDate || null,
-                purchaserDealDate: editData.purchaserDealDate || null,
-                purchaserContact: editData.purchaserContact.id ? { id: editData.purchaserContact.id } : null,
-                sellerContact: editData.sellerContact.id ? { id: editData.sellerContact.id } : null,
-                purchaser: editData.purchaser.id ? { id: editData.purchaser.id } : null,
-                seller: editData.seller.id ? { id: editData.seller.id } : null,
-                item: editData.item.id ? { id: editData.item.id } : null,
-                marka: editData.marka.id ? { id: editData.marka.id } : null,
-                weight: parseFloat(editData.weight),
-                packetWeight: editData.packetWeight ? parseFloat(editData.packetWeight) : null,
-                numberOfPackets: editData.numberOfPackets ? parseInt(editData.numberOfPackets) : null,
-                rate: parseFloat(editData.rate),
-                marginMarkup: editData.marginMarkup ? parseFloat(editData.marginMarkup) : 0,
-                pBrokerage: currentPBrokerage > 0 ? parseFloat(currentPBrokerage.toFixed(2)) : null,
-                sBrokerage: currentSBrokerage > 0 ? parseFloat(currentSBrokerage.toFixed(2)) : null,
-                brokeragePayer: editData.brokeragePayer
-            });
-            addToast('Deal Updated Successfully!', 'success');
-            setEditDeal(null);
-            fetchDeals();
-        } catch (e) {
-            addToast(e.response?.data?.message || 'Failed to update deal', 'error');
-        } finally {
-            setIsProcessing(false);
-        }
+        navigate(`/app/deals/edit/${deal.id}`);
     };
 
     const filteredDeals = deals.filter(deal => {
@@ -247,9 +140,6 @@ const Pending = () => {
                     </div>
                 </div>
             )}
-            
-            {!editDeal && (
-                <>
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
@@ -359,7 +249,7 @@ const Pending = () => {
                                         <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Delete Deal', 'सौदा मिटाएं')}>
                                             🗑️ {t('Delete', 'मिटाएं')}
                                         </button>
-                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
+                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
                                             {t('Load Now', 'लोड करें')}
                                         </button>
                                     </td>
@@ -424,7 +314,7 @@ const Pending = () => {
                             </div>
 
                             <div className="flex gap-2 pt-3 border-t border-gray-100 mt-2">
-                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ date: getLocalTodayDateString(), weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95">
+                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95">
                                     <span>🚚</span> {t('Load', 'लोड')}
                                 </button>
                                 <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider flex items-center justify-center active:scale-95">
@@ -440,202 +330,6 @@ const Pending = () => {
                 </>
                 )}
             </div>
-            </>
-            )}
-
-            {/* Edit Deal Form */}
-            {editDeal && (
-                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 animate-slide-in relative overflow-hidden mb-8">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
-                    <div className="p-6 sm:p-8 relative z-10">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-6 border-b border-gray-100">
-                            <div className="flex items-center gap-4">
-                                <button onClick={() => setEditDeal(null)} className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors shadow-sm font-bold text-lg" title="Back to Deals">
-                                    ←
-                                </button>
-                                <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
-                                    <span className="text-primary">✏️</span> {t('Edit Pending Deal', 'सौदा संपादित करें')}
-                                </h2>
-                            </div>
-                        </div>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
-                            {/* Left Column */}
-                            <div className="space-y-4">
-                                <div className="flex gap-4">
-                                    <div className="flex-1">
-                                        <DateInput
-                                            label={t('Seller Date', 'विक्रेता तारीख')}
-                                            value={editData.dealDate}
-                                            onChange={e => setEditData({...editData, dealDate: e.target.value})}
-                                            variant="deal"
-                                            required
-                                        />
-                                    </div>
-                                    <div className="flex-1">
-                                        <DateInput
-                                            label={t('Buyer Date', 'खरीदार तारीख')}
-                                            value={editData.purchaserDealDate}
-                                            onChange={e => setEditData({...editData, purchaserDealDate: e.target.value})}
-                                            variant="default"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="bg-red-50/30 p-3 rounded-lg border border-red-100">
-                                    <label className="block text-xs font-bold text-primary uppercase mb-1">{t('Purchaser Party', 'खरीदार पार्टी')}</label>
-                                    <select value={editData.purchaserContact.id} onChange={e => {
-                                        setEditData({...editData, purchaserContact: { id: e.target.value }, purchaser: { id: '' }})
-                                    }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white mb-3">
-                                        <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
-                                        {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Purchaser Firm', 'खरीदार फर्म')}</label>
-                                    <select value={editData.purchaser.id} onChange={e => setEditData({...editData, purchaser: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white" disabled={!editData.purchaserContact.id}>
-                                        <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
-                                        {firms.filter(f => f.contact?.id == editData.purchaserContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="bg-blue-50/30 p-3 rounded-lg border border-blue-100">
-                                    <label className="block text-xs font-bold text-blue-800 uppercase mb-1">{t('Seller Party', 'विक्रेता पार्टी')}</label>
-                                    <select value={editData.sellerContact.id} onChange={e => {
-                                        setEditData({...editData, sellerContact: { id: e.target.value }, seller: { id: '' }})
-                                    }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none bg-white mb-3">
-                                        <option value="">{t('Select Party...', 'पार्टी चुनें...')}</option>
-                                        {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                                    </select>
-
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Seller Firm', 'विक्रेता फर्म')}</label>
-                                    <select value={editData.seller.id} onChange={e => setEditData({...editData, seller: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-blue-600 outline-none bg-white" disabled={!editData.sellerContact.id}>
-                                        <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
-                                        {firms.filter(f => f.contact?.id == editData.sellerContact.id).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Item', 'आइटम')}</label>
-                                        <select value={editData.item.id} onChange={e => setEditData({...editData, item: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                            <option value="">{t('Select Item', 'आइटम चुनें')}</option>
-                                            {items.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Marka', 'मार्का')}</label>
-                                        <select value={editData.marka.id} onChange={e => setEditData({...editData, marka: { id: e.target.value }})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none bg-white">
-                                            <option value="">{t('Select Marka', 'मार्का चुनें')}</option>
-                                            {markas.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Right Column */}
-                            <div className="space-y-4">
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Weight (Qtl)', 'वजन (क्विंटल)')}</label>
-                                        <input type="number" name="weight" value={editData.weight} onChange={e => {
-                                            const w = parseFloat(e.target.value);
-                                            const pw = parseFloat(editData.packetWeight);
-                                            let np = editData.numberOfPackets;
-                                            if (!isNaN(w) && !isNaN(pw) && pw > 0) np = Math.round((w * 100) / pw);
-                                            setEditData({...editData, weight: e.target.value, numberOfPackets: np});
-                                        }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Base Rate (₹)', 'मूल दर (₹)')}</label>
-                                        <input type="number" name="rate" value={editData.rate} onChange={e => setEditData({...editData, rate: e.target.value})} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
-                                    </div>
-                                    <div className="relative">
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Markup (± ₹)', 'मार्जिन (± ₹)')}</label>
-                                        <input type="number" name="marginMarkup" value={editData.marginMarkup} onChange={e => setEditData({...editData, marginMarkup: e.target.value})} className={`w-full border-2 p-2.5 rounded-lg focus:ring-2 outline-none ${editData.marginMarkup > 0 ? 'border-green-300 text-green-700 focus:ring-green-500 bg-green-50' : editData.marginMarkup < 0 ? 'border-red-300 text-red-700 focus:ring-red-500 bg-red-50' : 'border-gray-200 focus:ring-primary'}`} step="0.01" />
-                                        {editData.rate && editData.marginMarkup && (
-                                            <div className="absolute -bottom-5 right-0 text-[10px] font-bold text-gray-500">
-                                                Purchaser: ₹{parseFloat(editData.rate) + parseFloat(editData.marginMarkup || 0)}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Packet (kg)', 'पैकेट (किलो)')}</label>
-                                        <input type="number" value={editData.packetWeight} onChange={e => {
-                                            const pw = parseFloat(e.target.value);
-                                            const w = parseFloat(editData.weight);
-                                            let np = editData.numberOfPackets;
-                                            if (!isNaN(w) && !isNaN(pw) && pw > 0) np = Math.round((w * 100) / pw);
-                                            setEditData({...editData, packetWeight: e.target.value, numberOfPackets: np});
-                                        }} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="1" step="0.5" />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-bold text-secondary uppercase mb-1">{t('Total Bags', 'कुल बोरी')}</label>
-                                        <input type="number" value={editData.numberOfPackets} onChange={e => {
-                                            const np = parseInt(e.target.value, 10);
-                                            const pw = parseFloat(editData.packetWeight);
-                                            let w = editData.weight;
-                                            if (!isNaN(np) && !isNaN(pw) && pw > 0) {
-                                                const calcW = (np * pw) / 100;
-                                                // Always recalculate weight when packet count or packet weight explicitly changes
-                                                w = calcW.toFixed(2);
-                                            }
-                                            setEditData({...editData, numberOfPackets: e.target.value, weight: w});
-                                        }} className="w-full border-2 border-yellow-200 bg-yellow-50 text-secondary p-2.5 rounded-lg font-bold focus:ring-2 focus:ring-secondary outline-none" min="1" />
-                                    </div>
-                                </div>
-                                
-                                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                    <label className="block text-xs font-bold text-gray-500 uppercase mb-2">{t('Brokerage Settings', 'दलाली सेटिंग्स')}</label>
-                                    
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
-                                            <label className="text-[10px] font-bold text-primary uppercase tracking-wider block mb-2">{t('Purchaser Pays', 'खरीदार की दलाली')}</label>
-                                            <div className="flex flex-col sm:flex-row gap-2">
-                                                <input type="number" value={editData.pBrokVal} onChange={e => setEditData({...editData, pBrokVal: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" />
-                                                <select value={editData.pBrokType} onChange={e => setEditData({...editData, pBrokType: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm">
-                                                    <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
-                                                    <option value="FIXED">₹ {t('Fixed/Qtl', 'प्रति क्विंटल')}</option>
-                                                </select>
-                                            </div>
-                                            <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center">
-                                                <span className="text-gray-400 font-bold text-[10px] uppercase">Calc</span> 
-                                                <span className="font-black text-sm text-primary">₹ {currentPBrokerage.toFixed(2)}</span>
-                                            </div>
-                                        </div>
-
-                                        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-sm">
-                                            <label className="text-[10px] font-bold text-secondary uppercase tracking-wider block mb-2">{t('Seller Pays', 'विक्रेता की दलाली')}</label>
-                                            <div className="flex flex-col sm:flex-row gap-2">
-                                                <input type="number" value={editData.sBrokVal} onChange={e => setEditData({...editData, sBrokVal: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm" step="0.01" />
-                                                <select value={editData.sBrokType} onChange={e => setEditData({...editData, sBrokType: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm">
-                                                    <option value="PERCENT">% {t('Percent', 'प्रतिशत')}</option>
-                                                    <option value="FIXED">₹ {t('Fixed/Qtl', 'प्रति क्विंटल')}</option>
-                                                </select>
-                                            </div>
-                                            <div className="mt-2 pt-2 border-t border-gray-100 flex justify-between items-center">
-                                                <span className="text-gray-400 font-bold text-[10px] uppercase">Calc</span> 
-                                                <span className="font-black text-sm text-secondary">₹ {currentSBrokerage.toFixed(2)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">{t('Who Pays Brokerage?', 'दलाली कौन देगा?')}</label>
-                                    <select value={editData.brokeragePayer} onChange={e => setEditData({...editData, brokeragePayer: e.target.value})} className="w-full border-2 border-gray-200 p-2 rounded-lg text-sm bg-white font-bold">
-                                        <option value="SEPARATE">{t('Separate (Both pay own)', 'अलग-अलग (दोनों अपनी-अपनी)')}</option>
-                                        <option value="PURCHASER_BOTH">{t('Purchaser Pays Both', 'खरीदार दोनों देगा')}</option>
-                                        <option value="SELLER_BOTH">{t('Seller Pays Both', 'विक्रेता दोनों देगा')}</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                            <button onClick={() => setEditDeal(null)} className="px-6 py-3 bg-white border-2 border-gray-200 hover:bg-gray-50 transition-colors font-bold rounded-xl text-gray-600">{t('Cancel', 'रद्द करें')}</button>
-                            <button onClick={handleUpdateDeal} disabled={isProcessing} className={`px-8 py-3 transition-all text-white font-bold rounded-xl shadow-lg flex items-center gap-2 text-lg ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary hover:bg-red-800 hover:-translate-y-0.5'}`}>
-                                <span>{isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('Save Changes', 'परिवर्तन सहेजें')}</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Load Deal Modal */}
             {selectedDeal && (
@@ -658,13 +352,37 @@ const Pending = () => {
                         </div>
 
                         <div>
-                            <DateInput
-                                label={t('Loading Date', 'लोडिंग की तारीख')}
-                                value={loadData.date}
-                                onChange={e => setLoadData({...loadData, date: e.target.value})}
-                                variant="load"
-                                required
-                            />
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                {t('Loading Dates', 'लोडिंग की तारीख')}
+                            </label>
+                            {loadData.loadDates.map((date, idx) => (
+                                <div key={idx} className="flex items-center gap-2 mb-2">
+                                    <div className="flex-1">
+                                        <DateInput
+                                            value={date}
+                                            onChange={e => {
+                                                const newDates = [...loadData.loadDates];
+                                                newDates[idx] = e.target.value;
+                                                setLoadData(prev => ({...prev, loadDates: newDates}));
+                                            }}
+                                            variant="load"
+                                        />
+                                    </div>
+                                    {idx > 0 && (
+                                        <button type="button" onClick={() => {
+                                            const newDates = loadData.loadDates.filter((_, i) => i !== idx);
+                                            setLoadData(prev => ({...prev, loadDates: newDates}));
+                                        }} className="text-gray-400 hover:text-red-500 font-bold p-2 text-xl" title="Remove Date">
+                                            🗑️
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <button type="button" onClick={() => {
+                                setLoadData(prev => ({...prev, loadDates: [...prev.loadDates, '']}));
+                            }} className="text-secondary hover:text-yellow-600 font-bold text-xs uppercase flex items-center gap-1 mt-1 transition-colors">
+                                <span>➕ {t('Add Date', 'तारीख जोड़ें')}</span>
+                            </button>
                         </div>
                         <div className="mb-8">
                             <label className="block text-sm font-bold text-textMain mb-1.5">{t('Loaded Weight (Qtl)', 'लोड किया गया वजन')}</label>

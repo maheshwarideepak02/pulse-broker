@@ -13,6 +13,7 @@ import Settings from './components/Settings';
 import NewDeal from './components/NewDeal';
 import MarginLedger from './components/MarginLedger';
 import Analytics from './components/Analytics';
+import EditDeal from './components/EditDeal';
 
 const Layout = ({ children }) => (
     <div className="app-shell bg-background text-textMain min-h-screen">
@@ -137,6 +138,7 @@ function App() {
                         <Route path="pending" element={<Pending />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="new-deal" element={<NewDeal />} />
+                        <Route path="deals/edit/:id" element={<EditDeal />} />
                         <Route path="analytics" element={<Analytics />} />
                         <Route path="*" element={<Navigate to="dashboard" replace />} />
                       </Routes>

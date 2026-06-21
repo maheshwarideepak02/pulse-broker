@@ -1,9 +1,4 @@
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
-
-const A4_WIDTH_MM = 210;
-const A4_HEIGHT_MM = 297;
-const PAGE_MARGIN_MM = 8;
+import html2pdf from 'html2pdf.js';
 
 export const safeFileName = (value, fallback = 'invoice') => {
     const cleaned = String(value || fallback)
@@ -13,54 +8,48 @@ export const safeFileName = (value, fallback = 'invoice') => {
     return cleaned || fallback;
 };
 
+const getPdfOptions = (fileName) => ({
+    margin: [10, 10, 10, 10], // top, left, bottom, right margins in mm
+    filename: `${safeFileName(fileName)}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+});
+
 export const createInvoicePdf = async (element, fileName) => {
     if (!element) throw new Error('Invoice is not ready for export.');
     if (document.fonts?.ready) await document.fonts.ready;
-
-    const canvas = await html2canvas(element, {
-        scale: Math.min(window.devicePixelRatio || 1, 2),
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        logging: false,
-        windowWidth: Math.max(element.scrollWidth, 800),
-    });
-
-    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
-    const printableWidth = A4_WIDTH_MM - (PAGE_MARGIN_MM * 2);
-    const printableHeight = A4_HEIGHT_MM - (PAGE_MARGIN_MM * 2);
-    const imageHeight = (canvas.height * printableWidth) / canvas.width;
-    const imageData = canvas.toDataURL('image/jpeg', 0.94);
-
-    let renderedHeight = 0;
-    let pageIndex = 0;
-    while (renderedHeight < imageHeight) {
-        if (pageIndex > 0) pdf.addPage();
-        pdf.addImage(imageData, 'JPEG', PAGE_MARGIN_MM, PAGE_MARGIN_MM - renderedHeight, printableWidth, imageHeight, undefined, 'FAST');
-        renderedHeight += printableHeight;
-        pageIndex += 1;
-    }
-
+    
+    // Create html2pdf worker instance
+    const worker = html2pdf().set(getPdfOptions(fileName)).from(element);
+    
+    // Get Blob
+    const blob = await worker.outputPdf('blob');
     const resolvedName = `${safeFileName(fileName)}.pdf`;
-    return { pdf, blob: pdf.output('blob'), fileName: resolvedName };
+    
+    return { blob, fileName: resolvedName, worker };
 };
 
 export const downloadInvoicePdf = async (element, fileName) => {
-    const result = await createInvoicePdf(element, fileName);
-    result.pdf.save(result.fileName);
-    return result;
+    const { worker } = await createInvoicePdf(element, fileName);
+    // Let html2pdf handle the save
+    await worker.save();
+    return { success: true };
 };
 
 export const shareInvoice = async ({ element, fileName, title, text }) => {
-    const result = await createInvoicePdf(element, fileName);
-    const file = new File([result.blob], result.fileName, { type: 'application/pdf' });
+    const { blob, fileName: resolvedName, worker } = await createInvoicePdf(element, fileName);
+    const file = new File([blob], resolvedName, { type: 'application/pdf' });
 
     if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {
         await navigator.share({ title, text, files: [file] });
         return { method: 'native' };
     }
 
-    result.pdf.save(result.fileName);
-    const fallbackText = `${text}\n\nPDF downloaded as ${result.fileName}. Please attach it in WhatsApp.`;
+    // Fallback: trigger download and open WhatsApp Web
+    await worker.save();
+    const fallbackText = `${text}\n\nPDF downloaded as ${resolvedName}. Please attach it in WhatsApp.`;
     window.open(`https://wa.me/?text=${encodeURIComponent(fallbackText)}`, '_blank', 'noopener,noreferrer');
     return { method: 'whatsapp-fallback' };
 };

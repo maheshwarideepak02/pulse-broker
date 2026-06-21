@@ -52,6 +52,15 @@ const Pending = () => {
     const handleLoad = async () => {
         const finalLoadDate = loadData.loadDates.filter(d => d).join(', ');
         if (!selectedDeal || !loadData.weight || !finalLoadDate) return;
+
+        const dealDateObj = new Date(selectedDeal.dealDate);
+        const loadDatesArray = loadData.loadDates.filter(d => d);
+        for (const d of loadDatesArray) {
+            if (new Date(d) < dealDateObj) {
+                addToast(t('Loading date cannot be before the deal date', 'लोडिंग की तारीख सौदे की तारीख से पहले नहीं हो सकती'), 'error');
+                return;
+            }
+        }
         const weightToLoad = parseFloat(loadData.weight);
         if (weightToLoad <= 0) {
             addToast('Loading weight must be greater than zero.', 'error');

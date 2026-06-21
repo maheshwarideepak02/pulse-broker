@@ -220,6 +220,14 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
         const finalLoadDate = formData.loadDates.filter(d => d).join(', ') || null;
 
         if (finalLoadDate) {
+            const dealDateObj = new Date(formData.dealDate);
+            const loadDatesArray = formData.loadDates.filter(d => d);
+            for (const d of loadDatesArray) {
+                if (new Date(d) < dealDateObj) {
+                    addToast(t('Loading date cannot be before the deal date', 'लोडिंग की तारीख सौदे की तारीख से पहले नहीं हो सकती'), 'error');
+                    return;
+                }
+            }
             if (!formData.purchaserId || !formData.sellerId) {
                 addToast('Firms must be selected if a Load Date is provided', 'error');
                 return;

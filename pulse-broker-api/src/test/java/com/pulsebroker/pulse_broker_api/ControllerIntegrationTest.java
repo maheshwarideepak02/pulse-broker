@@ -32,6 +32,16 @@ public class ControllerIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private org.springframework.test.web.servlet.ResultActions performAuth(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder builder) throws Exception {
+        return mockMvc.perform(builder.header("Authorization", "Bearer PULSE99"));
+    }
+
+
+    private org.springframework.test.web.servlet.ResultActions performAuth(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder builder) throws Exception {
+        return performAuth(builder.header("Authorization", "PULSE99"));
+    }
+
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -103,14 +113,14 @@ public class ControllerIntegrationTest {
     @Test
     void testContactEndpoints() throws Exception {
         // Test GET all
-        mockMvc.perform(get("/api/contacts"))
+        performAuth(get("/api/contacts"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Purchaser Contact"));
 
         // Test POST (create)
         Contact newContact = new Contact();
         newContact.setName("Another Contact");
-        mockMvc.perform(post("/api/contacts")
+        performAuth(post("/api/contacts")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(newContact)))
                 .andExpect(status().isOk())
@@ -118,7 +128,7 @@ public class ControllerIntegrationTest {
 
         // Test PUT (update)
         contact.setName("Updated Contact");
-        mockMvc.perform(put("/api/contacts/" + contact.getId())
+        performAuth(put("/api/contacts/" + contact.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(contact)))
                 .andExpect(status().isOk())
@@ -138,7 +148,7 @@ public class ControllerIntegrationTest {
         firmRepository.save(tempFirm);
 
         // Delete Contact (should delete tempFirm too)
-        mockMvc.perform(delete("/api/contacts/" + tempContact.getId()))
+        performAuth(delete("/api/contacts/" + tempContact.getId()))
                 .andExpect(status().isNoContent());
 
         assertThat(contactRepository.findById(tempContact.getId())).isEmpty();
@@ -148,20 +158,20 @@ public class ControllerIntegrationTest {
     @Test
     void testFirmEndpoints() throws Exception {
         // Test GET all
-        mockMvc.perform(get("/api/firms"))
+        performAuth(get("/api/firms"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Purchaser Firm"));
 
         // Test PUT (update)
         purchaser.setName("Updated Purchaser");
-        mockMvc.perform(put("/api/firms/" + purchaser.getId())
+        performAuth(put("/api/firms/" + purchaser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(purchaser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Updated Purchaser"));
 
         // Test DELETE (success since no deals exist)
-        mockMvc.perform(delete("/api/firms/" + purchaser.getId()))
+        performAuth(delete("/api/firms/" + purchaser.getId()))
                 .andExpect(status().isNoContent());
         assertThat(firmRepository.findById(purchaser.getId())).isEmpty();
     }
@@ -169,20 +179,20 @@ public class ControllerIntegrationTest {
     @Test
     void testItemMarkaEndpoints() throws Exception {
         // Test Item Endpoints
-        mockMvc.perform(get("/api/items"))
+        performAuth(get("/api/items"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Chana"));
 
-        mockMvc.perform(delete("/api/items/" + item.getId()))
+        performAuth(delete("/api/items/" + item.getId()))
                 .andExpect(status().isNoContent());
         assertThat(itemRepository.findById(item.getId())).isEmpty();
 
         // Test Marka Endpoints
-        mockMvc.perform(get("/api/markas"))
+        performAuth(get("/api/markas"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("A-One"));
 
-        mockMvc.perform(delete("/api/markas/" + marka.getId()))
+        performAuth(delete("/api/markas/" + marka.getId()))
                 .andExpect(status().isNoContent());
         assertThat(markaRepository.findById(marka.getId())).isEmpty();
     }
@@ -207,17 +217,17 @@ public class ControllerIntegrationTest {
         deal = dealRepository.save(deal);
 
         // Deleting item should fail because it is referenced in deal
-        mockMvc.perform(delete("/api/items/" + item.getId()))
+        performAuth(delete("/api/items/" + item.getId()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Cannot delete item because it is referenced in deals."));
 
         // Deleting firm should fail because it has deal
-        mockMvc.perform(delete("/api/firms/" + purchaser.getId()))
+        performAuth(delete("/api/firms/" + purchaser.getId()))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Cannot delete firm because it has associated deals."));
 
         // Load Deal (Full Load)
-        mockMvc.perform(post("/api/deals/" + deal.getId() + "/load")
+        performAuth(post("/api/deals/" + deal.getId() + "/load")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"weight\":\"50.00\",\"loadDate\":\"" + LocalDate.now() + "\"}"))
                 .andExpect(status().isOk());
@@ -226,7 +236,7 @@ public class ControllerIntegrationTest {
         assertThat(loadedDeal.getStatus()).isEqualTo(DealStatus.LOADED);
 
         // Generate Bill
-        mockMvc.perform(post("/api/billing/generate?firmId=" + purchaser.getId()))
+        performAuth(post("/api/billing/generate?firmId=" + purchaser.getId()))
                 .andExpect(status().isOk());
 
         loadedDeal = dealRepository.findById(deal.getId()).orElseThrow();
@@ -235,11 +245,11 @@ public class ControllerIntegrationTest {
         assertThat(bill).isNotNull();
 
         // Attempting to delete billed deal should fail
-        mockMvc.perform(delete("/api/deals/" + deal.getId()))
+        performAuth(delete("/api/deals/" + deal.getId()))
                 .andExpect(status().isBadRequest());
 
         // Delete Bill (should revert deal back to LOADED and remove bill link)
-        mockMvc.perform(delete("/api/billing/" + bill.getId()))
+        performAuth(delete("/api/billing/" + bill.getId()))
                 .andExpect(status().isNoContent());
 
         loadedDeal = dealRepository.findById(deal.getId()).orElseThrow();

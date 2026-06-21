@@ -163,7 +163,7 @@ class FinancialFlowIntegrationTest {
         deal = dealRepository.save(deal);
 
         // Load 1: 50 Qtl assigned to testFirmPurchaser
-        Deal load1 = dealService.loadDeal(deal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), testFirmPurchaser.getId(), null);
+        Deal load1 = dealService.loadDeal(deal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), testFirmPurchaser.getId(), testFirmSeller.getId());
         assertThat(load1.getWeight()).isEqualByComparingTo("50.00");
         assertThat(load1.getPurchaser().getId()).isEqualTo(testFirmPurchaser.getId());
 
@@ -174,7 +174,7 @@ class FinancialFlowIntegrationTest {
         secondPurchaserFirm = firmRepository.save(secondPurchaserFirm);
 
         // Load 2: Remaining 50 Qtl assigned to secondPurchaserFirm
-        Deal load2 = dealService.loadDeal(deal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), secondPurchaserFirm.getId(), null);
+        Deal load2 = dealService.loadDeal(deal.getId(), new BigDecimal("50.00"), LocalDate.now().toString(), secondPurchaserFirm.getId(), testFirmSeller.getId());
         assertThat(load2.getWeight()).isEqualByComparingTo("50.00");
         assertThat(load2.getPurchaser().getId()).isEqualTo(secondPurchaserFirm.getId());
 

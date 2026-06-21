@@ -30,6 +30,12 @@ class EdgeCaseIntegrationTest {
     @Autowired
     private DealRepository dealRepository;
 
+    @Autowired
+    private com.pulsebroker.pulse_broker_api.repository.ContactRepository contactRepository;
+
+    @Autowired
+    private com.pulsebroker.pulse_broker_api.repository.FirmRepository firmRepository;
+
     @Test
     void testNegativeMarkupIsAllowedButChecked() {
         Deal dealDetails = new Deal();
@@ -60,21 +66,39 @@ class EdgeCaseIntegrationTest {
         final Long dealId = deal.getId();
         assertThatThrownBy(() -> dealController.updateDeal(dealId, updateDetails))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Cannot edit a billed deal");
+                .hasMessageContaining("been billed or partially billed");
     }
 
     @Test
     void testAutoLoadUpdatesStatusOnEdit() {
+        com.pulsebroker.pulse_broker_api.entity.Contact contact = new com.pulsebroker.pulse_broker_api.entity.Contact();
+        contact.setName("Test Contact");
+        contact = contactRepository.save(contact);
+        
+        com.pulsebroker.pulse_broker_api.entity.Firm purchaser = new com.pulsebroker.pulse_broker_api.entity.Firm();
+        purchaser.setName("P Firm");
+        purchaser.setContact(contact);
+        purchaser = firmRepository.save(purchaser);
+        
+        com.pulsebroker.pulse_broker_api.entity.Firm seller = new com.pulsebroker.pulse_broker_api.entity.Firm();
+        seller.setName("S Firm");
+        seller.setContact(contact);
+        seller = firmRepository.save(seller);
+        
         Deal deal = new Deal();
         deal.setStatus(DealStatus.PENDING);
         deal.setWeight(new BigDecimal("100"));
         deal.setRate(new BigDecimal("5000"));
+        deal.setPurchaser(purchaser);
+        deal.setSeller(seller);
         deal = dealRepository.save(deal);
 
         Deal updateDetails = new Deal();
         updateDetails.setLoadDate("2023-10-10");
         updateDetails.setStatus(DealStatus.LOADED);
         updateDetails.setWeight(new BigDecimal("100"));
+        updateDetails.setPurchaser(purchaser);
+        updateDetails.setSeller(seller);
         
         Deal updated = dealController.updateDeal(deal.getId(), updateDetails);
         

@@ -132,12 +132,19 @@ public class DealController {
                     parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
                 );
             }
+            if (deal.getLoadDate() != null && !deal.getLoadDate().trim().isEmpty()) {
+                if (parent.getLoadDate() == null || parent.getLoadDate().trim().isEmpty()) {
+                    parent.setLoadDate(deal.getLoadDate());
+                } else if (!parent.getLoadDate().contains(deal.getLoadDate())) {
+                    parent.setLoadDate(parent.getLoadDate() + ", " + deal.getLoadDate());
+                }
+            }
             dealRepository.save(parent);
             dealRepository.delete(deal);
             return parent;
         } else {
             deal.setStatus(DealStatus.PENDING);
-            deal.setLoadDate(null);
+            // Preserve the loadDate so it pre-populates in the Edit screen
             return dealRepository.save(deal);
         }
     }

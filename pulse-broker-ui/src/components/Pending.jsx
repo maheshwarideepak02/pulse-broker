@@ -291,14 +291,16 @@ const Pending = () => {
                             <div className="flex justify-between items-center bg-gray-50 p-2 rounded-xl border border-gray-100 mb-3">
                                 <div className="flex flex-col flex-1">
                                     <span className="font-extrabold text-sm text-gray-900">{deal.purchaserContact?.name || deal.purchaser?.name}</span>
-                                    <span className="text-[10px] text-gray-500 font-bold uppercase">{t('Purchaser', 'खरीदार')}</span>
+                                    {deal.purchaserContact && deal.purchaser && <span className="text-xs font-normal text-gray-500">{deal.purchaser.name}</span>}
+                                    <span className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">{t('Purchaser', 'खरीदार')}</span>
                                 </div>
                                 <div className="flex items-center justify-center px-2">
                                     <span className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-[10px] shadow-sm">➡️</span>
                                 </div>
                                 <div className="flex flex-col flex-1 text-right">
                                     <span className="font-extrabold text-sm text-gray-900">{deal.sellerContact?.name || deal.seller?.name}</span>
-                                    <span className="text-[10px] text-gray-500 font-bold uppercase">{t('Seller', 'विक्रेता')}</span>
+                                    {deal.sellerContact && deal.seller && <span className="text-xs font-normal text-gray-500">{deal.seller.name}</span>}
+                                    <span className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">{t('Seller', 'विक्रेता')}</span>
                                 </div>
                             </div>
 

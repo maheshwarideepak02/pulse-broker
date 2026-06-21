@@ -72,7 +72,11 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
                     />
                 </div>
             </div>
-            
+            {dateInfo && (
+                <div className="mt-1.5 flex items-center gap-1.5 text-xs font-bold text-gray-500 animate-slide-in">
+                    <span className="opacity-80 text-primary">📅</span> {dateInfo.formatted}
+                </div>
+            )}
         </div>
     );
 };

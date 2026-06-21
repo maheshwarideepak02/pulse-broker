@@ -67,6 +67,16 @@ input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:f
   box-shadow: 0 0 0 3px rgba(134,31,43,.10) !important;
 }
 
+/* Hide number input spin buttons globally to prevent accidental scroll changes */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
 table thead { letter-spacing: .035em; }
 table tbody tr { transition: background-color .16s ease; }
 

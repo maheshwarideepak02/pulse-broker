@@ -11,7 +11,11 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
     const getFormattedLabel = () => {
         if (!value) return null;
         try {
-            const date = new Date(value + 'T00:00:00');
+            const dateParts = value.split('-');
+            if (dateParts.length !== 3) return null;
+            const date = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+            if (isNaN(date.getTime())) return null;
+            
             const dayName = DAYS[date.getDay()];
             const day = date.getDate();
             const month = date.toLocaleDateString('en-IN', { month: 'short' });
@@ -23,10 +27,22 @@ const DateInput = ({ value, onChange, label, labelHi, variant = 'deal', required
     };
 
     const dateInfo = getFormattedLabel();
-    const dateValue = value ? new Date(value + 'T00:00:00') : null;
+    
+    // Safely parse the incoming "YYYY-MM-DD" string into a local Date object without timezone shifting
+    let dateValue = null;
+    if (value && typeof value === 'string' && value.includes('-')) {
+        const parts = value.split('-');
+        if (parts.length === 3) {
+            const parsedDate = new Date(parts[0], parts[1] - 1, parts[2]);
+            if (!isNaN(parsedDate.getTime())) {
+                dateValue = parsedDate;
+            }
+        }
+    }
 
     const handleChange = (date) => {
-        if (!date) {
+        // Handle cleared input or invalid manual typing
+        if (!date || isNaN(date.getTime())) {
             onChange({ target: { value: '' } });
             return;
         }

@@ -35,11 +35,17 @@ public class ContactController {
 
     @PostMapping
     public Contact create(@RequestBody Contact contact) {
+        if (contact.getName() == null || contact.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Contact name cannot be empty.");
+        }
         return contactRepository.save(contact);
     }
 
     @PutMapping("/{id}")
     public Contact update(@PathVariable Long id, @RequestBody Contact contactDetails) {
+        if (contactDetails.getName() == null || contactDetails.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Contact name cannot be empty.");
+        }
         Contact contact = contactRepository.findById(id).orElseThrow(() -> new RuntimeException("Contact not found"));
         contact.setName(contactDetails.getName());
         contact.setPhone(contactDetails.getPhone());

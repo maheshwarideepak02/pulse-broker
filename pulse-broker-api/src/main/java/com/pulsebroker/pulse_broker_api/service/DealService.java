@@ -85,6 +85,9 @@ public class DealService {
                 deal.setSBrokerage(deal.getSBrokerage().subtract(loadedDeal.getSBrokerage()));
             }
 
+            if (loadedDeal.getPurchaser() == null || loadedDeal.getSeller() == null) {
+                throw new IllegalArgumentException("Cannot dispatch load. A loaded deal must have both a Purchaser and Seller firm assigned.");
+            }
             loadedDeal.setStatus(DealStatus.LOADED);
             dealRepository.save(loadedDeal);
 
@@ -99,7 +102,6 @@ public class DealService {
             return loadedDeal;
         } else {
             // Full Load
-            deal.setStatus(DealStatus.LOADED);
             deal.setLoadDate(loadDate);
             if (purchaserId != null) {
                 deal.setPurchaser(firmRepository.findById(purchaserId).orElseThrow(() -> new IllegalArgumentException("Purchaser firm not found")));
@@ -107,6 +109,11 @@ public class DealService {
             if (sellerId != null) {
                 deal.setSeller(firmRepository.findById(sellerId).orElseThrow(() -> new IllegalArgumentException("Seller firm not found")));
             }
+
+            if (deal.getPurchaser() == null || deal.getSeller() == null) {
+                throw new IllegalArgumentException("Cannot dispatch load. A loaded deal must have both a Purchaser and Seller firm assigned.");
+            }
+            deal.setStatus(DealStatus.LOADED);
             return dealRepository.save(deal);
         }
     }

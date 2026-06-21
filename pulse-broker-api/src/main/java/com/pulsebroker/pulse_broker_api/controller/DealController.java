@@ -54,6 +54,9 @@ public class DealController {
         if (deal.getStatus() == null) {
             deal.setStatus(DealStatus.PENDING);
         }
+        if ((deal.getStatus() == DealStatus.LOADED || deal.getStatus() == DealStatus.BILLED) && (deal.getPurchaser() == null || deal.getSeller() == null)) {
+            throw new IllegalArgumentException("A Loaded or Billed deal must have both a Purchaser and Seller firm assigned.");
+        }
         if (deal.getMarginMarkup() == null) {
             deal.setMarginMarkup(java.math.BigDecimal.ZERO);
         }
@@ -124,6 +127,9 @@ public class DealController {
         deal.setLoadDate(dealDetails.getLoadDate());
         if (dealDetails.getStatus() != null) {
             deal.setStatus(dealDetails.getStatus());
+        }
+        if ((deal.getStatus() == DealStatus.LOADED || deal.getStatus() == DealStatus.BILLED) && (deal.getPurchaser() == null || deal.getSeller() == null)) {
+            throw new IllegalArgumentException("A Loaded or Billed deal must have both a Purchaser and Seller firm assigned.");
         }
         return dealRepository.save(deal);
     }

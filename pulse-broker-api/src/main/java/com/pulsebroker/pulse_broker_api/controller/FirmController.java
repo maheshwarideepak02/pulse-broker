@@ -27,11 +27,17 @@ public class FirmController {
 
     @PostMapping
     public Firm create(@RequestBody Firm firm) {
+        if (firm.getName() == null || firm.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Firm name cannot be empty.");
+        }
         return firmRepository.save(firm);
     }
 
     @PutMapping("/{id}")
     public Firm update(@PathVariable Long id, @RequestBody Firm firmDetails) {
+        if (firmDetails.getName() == null || firmDetails.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Firm name cannot be empty.");
+        }
         Firm firm = firmRepository.findById(id).orElseThrow(() -> new RuntimeException("Firm not found"));
         firm.setName(firmDetails.getName());
         if (firmDetails.getContact() != null) {

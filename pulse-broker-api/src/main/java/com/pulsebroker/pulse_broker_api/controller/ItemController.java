@@ -24,11 +24,17 @@ public class ItemController {
 
     @PostMapping
     public Item create(@RequestBody Item item) {
+        if (item.getName() == null || item.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Item name cannot be empty.");
+        }
         return itemRepository.save(item);
     }
 
     @PutMapping("/{id}")
     public Item update(@PathVariable Long id, @RequestBody Item itemDetails) {
+        if (itemDetails.getName() == null || itemDetails.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Item name cannot be empty.");
+        }
         Item item = itemRepository.findById(id).orElseThrow(() -> new RuntimeException("Item not found"));
         item.setName(itemDetails.getName());
         return itemRepository.save(item);

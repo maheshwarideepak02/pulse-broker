@@ -24,11 +24,17 @@ public class MarkaController {
 
     @PostMapping
     public Marka create(@RequestBody Marka marka) {
+        if (marka.getName() == null || marka.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Marka name cannot be empty.");
+        }
         return markaRepository.save(marka);
     }
 
     @PutMapping("/{id}")
     public Marka update(@PathVariable Long id, @RequestBody Marka markaDetails) {
+        if (markaDetails.getName() == null || markaDetails.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Marka name cannot be empty.");
+        }
         Marka marka = markaRepository.findById(id).orElseThrow(() -> new RuntimeException("Marka not found"));
         marka.setName(markaDetails.getName());
         return markaRepository.save(marka);

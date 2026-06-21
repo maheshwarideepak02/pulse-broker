@@ -17,6 +17,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
 
     const [formData, setFormData] = useState(() => {
         if (initialData) {
+            console.log("DEBUG: DealForm initialData =", initialData);
             let pbType = 'FIXED';
             let pbVal = initialData.weight && initialData.pBrokerage ? (initialData.pBrokerage / initialData.weight).toFixed(2) : '0';
             let sbType = 'FIXED';
@@ -24,11 +25,21 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
 
             if (initialData.weight && initialData.rate) {
                 const totalValue = initialData.weight * initialData.rate;
+                
+                const matchesPercent = (absoluteVal, testPercent) => {
+                    if (!testPercent) return false;
+                    const expected = (totalValue * testPercent) / 100;
+                    return Math.abs(expected - absoluteVal) < 1.0;
+                };
+
                 if (initialData.pBrokerage > 0) {
                     const pPercent = (initialData.pBrokerage / totalValue) * 100;
                     if (Math.abs(Math.round(pPercent * 100) / 100 - pPercent) < 0.001) {
                         pbType = 'PERCENT';
                         pbVal = pPercent.toFixed(2);
+                    } else if (initialData.purchaserContact?.defaultBrokType === 'PERCENT' && matchesPercent(initialData.pBrokerage, initialData.purchaserContact.defaultBrokVal)) {
+                        pbType = 'PERCENT';
+                        pbVal = initialData.purchaserContact.defaultBrokVal;
                     }
                 }
                 if (initialData.sBrokerage > 0) {
@@ -36,6 +47,9 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
                     if (Math.abs(Math.round(sPercent * 100) / 100 - sPercent) < 0.001) {
                         sbType = 'PERCENT';
                         sbVal = sPercent.toFixed(2);
+                    } else if (initialData.sellerContact?.defaultBrokType === 'PERCENT' && matchesPercent(initialData.sBrokerage, initialData.sellerContact.defaultBrokVal)) {
+                        sbType = 'PERCENT';
+                        sbVal = initialData.sellerContact.defaultBrokVal;
                     }
                 }
             }

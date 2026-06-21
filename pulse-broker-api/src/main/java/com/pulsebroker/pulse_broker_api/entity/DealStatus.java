@@ -4,5 +4,6 @@ public enum DealStatus {
     PENDING,
     OPEN_UNASSIGNED,
     LOADED,
-    BILLED
+    BILLED,
+    CANCELLED
 }

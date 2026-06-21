@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getPendingDeals, loadDeal, deleteDeal, getFirms, getItems, getMarkas, updateDeal, getContacts } from '../api';
+import { getPendingDeals, loadDeal, deleteDeal, cancelDeal, getFirms, getItems, getMarkas, updateDeal, getContacts } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { getLocalTodayDateString, formatDate } from '../utils/dateUtils';
@@ -97,19 +97,28 @@ const Pending = () => {
     };
 
     const handleDeleteDeal = (id) => {
-        setConfirmDialog({ isOpen: true, id: id });
+        setConfirmDialog({ isOpen: true, id: id, action: 'delete' });
     };
 
-    const executeDelete = async () => {
-        const id = confirmDialog.id;
-        setConfirmDialog({ isOpen: false, id: null });
+    const handleCancelDeal = (id) => {
+        setConfirmDialog({ isOpen: true, id: id, action: 'cancel' });
+    };
+
+    const executeConfirmAction = async () => {
+        const { id, action } = confirmDialog;
+        setConfirmDialog({ isOpen: false, id: null, action: null });
         setIsProcessing(true);
         try {
-            await deleteDeal(id);
-            addToast('Deal Deleted Successfully!', 'success');
+            if (action === 'delete') {
+                await deleteDeal(id);
+                addToast('Deal Deleted Successfully!', 'success');
+            } else if (action === 'cancel') {
+                await cancelDeal(id);
+                addToast('Deal Cancelled Successfully!', 'success');
+            }
             fetchDeals();
         } catch (e) {
-            addToast(e.response?.data?.message || 'Failed to delete deal', 'error');
+            addToast(e.response?.data?.message || `Failed to ${action} deal`, 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -258,6 +267,9 @@ const Pending = () => {
                                         <button onClick={() => handleDeleteDeal(deal.id)} className="bg-white hover:bg-red-50 border-2 border-red-200 text-red-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Delete Deal', 'सौदा मिटाएं')}>
                                             🗑️ {t('Delete', 'मिटाएं')}
                                         </button>
+                                        <button onClick={() => handleCancelDeal(deal.id)} className="bg-white hover:bg-orange-50 border-2 border-orange-200 text-orange-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Cancel Remaining', 'शेष रद्द करें')}>
+                                            🚫 {t('Cancel', 'रद्द करें')}
+                                        </button>
                                         <button onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
                                             {t('Load Now', 'लोड करें')}
                                         </button>
@@ -333,6 +345,9 @@ const Pending = () => {
                                 </button>
                                 <button onClick={() => handleDeleteDeal(deal.id)} className="bg-red-50 border border-red-100 hover:bg-red-100 text-red-600 font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center active:scale-95">
                                     🗑️
+                                </button>
+                                <button onClick={() => handleCancelDeal(deal.id)} className="bg-orange-50 border border-orange-100 hover:bg-orange-100 text-orange-600 font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all flex items-center justify-center active:scale-95">
+                                    🚫
                                 </button>
                             </div>
                         </div>
@@ -418,10 +433,13 @@ const Pending = () => {
 
             <ConfirmModal 
                 isOpen={confirmDialog.isOpen}
-                title={t('Delete Deal', 'सौदा मिटाएं')}
-                message={t('Are you sure you want to delete this deal?', 'क्या आप वाकई इस सौदे को मिटाना चाहते हैं?')}
-                onConfirm={executeDelete}
-                onCancel={() => setConfirmDialog({ isOpen: false, id: null })}
+                title={confirmDialog.action === 'cancel' ? t('Cancel Remaining Deal?', 'शेष सौदा रद्द करें?') : t('Delete Deal?', 'सौदा मिटाएं?')}
+                message={confirmDialog.action === 'cancel' 
+                    ? t('Are you sure you want to cancel the remaining balance of this deal? This action cannot be undone.', 'क्या आप निश्चित रूप से इस सौदे के शेष को रद्द करना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।')
+                    : t('Are you sure you want to delete this deal? This action cannot be undone.', 'क्या आप वाकई इस सौदे को हटाना चाहते हैं? यह क्रिया पूर्ववत नहीं की जा सकती।')
+                }
+                onConfirm={executeConfirmAction}
+                onCancel={() => setConfirmDialog({ isOpen: false, id: null, action: null })}
             />
         </div>
     );

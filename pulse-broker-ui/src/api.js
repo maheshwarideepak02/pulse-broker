@@ -86,6 +86,7 @@ export const deleteFirm = (id) => api.delete(`/firms/${id}`);
 export const deleteItem = (id) => api.delete(`/items/${id}`);
 export const deleteMarka = (id) => api.delete(`/markas/${id}`);
 export const deleteDeal = (id) => api.delete(`/deals/${id}`);
+export const cancelDeal = (id) => api.post(`/deals/${id}/cancel`);
 export const deleteBill = (id) => api.delete(`/billing/${id}`);
 
 export default api;

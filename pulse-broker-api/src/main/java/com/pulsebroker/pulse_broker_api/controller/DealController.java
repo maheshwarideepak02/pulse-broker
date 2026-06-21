@@ -163,6 +163,19 @@ public class DealController {
         }
     }
 
+    @PostMapping("/{id}/cancel")
+    @org.springframework.transaction.annotation.Transactional
+    public Deal cancelDeal(@PathVariable Long id) {
+        Deal deal = dealRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Deal not found"));
+        
+        if (deal.getStatus() == DealStatus.BILLED || deal.getPurchaserBill() != null || deal.getSellerBill() != null) {
+            throw new IllegalArgumentException("Cannot cancel a billed deal.");
+        }
+        
+        deal.setStatus(com.pulsebroker.pulse_broker_api.entity.DealStatus.CANCELLED);
+        return dealRepository.save(deal);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @org.springframework.transaction.annotation.Transactional

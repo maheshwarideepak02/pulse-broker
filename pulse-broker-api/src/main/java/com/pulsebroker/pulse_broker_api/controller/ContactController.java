@@ -56,6 +56,10 @@ public class ContactController {
         Contact contact = contactRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Contact not found"));
         
+        if (dealRepository.existsByPurchaserContactIdOrSellerContactId(id, id)) {
+            throw new IllegalArgumentException("Cannot delete contact because it is directly associated with one or more deals.");
+        }
+
         List<com.pulsebroker.pulse_broker_api.entity.Firm> linkedFirms = firmRepository.findByContactId(id);
         for (com.pulsebroker.pulse_broker_api.entity.Firm f : linkedFirms) {
             if (dealRepository.existsByPurchaserIdOrSellerId(f.getId(), f.getId())) {

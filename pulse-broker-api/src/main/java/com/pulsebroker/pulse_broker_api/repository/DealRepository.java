@@ -15,6 +15,7 @@ public interface DealRepository extends JpaRepository<Deal, Long> {
     List<Deal> findByStatusIn(List<DealStatus> statuses);
     long countByDealDateBetween(LocalDate start, LocalDate end);
     boolean existsByPurchaserIdOrSellerId(Long purchaserId, Long sellerId);
+    boolean existsByPurchaserContactIdOrSellerContactId(Long purchaserContactId, Long sellerContactId);
     boolean existsByItemId(Long itemId);
     boolean existsByMarkaId(Long markaId);
     List<Deal> findByPurchaserBillIdOrSellerBillId(Long purchaserBillId, Long sellerBillId);

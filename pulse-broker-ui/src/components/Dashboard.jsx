@@ -12,7 +12,10 @@ const Dashboard = () => {
     const { addToast } = useToast();
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
-    const [isAmountHidden, setIsAmountHidden] = useState(true);
+    const [isAmountHidden, setIsAmountHidden] = useState(() => {
+        const saved = localStorage.getItem('pulse_hide_amounts');
+        return saved !== 'false';
+    });
     const [searchQuery, setSearchQuery] = useState('');
     const location = useLocation();
     const [dateSort, setDateSort] = useState(location.state?.sort || 'desc'); // 'original', 'asc', 'desc'
@@ -126,7 +129,15 @@ const Dashboard = () => {
                 <div className="w-full sm:w-auto text-center sm:text-left">
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2 justify-center sm:justify-start">
                         <span className="w-6 h-px bg-secondary/50"></span>{t('Business overview', 'व्यापार अवलोकन')}
-                        <button onClick={() => setIsAmountHidden(!isAmountHidden)} className="ml-2 hover:text-primary transition-colors text-base" title={isAmountHidden ? t('Show amounts', 'राशि दिखाएं') : t('Hide amounts', 'राशि छुपाएं')}>
+                        <button 
+                            onClick={() => {
+                                const newState = !isAmountHidden;
+                                setIsAmountHidden(newState);
+                                localStorage.setItem('pulse_hide_amounts', newState.toString());
+                            }} 
+                            className="ml-2 hover:text-primary transition-colors text-base" 
+                            title={isAmountHidden ? t('Show amounts', 'राशि दिखाएं') : t('Hide amounts', 'राशि छुपाएं')}
+                        >
                             {isAmountHidden ? '👁️‍🗨️' : '👁️'}
                         </button>
                     </div>

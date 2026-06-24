@@ -54,7 +54,7 @@ public class ValidationIntegrationTest {
     void testGhostDealPrevention_CannotLoadWithoutFirms() {
         Deal deal = new Deal();
         deal.setWeight(new BigDecimal("100"));
-        deal.setStatus(DealStatus.OPEN_UNASSIGNED);
+        deal.setStatus(DealStatus.PENDING);
         Deal savedDeal = dealRepository.save(deal);
 
         Map<String, Object> loadPayload = Map.of(

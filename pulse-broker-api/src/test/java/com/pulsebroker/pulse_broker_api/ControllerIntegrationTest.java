@@ -36,12 +36,6 @@ public class ControllerIntegrationTest {
         return mockMvc.perform(builder.header("Authorization", "Bearer PULSE99"));
     }
 
-
-    private org.springframework.test.web.servlet.ResultActions performAuth(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder builder) throws Exception {
-        return performAuth(builder.header("Authorization", "PULSE99"));
-    }
-
-
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -63,6 +57,9 @@ public class ControllerIntegrationTest {
     @Autowired
     private BillRepository billRepository;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private com.pulsebroker.pulse_broker_api.service.AuthService authService;
+
     private Contact contact;
     private Contact purchaserContact;
     private Contact sellerContact;
@@ -73,6 +70,8 @@ public class ControllerIntegrationTest {
 
     @BeforeEach
     void setup() {
+        org.mockito.Mockito.when(authService.validateToken("PULSE99")).thenReturn(true);
+
         contact = new Contact();
         contact.setName("Test Contact");
         contact.setPhone("1234567890");

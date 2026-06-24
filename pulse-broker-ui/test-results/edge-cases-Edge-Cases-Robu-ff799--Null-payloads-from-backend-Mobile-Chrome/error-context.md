@@ -12,50 +12,10 @@
 # Error details
 
 ```
-Test timeout of 30000ms exceeded.
-```
-
-```
-Error: locator.waitFor: Test timeout of 30000ms exceeded.
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
 Call log:
-  - waiting for locator('button').filter({ hasText: /Reset PIN|पिन रीसेट करें/ }) to be visible
+  - navigating to "http://localhost:5173/", waiting until "load"
 
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - generic [ref=e4]:
-    - button "हिंदी" [ref=e6]
-    - generic [ref=e7]:
-      - generic [ref=e8]:
-        - generic [ref=e10]: ॐ
-        - generic [ref=e11]: First-time setup
-        - heading "Create your PIN" [level=2] [ref=e12]
-        - paragraph [ref=e13]: Choose a memorable 4-digit PIN
-      - generic [ref=e20]:
-        - button "1" [ref=e21]
-        - button "2" [ref=e22]
-        - button "3" [ref=e23]
-        - button "4" [ref=e24]
-        - button "5" [ref=e25]
-        - button "6" [ref=e26]
-        - button "7" [ref=e27]
-        - button "8" [ref=e28]
-        - button "9" [ref=e29]
-        - button "0" [ref=e31]
-        - button "⌫" [ref=e32]
-  - dialog "Authorise setup" [ref=e33]:
-    - generic [ref=e35]:
-      - generic [ref=e36]:
-        - heading "Authorise setup" [level=2] [ref=e37]
-        - paragraph [ref=e38]: Enter the server master secret to continue securely.
-        - generic [ref=e39]: Master secret
-        - textbox [active] [ref=e40]
-      - generic [ref=e41]:
-        - button "Cancel" [ref=e42]
-        - button "Continue" [ref=e43]
 ```
 
 # Test source
@@ -148,7 +108,8 @@ Call log:
   85  |   });
   86  | 
   87  |   test('Ledger gracefully handles corrupted NaN/Null payloads from backend', async ({ page }) => {
-  88  |     await page.goto('/');
+> 88  |     await page.goto('/');
+      |                ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
   89  |     
   90  |     // Quick robust login
   91  |     const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
@@ -161,8 +122,7 @@ Call log:
   98  |           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
   99  |       } catch (e) {
   100 |           const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
-> 101 |           await resetBtn.waitFor({ state: 'visible' });
-      |                          ^ Error: locator.waitFor: Test timeout of 30000ms exceeded.
+  101 |           await resetBtn.waitFor({ state: 'visible' });
   102 |           await resetBtn.click();
   103 |           const dialogInput = page.locator('div[role="dialog"] input').first();
   104 |           await dialogInput.waitFor({ state: 'visible' });

@@ -34,16 +34,24 @@ public class DashboardController {
 
         List<Bill> allBills = billRepository.findAll();
         
-        // 1. Total Billed (Sum of all generated bills)
+        // 1. Total Actual Billed (Sum of all generated bills minus discounts)
         BigDecimal totalBilled = allBills.stream()
-                .map(Bill::getTotalAmount)
+                .map(b -> {
+                    BigDecimal total = b.getTotalAmount() != null ? b.getTotalAmount() : BigDecimal.ZERO;
+                    BigDecimal discount = b.getDiscountAmount() != null ? b.getDiscountAmount() : BigDecimal.ZERO;
+                    return total.subtract(discount);
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setTotalBilled(totalBilled);
 
-        // 2. Total Outstanding (Sum of all UNPAID bills)
+        // 2. Total Outstanding (Sum of all UNPAID bills minus discounts)
         BigDecimal totalOutstanding = allBills.stream()
                 .filter(b -> b.getStatus() == null || b.getStatus() == BillStatus.UNPAID)
-                .map(Bill::getTotalAmount)
+                .map(b -> {
+                    BigDecimal total = b.getTotalAmount() != null ? b.getTotalAmount() : BigDecimal.ZERO;
+                    BigDecimal discount = b.getDiscountAmount() != null ? b.getDiscountAmount() : BigDecimal.ZERO;
+                    return total.subtract(discount);
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         summary.setTotalOutstanding(totalOutstanding);
 

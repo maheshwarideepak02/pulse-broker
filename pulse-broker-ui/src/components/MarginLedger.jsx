@@ -150,7 +150,15 @@ const MarginLedger = () => {
         return true;
     });
 
-    const totalMargin = filteredDeals.reduce((sum, d) => sum + (d.marginMarkup * d.weight), 0);
+    const getNetMargin = (d) => {
+        let net = (d.marginMarkup || 0) * (d.weight || 0);
+        if (d.sellerContact?.id === Number(selectedParty)) {
+            return -net;
+        }
+        return net;
+    };
+
+    const totalMargin = filteredDeals.reduce((sum, d) => sum + getNetMargin(d), 0);
 
     return (
         <div className="max-w-6xl mx-auto p-4 py-8">
@@ -292,7 +300,7 @@ const MarginLedger = () => {
                                 </thead>
                                 <tbody>
                                     {filteredDeals.map(d => {
-                                        const netMargin = d.marginMarkup * d.weight;
+                                        const netMargin = getNetMargin(d);
                                         const isSelected = selectedDealIds.includes(d.id);
                                         return (
                                             <tr key={d.id} className={`border-b border-gray-100 transition-colors ${isSelected ? 'bg-primary/5' : 'hover:bg-gray-50'}`}>
@@ -336,7 +344,7 @@ const MarginLedger = () => {
                         {/* Mobile Card Layout */}
                         <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
                             {filteredDeals.map(d => {
-                                const netMargin = d.marginMarkup * d.weight;
+                                const netMargin = getNetMargin(d);
                                 const isSelected = selectedDealIds.includes(d.id);
                                 return (
                                     <div key={d.id} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden" onClick={() => toggleSelection(d.id)}>
@@ -439,7 +447,7 @@ const MarginLedger = () => {
                                     </thead>
                                     <tbody>
                                         {filteredDeals.map((d, i) => {
-                                            const netMargin = d.marginMarkup * d.weight;
+                                            const netMargin = getNetMargin(d);
                                             return (
                                                 <tr key={i}>
                                                     <td>{formatDate(d.dealDate)}</td>

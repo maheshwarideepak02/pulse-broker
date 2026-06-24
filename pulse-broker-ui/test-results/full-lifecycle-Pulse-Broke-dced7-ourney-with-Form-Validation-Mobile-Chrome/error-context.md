@@ -12,39 +12,10 @@
 # Error details
 
 ```
-Test timeout of 30000ms exceeded while running "beforeEach" hook.
-```
-
-```
-Error: page.fill: Test timeout of 30000ms exceeded.
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
 Call log:
-  - waiting for locator('input[type="password"]')
+  - navigating to "http://localhost:5173/", waiting until "load"
 
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e4]:
-  - button "हिंदी" [ref=e6]
-  - generic [ref=e7]:
-    - generic [ref=e8]:
-      - generic [ref=e10]: ॐ
-      - generic [ref=e11]: First-time setup
-      - heading "Create your PIN" [level=2] [ref=e12]
-      - paragraph [ref=e13]: Choose a memorable 4-digit PIN
-    - generic [ref=e20]:
-      - button "1" [ref=e21]
-      - button "2" [ref=e22]
-      - button "3" [ref=e23]
-      - button "4" [ref=e24]
-      - button "5" [ref=e25]
-      - button "6" [ref=e26]
-      - button "7" [ref=e27]
-      - button "8" [ref=e28]
-      - button "9" [ref=e29]
-      - button "0" [ref=e31]
-      - button "⌫" [ref=e32]
 ```
 
 # Test source
@@ -56,9 +27,9 @@ Call log:
   4  | 
   5  |     test.beforeEach(async ({ page }) => {
   6  |         // Go to home and login
-  7  |         await page.goto('/');
-> 8  |         await page.fill('input[type="password"]', 'PULSE99');
-     |                    ^ Error: page.fill: Test timeout of 30000ms exceeded.
+> 7  |         await page.goto('/');
+     |                    ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+  8  |         await page.fill('input[type="password"]', 'PULSE99');
   9  |         await page.click('button:has-text("Enter")');
   10 |         // Wait for dashboard to load
   11 |         await expect(page.locator('h1', { hasText: 'Good day' })).toBeVisible();

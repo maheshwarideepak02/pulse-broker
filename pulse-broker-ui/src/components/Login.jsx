@@ -53,8 +53,7 @@ const Login = () => {
                 return;
             } else {
                 const res = await loginApp({ pin: pinStr });
-                localStorage.setItem('pulse_auth_token', res.token);
-                login();
+                login(res.token);
                 navigate('/app/dashboard');
             }
         } catch (e) {
@@ -72,8 +71,7 @@ const Login = () => {
         try {
             if (secretDialog.mode === 'setup') {
                 const res = await setupApp({ pin: secretDialog.pin, masterSecret });
-                localStorage.setItem('pulse_auth_token', res.token);
-                login();
+                login(res.token);
                 navigate('/app/dashboard');
             } else {
                 await resetApp({ masterSecret });

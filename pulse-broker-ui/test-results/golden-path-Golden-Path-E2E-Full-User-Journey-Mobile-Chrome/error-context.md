@@ -12,50 +12,10 @@
 # Error details
 
 ```
-Test timeout of 30000ms exceeded.
-```
-
-```
-Error: locator.waitFor: Test timeout of 30000ms exceeded.
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
 Call log:
-  - waiting for locator('button').filter({ hasText: /Reset PIN|पिन रीसेट करें/ }) to be visible
+  - navigating to "http://localhost:5173/", waiting until "load"
 
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - generic [ref=e4]:
-    - button "हिंदी" [ref=e6]
-    - generic [ref=e7]:
-      - generic [ref=e8]:
-        - generic [ref=e10]: ॐ
-        - generic [ref=e11]: First-time setup
-        - heading "Create your PIN" [level=2] [ref=e12]
-        - paragraph [ref=e13]: Choose a memorable 4-digit PIN
-      - generic [ref=e20]:
-        - button "1" [ref=e21]
-        - button "2" [ref=e22]
-        - button "3" [ref=e23]
-        - button "4" [ref=e24]
-        - button "5" [ref=e25]
-        - button "6" [ref=e26]
-        - button "7" [ref=e27]
-        - button "8" [ref=e28]
-        - button "9" [ref=e29]
-        - button "0" [ref=e31]
-        - button "⌫" [ref=e32]
-  - dialog "Authorise setup" [ref=e33]:
-    - generic [ref=e35]:
-      - generic [ref=e36]:
-        - heading "Authorise setup" [level=2] [ref=e37]
-        - paragraph [ref=e38]: Enter the server master secret to continue securely.
-        - generic [ref=e39]: Master secret
-        - textbox [active] [ref=e40]
-      - generic [ref=e41]:
-        - button "Cancel" [ref=e42]
-        - button "Continue" [ref=e43]
 ```
 
 # Test source
@@ -76,7 +36,8 @@ Call log:
   13  |     
   14  |     // 1. Login
   15  |     // 1. Login
-  16  |     await page.goto('/');
+> 16  |     await page.goto('/');
+      |                ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
   17  |     
   18  |     // Wait for keypad to be visible
   19  |     await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible', timeout: 10000 });
@@ -107,8 +68,7 @@ Call log:
   44  |       } catch (e) {
   45  |           // If we didn't navigate, the PIN was probably wrong. Reset it.
   46  |           const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
-> 47  |           await resetBtn.waitFor({ state: 'visible' });
-      |                          ^ Error: locator.waitFor: Test timeout of 30000ms exceeded.
+  47  |           await resetBtn.waitFor({ state: 'visible' });
   48  |           await resetBtn.click();
   49  |           
   50  |           const dialogInput = page.locator('div[role="dialog"] input').first();
@@ -178,35 +138,4 @@ Call log:
   114 |     
   115 |     await page.fill('input[placeholder*="Marka Name"]', testMarka);
   116 |     await page.click('button:has-text("Add Marka")');
-  117 | 
-  118 |     // 4. Create New Deal
-  119 |     if (isMobile) await page.getByLabel('Menu').click();
-  120 |     await page.locator('a:has-text("New Deal") >> visible=true').click();
-  121 |     
-  122 |     await page.selectOption('select[name="purchaserContactId"]', { label: pContact });
-  123 |     await page.waitForTimeout(500);
-  124 |     await page.selectOption('select[name="purchaserId"]', { label: pFirm });
-  125 |     await page.selectOption('select[name="sellerContactId"]', { label: sContact });
-  126 |     await page.waitForTimeout(500);
-  127 |     await page.selectOption('select[name="sellerId"]', { label: sFirm });
-  128 |     await page.selectOption('select[name="itemId"]', { label: testItem });
-  129 |     await page.selectOption('select[name="markaId"]', { label: testMarka });
-  130 |     
-  131 |     await page.fill('input[name="weight"]', '100');
-  132 |     await page.fill('input[name="rate"]', '5000');
-  133 |     
-  134 |     // Change packet weight and verify bags calculation
-  135 |     await page.fill('input[name="packetWeight"]', '25'); // 100 quintal * 100 kg / 25 kg = 400 bags
-  136 |     await expect(page.locator('input[name="numberOfPackets"]')).toHaveValue('400');
-  137 |     
-  138 |     await page.click('button:has-text("Save New Deal")');
-  139 |     
-  140 |     // Should redirect to Dashboard
-  141 |     await expect(page).toHaveURL(/.*\/app\/dashboard/);
-  142 | 
-  143 |     // 5. Load Deal
-  144 |     if (isMobile) await page.getByLabel('Menu').click();
-  145 |     await page.locator('a:has-text("Pending Deals") >> visible=true').click();
-  146 |     
-  147 |     // Find the row with our item and click Load
 ```

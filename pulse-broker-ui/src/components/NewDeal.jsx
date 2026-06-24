@@ -19,7 +19,8 @@ const NewDeal = () => {
             setTimeout(() => { navigate('/app/dashboard', { state: { sort: 'original' } }); }, 1000);
         } catch (err) {
             console.error(err);
-            addToast('Failed to save deal', 'error');
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to save deal');
+            addToast(errMsg, 'error');
             setIsProcessing(false);
         }
     };

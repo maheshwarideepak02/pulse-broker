@@ -40,6 +40,7 @@ export const getContacts = () => api.get('/contacts').then(res => res.data);
 export const getContactsWithMargins = () => api.get('/contacts/with-margins').then(res => res.data);
 export const getFirms = () => api.get('/firms').then(res => res.data);
 export const getDeals = () => api.get('/deals').then(res => res.data);
+export const getDeal = (id) => api.get(`/deals/${id}`).then(res => res.data);
 export const getPendingDeals = () => api.get('/deals/pending').then(res => res.data);
 export const getMarginDeals = (partyId) => api.get(`/deals/margins/${partyId}`).then(res => res.data);
 

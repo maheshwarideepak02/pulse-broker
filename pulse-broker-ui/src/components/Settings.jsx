@@ -48,8 +48,9 @@ const Settings = () => {
             addToast('Item Added Successfully!', 'success');
             fetchData();
             setNewItem('');
-        } catch {
-            addToast('Failed to save item', 'error');
+        } catch (err) {
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to save item');
+            addToast(errMsg, 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -69,8 +70,9 @@ const Settings = () => {
             addToast('Marka Added Successfully!', 'success');
             fetchData();
             setNewMarka('');
-        } catch {
-            addToast('Failed to save marka', 'error');
+        } catch (err) {
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to save marka');
+            addToast(errMsg, 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -94,8 +96,9 @@ const Settings = () => {
             addToast(t('Updated successfully!', 'सफलतापूर्वक अपडेट किया गया!'), 'success');
             setEditDialog({ isOpen: false, type: '', id: null, name: '' });
             fetchData();
-        } catch {
-            addToast(t('Failed to update', 'अपडेट नहीं हो सका'), 'error');
+        } catch (err) {
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to update');
+            addToast(errMsg, 'error');
         } finally {
             setIsProcessing(false);
         }

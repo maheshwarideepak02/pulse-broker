@@ -395,7 +395,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
                                 <label className="block text-xs font-bold text-primary uppercase tracking-wider mb-2">{t('Purchaser Firm', 'क्रेता फर्म')} <span className="text-gray-400 font-normal ml-1 lowercase">({t('Optional', 'वैकल्पिक')})</span></label>
                                 <select name="purchaserId" value={formData.purchaserId} onChange={handleFirmChange} className="w-full bg-white border-2 border-red-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-primary outline-none transition-all shadow-sm" disabled={!formData.purchaserContactId}>
                                     <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
-                                    {firms.filter(f => f.contact?.id == formData.purchaserContactId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                    {firms.filter(f => f.contact?.id == formData.purchaserContactId || f.id == formData.purchaserId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                 </select>
                             </div>
                         </div>
@@ -413,7 +413,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
                                 <label className="block text-xs font-bold text-blue-800 uppercase tracking-wider mb-2">{t('Seller Firm', 'विक्रेता फर्म')} <span className="text-gray-400 font-normal ml-1 lowercase">({t('Optional', 'वैकल्पिक')})</span></label>
                                 <select name="sellerId" value={formData.sellerId} onChange={handleFirmChange} className="w-full bg-white border-2 border-blue-200 rounded-lg px-4 py-3 font-bold text-textMain focus:ring-2 focus:ring-blue-600 outline-none transition-all shadow-sm" disabled={!formData.sellerContactId}>
                                     <option value="">{t('To be decided...', 'तय किया जाना है...')}</option>
-                                    {firms.filter(f => f.contact?.id == formData.sellerContactId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                    {firms.filter(f => f.contact?.id == formData.sellerContactId || f.id == formData.sellerId).map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                 </select>
                             </div>
                         </div>

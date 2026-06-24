@@ -12,50 +12,10 @@
 # Error details
 
 ```
-Test timeout of 30000ms exceeded.
-```
-
-```
-Error: locator.waitFor: Test timeout of 30000ms exceeded.
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
 Call log:
-  - waiting for locator('button').filter({ hasText: /Reset PIN|पिन रीसेट करें/ }) to be visible
+  - navigating to "http://localhost:5173/", waiting until "load"
 
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - generic [ref=e4]:
-    - button "हिंदी" [ref=e6]
-    - generic [ref=e7]:
-      - generic [ref=e8]:
-        - generic [ref=e10]: ॐ
-        - generic [ref=e11]: First-time setup
-        - heading "Create your PIN" [level=2] [ref=e12]
-        - paragraph [ref=e13]: Choose a memorable 4-digit PIN
-      - generic [ref=e20]:
-        - button "1" [ref=e21]
-        - button "2" [ref=e22]
-        - button "3" [ref=e23]
-        - button "4" [ref=e24]
-        - button "5" [ref=e25]
-        - button "6" [ref=e26]
-        - button "7" [ref=e27]
-        - button "8" [ref=e28]
-        - button "9" [ref=e29]
-        - button "0" [ref=e31]
-        - button "⌫" [ref=e32]
-  - dialog "Authorise setup" [ref=e33]:
-    - generic [ref=e35]:
-      - generic [ref=e36]:
-        - heading "Authorise setup" [level=2] [ref=e37]
-        - paragraph [ref=e38]: Enter the server master secret to continue securely.
-        - generic [ref=e39]: Master secret
-        - textbox [active] [ref=e40]
-      - generic [ref=e41]:
-        - button "Cancel" [ref=e42]
-        - button "Continue" [ref=e43]
 ```
 
 # Test source
@@ -66,7 +26,8 @@ Call log:
   3   | test.describe('Edge Cases & Robustness', () => {
   4   | 
   5   |   test('UI gracefully handles 500 Internal Server Error when saving deal', async ({ page }) => {
-  6   |     await page.goto('/');
+> 6   |     await page.goto('/');
+      |                ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
   7   |     
   8   |     // Quick robust login
   9   |     const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
@@ -79,8 +40,7 @@ Call log:
   16  |           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
   17  |       } catch (e) {
   18  |           const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
-> 19  |           await resetBtn.waitFor({ state: 'visible' });
-      |                          ^ Error: locator.waitFor: Test timeout of 30000ms exceeded.
+  19  |           await resetBtn.waitFor({ state: 'visible' });
   20  |           await resetBtn.click();
   21  |           const dialogInput = page.locator('div[role="dialog"] input').first();
   22  |           await dialogInput.waitFor({ state: 'visible' });
@@ -168,17 +128,4 @@ Call log:
   104 |           await dialogInput.waitFor({ state: 'visible' });
   105 |           await dialogInput.fill('PULSE99');
   106 |           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
-  107 |           await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
-  108 |           for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
-  109 |           await dialogInput.waitFor({ state: 'visible' });
-  110 |           await dialogInput.fill('PULSE99');
-  111 |           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
-  112 |       }
-  113 |     } else {
-  114 |         for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
-  115 |         const dialogInput = page.locator('div[role="dialog"] input');
-  116 |         await dialogInput.waitFor({ state: 'visible' });
-  117 |         await dialogInput.fill('PULSE99');
-  118 |         await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
-  119 |     }
 ```

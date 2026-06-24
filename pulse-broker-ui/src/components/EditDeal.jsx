@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { updateDeal, getDeals } from '../api';
+import { updateDeal, getDeal } from '../api';
 import DealForm from './DealForm';
 
 const EditDeal = () => {
@@ -15,11 +15,9 @@ const EditDeal = () => {
     const [isProcessing, setIsProcessing] = useState(false);
 
     useEffect(() => {
-        // Fetch the specific deal by finding it in the deals list
-        getDeals().then(data => {
-            const foundDeal = data.find(d => d.id === parseInt(id, 10));
-            if (foundDeal) {
-                setDeal(foundDeal);
+        getDeal(id).then(data => {
+            if (data) {
+                setDeal(data);
             } else {
                 addToast('Deal not found', 'error');
                 navigate('/app/dashboard');
@@ -46,7 +44,8 @@ const EditDeal = () => {
             }
         } catch (err) {
             console.error(err);
-            addToast('Failed to update deal', 'error');
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to update deal');
+            addToast(errMsg, 'error');
             setIsProcessing(false);
         }
     };

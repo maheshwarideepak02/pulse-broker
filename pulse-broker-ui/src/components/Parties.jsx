@@ -75,8 +75,9 @@ const Parties = () => {
             setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
             setShowContactForm(false);
             setEditContact(null);
-        } catch (e) {
-            addToast('Failed to save contact', 'error');
+        } catch (err) {
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to save contact');
+            addToast(errMsg, 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -108,8 +109,9 @@ const Parties = () => {
             setFc({ name: '' });
             setShowFirmForm(false);
             setEditFirm(null);
-        } catch (e) {
-            addToast('Failed to save firm', 'error');
+        } catch (err) {
+            const errMsg = err.response?.data?.message || (typeof err.response?.data === 'string' ? err.response.data : 'Failed to save firm');
+            addToast(errMsg, 'error');
         } finally {
             setIsProcessing(false);
         }

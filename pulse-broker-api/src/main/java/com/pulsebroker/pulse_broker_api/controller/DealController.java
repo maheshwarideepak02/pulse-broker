@@ -1,5 +1,6 @@
 package com.pulsebroker.pulse_broker_api.controller;
 
+import com.pulsebroker.pulse_broker_api.entity.BrokType;
 import com.pulsebroker.pulse_broker_api.entity.Deal;
 import com.pulsebroker.pulse_broker_api.entity.DealStatus;
 import com.pulsebroker.pulse_broker_api.repository.DealRepository;
@@ -35,6 +36,11 @@ public class DealController {
         return dealRepository.findByStatusIn(Arrays.asList(DealStatus.PENDING, DealStatus.OPEN_UNASSIGNED));
     }
 
+    @GetMapping("/{id}")
+    public Deal getById(@PathVariable Long id) {
+        return dealRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Deal not found"));
+    }
+
     @GetMapping("/margins/{partyId}")
     public List<Deal> getMarginDeals(@PathVariable Long partyId) {
         return dealRepository.findMarginDealsByParty(partyId);
@@ -63,6 +69,7 @@ public class DealController {
         if (deal.getRate() != null) {
             deal.setPurchaserRate(deal.getRate().add(deal.getMarginMarkup()));
         }
+        computeBrokerages(deal);
         return dealRepository.save(deal);
     }
 
@@ -115,13 +122,13 @@ public class DealController {
         if (deal.getRate() != null) {
             deal.setPurchaserRate(deal.getRate().add(deal.getMarginMarkup()));
         }
-        deal.setPBrokerage(dealDetails.getPBrokerage());
         deal.setPBrokType(dealDetails.getPBrokType());
         deal.setPBrokVal(dealDetails.getPBrokVal());
         
-        deal.setSBrokerage(dealDetails.getSBrokerage());
         deal.setSBrokType(dealDetails.getSBrokType());
         deal.setSBrokVal(dealDetails.getSBrokVal());
+        
+        computeBrokerages(deal);
         
         deal.setBrokeragePayer(dealDetails.getBrokeragePayer());
         deal.setLoadDate(dealDetails.getLoadDate());
@@ -145,12 +152,20 @@ public class DealController {
         if (deal.getParentDeal() != null) {
             Deal parent = deal.getParentDeal();
             parent.setWeight(parent.getWeight().add(deal.getWeight()));
-            parent.setPBrokerage(parent.getPBrokerage().add(deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO));
-            parent.setSBrokerage(parent.getSBrokerage().add(deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO));
+            java.math.BigDecimal pBrokToAdd = deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO;
+            parent.setPBrokerage(parent.getPBrokerage() != null ? parent.getPBrokerage().add(pBrokToAdd) : pBrokToAdd);
+            
+            java.math.BigDecimal sBrokToAdd = deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO;
+            parent.setSBrokerage(parent.getSBrokerage() != null ? parent.getSBrokerage().add(sBrokToAdd) : sBrokToAdd);
+            
             if (parent.getPacketWeight() != null && parent.getPacketWeight().compareTo(java.math.BigDecimal.ZERO) > 0) {
-                parent.setNumberOfPackets(
-                    parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
-                );
+                if (parent.getNumberOfPackets() != null && deal.getNumberOfPackets() != null) {
+                    parent.setNumberOfPackets(parent.getNumberOfPackets() + deal.getNumberOfPackets());
+                } else {
+                    parent.setNumberOfPackets(
+                        parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
+                    );
+                }
             }
             if (deal.getLoadDate() != null && !deal.getLoadDate().trim().isEmpty()) {
                 if (parent.getLoadDate() == null || parent.getLoadDate().trim().isEmpty()) {
@@ -212,12 +227,20 @@ public class DealController {
         if (deal.getParentDeal() != null) {
             Deal parent = deal.getParentDeal();
             parent.setWeight(parent.getWeight().add(deal.getWeight()));
-            parent.setPBrokerage(parent.getPBrokerage().add(deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO));
-            parent.setSBrokerage(parent.getSBrokerage().add(deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO));
+            java.math.BigDecimal pBrokToAdd = deal.getPBrokerage() != null ? deal.getPBrokerage() : java.math.BigDecimal.ZERO;
+            parent.setPBrokerage(parent.getPBrokerage() != null ? parent.getPBrokerage().add(pBrokToAdd) : pBrokToAdd);
+            
+            java.math.BigDecimal sBrokToAdd = deal.getSBrokerage() != null ? deal.getSBrokerage() : java.math.BigDecimal.ZERO;
+            parent.setSBrokerage(parent.getSBrokerage() != null ? parent.getSBrokerage().add(sBrokToAdd) : sBrokToAdd);
+            
             if (parent.getPacketWeight() != null && parent.getPacketWeight().compareTo(java.math.BigDecimal.ZERO) > 0) {
-                parent.setNumberOfPackets(
-                    parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
-                );
+                if (parent.getNumberOfPackets() != null && deal.getNumberOfPackets() != null) {
+                    parent.setNumberOfPackets(parent.getNumberOfPackets() + deal.getNumberOfPackets());
+                } else {
+                    parent.setNumberOfPackets(
+                        parent.getWeight().multiply(new java.math.BigDecimal("100")).divide(parent.getPacketWeight(), 0, java.math.RoundingMode.HALF_UP).intValue()
+                    );
+                }
             }
             dealRepository.save(parent);
         }
@@ -246,5 +269,37 @@ public class DealController {
         }
         dealRepository.saveAll(deals);
         return ResponseEntity.ok().build();
+    }
+
+    private void computeBrokerages(Deal deal) {
+        if (deal.getWeight() != null) {
+            // compute P Brokerage
+            if (deal.getPBrokVal() != null) {
+                if ("FIXED".equals(deal.getPBrokType())) {
+                    deal.setPBrokerage(deal.getPBrokVal().multiply(deal.getWeight()).setScale(2, java.math.RoundingMode.HALF_UP));
+                } else if ("PERCENT".equals(deal.getPBrokType()) && deal.getRate() != null) {
+                    java.math.BigDecimal totalValue = deal.getWeight().multiply(deal.getRate());
+                    deal.setPBrokerage(totalValue.multiply(deal.getPBrokVal()).divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
+                } else {
+                    deal.setPBrokerage(java.math.BigDecimal.ZERO);
+                }
+            } else {
+                deal.setPBrokerage(java.math.BigDecimal.ZERO);
+            }
+            
+            // compute S Brokerage
+            if (deal.getSBrokVal() != null) {
+                if ("FIXED".equals(deal.getSBrokType())) {
+                    deal.setSBrokerage(deal.getSBrokVal().multiply(deal.getWeight()).setScale(2, java.math.RoundingMode.HALF_UP));
+                } else if ("PERCENT".equals(deal.getSBrokType()) && deal.getRate() != null) {
+                    java.math.BigDecimal totalValue = deal.getWeight().multiply(deal.getRate());
+                    deal.setSBrokerage(totalValue.multiply(deal.getSBrokVal()).divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
+                } else {
+                    deal.setSBrokerage(java.math.BigDecimal.ZERO);
+                }
+            } else {
+                deal.setSBrokerage(java.math.BigDecimal.ZERO);
+            }
+        }
     }
 }

@@ -94,9 +94,13 @@ public class DealService {
             // Update parent deal
             deal.setWeight(deal.getWeight().subtract(loadedWeight));
             if (deal.getPacketWeight() != null && deal.getPacketWeight().compareTo(BigDecimal.ZERO) > 0) {
-                deal.setNumberOfPackets(
-                    deal.getWeight().multiply(new BigDecimal("100")).divide(deal.getPacketWeight(), 0, RoundingMode.HALF_UP).intValue()
-                );
+                if (deal.getNumberOfPackets() != null && loadedDeal.getNumberOfPackets() != null) {
+                    deal.setNumberOfPackets(deal.getNumberOfPackets() - loadedDeal.getNumberOfPackets());
+                } else {
+                    deal.setNumberOfPackets(
+                        deal.getWeight().multiply(new BigDecimal("100")).divide(deal.getPacketWeight(), 0, RoundingMode.HALF_UP).intValue()
+                    );
+                }
             }
             dealRepository.save(deal);
             return loadedDeal;

@@ -12,60 +12,10 @@
 # Error details
 
 ```
-Test timeout of 30000ms exceeded.
-```
-
-```
-Error: locator.waitFor: Test timeout of 30000ms exceeded.
+Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
 Call log:
-  - waiting for locator('button').filter({ hasText: /Reset PIN|पिन रीसेट करें/ }) to be visible
+  - navigating to "http://localhost:5173/", waiting until "load"
 
-```
-
-# Page snapshot
-
-```yaml
-- generic [ref=e3]:
-  - generic [ref=e4]:
-    - generic [ref=e7]:
-      - generic [ref=e8]: ॐ
-      - generic [ref=e9]:
-        - generic [ref=e10]: Pulse Broker
-        - generic [ref=e11]: Trade operations
-    - generic [ref=e12]:
-      - generic [ref=e13]: Simple. Accurate. Dependable.
-      - heading "Your brokerage business, organised in one place." [level=1] [ref=e14]
-      - paragraph [ref=e15]: Manage deals, loadings, brokerage and payments with confidence.
-    - paragraph [ref=e16]: Secure business workspace
-  - generic [ref=e17]:
-    - button "हिंदी" [ref=e19]
-    - generic [ref=e20]:
-      - generic [ref=e21]:
-        - generic [ref=e22]: First-time setup
-        - heading "Create your PIN" [level=2] [ref=e23]
-        - paragraph [ref=e24]: Choose a memorable 4-digit PIN
-      - generic [ref=e31]:
-        - button "1" [ref=e32]
-        - button "2" [ref=e33]
-        - button "3" [ref=e34]
-        - button "4" [ref=e35]
-        - button "5" [ref=e36]
-        - button "6" [ref=e37]
-        - button "7" [ref=e38]
-        - button "8" [ref=e39]
-        - button "9" [ref=e40]
-        - button "0" [ref=e42]
-        - button "⌫" [ref=e43]
-  - dialog "Authorise setup" [ref=e44]:
-    - generic [ref=e46]:
-      - generic [ref=e47]:
-        - heading "Authorise setup" [level=2] [ref=e48]
-        - paragraph [ref=e49]: Enter the server master secret to continue securely.
-        - generic [ref=e50]: Master secret
-        - textbox [active] [ref=e51]
-      - generic [ref=e52]:
-        - button "Cancel" [ref=e53]
-        - button "Continue" [ref=e54]
 ```
 
 # Test source
@@ -158,7 +108,8 @@ Call log:
   85  |   });
   86  | 
   87  |   test('Ledger gracefully handles corrupted NaN/Null payloads from backend', async ({ page }) => {
-  88  |     await page.goto('/');
+> 88  |     await page.goto('/');
+      |                ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
   89  |     
   90  |     // Quick robust login
   91  |     const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
@@ -171,8 +122,7 @@ Call log:
   98  |           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
   99  |       } catch (e) {
   100 |           const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
-> 101 |           await resetBtn.waitFor({ state: 'visible' });
-      |                          ^ Error: locator.waitFor: Test timeout of 30000ms exceeded.
+  101 |           await resetBtn.waitFor({ state: 'visible' });
   102 |           await resetBtn.click();
   103 |           const dialogInput = page.locator('div[role="dialog"] input').first();
   104 |           await dialogInput.waitFor({ state: 'visible' });

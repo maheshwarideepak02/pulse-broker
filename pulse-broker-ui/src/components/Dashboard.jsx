@@ -12,6 +12,7 @@ const Dashboard = () => {
     const { addToast } = useToast();
     const [deals, setDeals] = useState([]);
     const [summary, setSummary] = useState({ totalBilled: 0, totalUnbilled: 0, dealsThisMonth: 0, pendingLoads: 0 });
+    const [isAmountHidden, setIsAmountHidden] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const location = useLocation();
     const [dateSort, setDateSort] = useState(location.state?.sort || 'desc'); // 'original', 'asc', 'desc'
@@ -125,6 +126,9 @@ const Dashboard = () => {
                 <div className="w-full sm:w-auto text-center sm:text-left">
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2 justify-center sm:justify-start">
                         <span className="w-6 h-px bg-secondary/50"></span>{t('Business overview', 'व्यापार अवलोकन')}
+                        <button onClick={() => setIsAmountHidden(!isAmountHidden)} className="ml-2 hover:text-primary transition-colors text-base" title={isAmountHidden ? t('Show amounts', 'राशि दिखाएं') : t('Hide amounts', 'राशि छुपाएं')}>
+                            {isAmountHidden ? '👁️‍🗨️' : '👁️'}
+                        </button>
                     </div>
                     <h1 className="text-2xl sm:text-[32px] font-extrabold text-gray-900 tracking-tight mb-1">{t('Good day, welcome back', 'नमस्कार, आपका स्वागत है')}</h1>
                     <p className="text-textMuted font-medium text-xs sm:text-sm">{new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : 'en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
@@ -140,12 +144,16 @@ const Dashboard = () => {
                 <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-full h-1 bg-primary"></div>
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('Total Outstanding', 'कुल बकाया')}</p>
-                    <p className="text-xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2">₹{summary.totalOutstanding?.toLocaleString()}</p>
+                    <p className="text-xl sm:text-3xl font-bold text-primary mt-1 sm:mt-2">
+                        {isAmountHidden ? '₹ *******' : `₹${summary.totalOutstanding?.toLocaleString()}`}
+                    </p>
                 </div>
                 <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-full h-1 bg-moneyGreen"></div>
                     <p className="text-textMuted text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">{t('Unbilled Brok.', 'बिना बिल दलाली')}</p>
-                    <p className="text-xl sm:text-3xl font-bold text-moneyGreen mt-1 sm:mt-2">₹{summary.totalUnbilled?.toLocaleString()}</p>
+                    <p className="text-xl sm:text-3xl font-bold text-moneyGreen mt-1 sm:mt-2">
+                        {isAmountHidden ? '₹ *******' : `₹${summary.totalUnbilled?.toLocaleString()}`}
+                    </p>
                 </div>
                 <div className="bg-white border border-gray-100 p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-lg transition-all relative overflow-hidden group">
                     <div className="absolute top-0 left-0 w-full h-1 bg-blue-600"></div>

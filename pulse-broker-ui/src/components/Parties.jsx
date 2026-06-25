@@ -71,7 +71,7 @@ const Parties = () => {
                 await createContact(payload);
                 addToast('Contact Added Successfully!', 'success');
             }
-            fetchData();
+            await fetchData();
             setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
             setShowContactForm(false);
             setEditContact(null);
@@ -105,7 +105,7 @@ const Parties = () => {
                 await createFirm({ ...payload, contact: { id: selectedContact.id } });
                 addToast('Firm Added Successfully!', 'success');
             }
-            fetchData();
+            await fetchData();
             setFc({ name: '' });
             setShowFirmForm(false);
             setEditFirm(null);
@@ -177,7 +177,7 @@ const Parties = () => {
     });
 
     return (
-        <div className="max-w-5xl mx-auto p-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                 <div>
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">
@@ -261,7 +261,7 @@ const Parties = () => {
             ) : (
                 <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 bg-gray-50/50 sm:bg-transparent p-3 sm:p-0 rounded-3xl sm:rounded-none">
                     {filteredContacts.map(c => (
-                        <div key={c.id} className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative overflow-hidden">
+                        <div key={c.id} data-testid="contact-card" className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 group relative overflow-hidden">
                             <div className="absolute left-0 top-0 h-full w-1.5 bg-gradient-to-b from-primary to-secondary"></div>
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5 pl-2">
                                 <div className="w-full sm:w-auto">

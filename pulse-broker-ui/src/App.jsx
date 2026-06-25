@@ -15,12 +15,28 @@ import MarginLedger from './components/MarginLedger';
 import Analytics from './components/Analytics';
 import EditDeal from './components/EditDeal';
 
-const Layout = ({ children }) => (
-    <div className="app-shell bg-background text-textMain min-h-screen">
-        <Navbar />
-        <main className="app-main">{children}</main>
-    </div>
-);
+const Layout = ({ children }) => {
+    const [isOnline, setIsOnline] = React.useState(navigator.onLine);
+    React.useEffect(() => {
+        const handleOnline = () => setIsOnline(true);
+        const handleOffline = () => setIsOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
+    }, []);
+
+    return (
+        <div className="app-shell bg-background text-textMain min-h-screen">
+            {!isOnline && (
+                <div className="bg-amber-600 text-white text-center text-xs py-1.5 font-bold shadow-sm print:hidden z-50">
+                    ⚠️ You are offline (इंटरनेट बंद है). Showing cached data in Read Mode.
+                </div>
+            )}
+            <Navbar />
+            <main className="app-main">{children}</main>
+        </div>
+    );
+};
 
 const ProtectedRoute = ({ children }) => {
     const { isAuthenticated } = useAuth();

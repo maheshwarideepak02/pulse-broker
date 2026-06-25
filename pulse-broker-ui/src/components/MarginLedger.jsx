@@ -161,7 +161,7 @@ const MarginLedger = () => {
     const totalMargin = filteredDeals.reduce((sum, d) => sum + getNetMargin(d), 0);
 
     return (
-        <div className="max-w-6xl mx-auto p-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
                 <div>
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-primary mb-2">

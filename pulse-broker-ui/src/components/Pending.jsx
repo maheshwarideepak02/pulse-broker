@@ -153,7 +153,7 @@ const Pending = () => {
     });
 
     return (
-        <div className="max-w-6xl mx-auto p-4 py-8 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative">
             {isProcessing && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
                     <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">

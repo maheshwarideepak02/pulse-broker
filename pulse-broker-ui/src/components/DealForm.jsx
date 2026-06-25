@@ -297,7 +297,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-4 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="mb-6 sm:mb-8">
                 <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2">
                     <span className="w-6 h-px bg-secondary/50"></span>{t('Trade Operations', 'ट्रेड ऑपरेशंस')}

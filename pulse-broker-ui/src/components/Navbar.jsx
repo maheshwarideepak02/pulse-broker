@@ -25,7 +25,7 @@ const Navbar = () => {
     return (
         <>
             <header className="sticky top-0 z-40 border-b border-stone-200/90 bg-white/90 backdrop-blur-xl print:hidden">
-                <div className="max-w-[1440px] mx-auto h-16 lg:h-[72px] px-4 sm:px-6 flex items-center justify-between gap-5">
+                <div className="max-w-7xl mx-auto h-16 lg:h-[72px] px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-5">
                     <button onClick={() => navigate('/app/dashboard')} className="flex items-center gap-3 group" aria-label={t('Go to dashboard', 'डैशबोर्ड पर जाएं')}>
                         <span className="w-10 h-10 rounded-xl bg-primary text-white grid place-items-center font-bold text-xl shadow-sm shadow-red-900/20 group-hover:scale-105 transition-transform">ॐ</span>
                         <span className="text-left hidden sm:block">

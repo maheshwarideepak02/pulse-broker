@@ -124,7 +124,7 @@ const Dashboard = () => {
     });
 
     return (
-        <div className="max-w-7xl mx-auto p-3 sm:p-6 py-6 sm:py-9">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-3">
                 <div className="w-full sm:w-auto text-center sm:text-left">
                     <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[.16em] text-secondary mb-2 justify-center sm:justify-start">

@@ -33,7 +33,7 @@ test.describe('Golden Path E2E', () => {
     
     // Add Purchaser Firm
     await expect(page.locator('h3', { hasText: pContact })).toBeVisible({ timeout: 10000 });
-    await page.locator(`div:has(> div > div > h3:has-text("${pContact}"))`).locator('[data-testid="add-firm-btn"]').first().click();
+    await page.getByTestId('contact-card').filter({ hasText: pContact }).getByTestId('add-firm-btn').click();
     await page.fill('input[placeholder*="Firm Name"]', pFirm);
     await page.getByTestId('save-firm-btn').click({ force: true });
     await expect(page.getByTestId('save-firm-btn')).toBeHidden();
@@ -50,7 +50,7 @@ test.describe('Golden Path E2E', () => {
 
     // Add Seller Firm
     await expect(page.locator('h3', { hasText: sContact })).toBeVisible({ timeout: 10000 });
-    await page.locator(`div:has(> div > div > h3:has-text("${sContact}"))`).locator('[data-testid="add-firm-btn"]').first().click();
+    await page.getByTestId('contact-card').filter({ hasText: sContact }).getByTestId('add-firm-btn').click();
     await page.fill('input[placeholder*="Firm Name"]', sFirm);
     await page.getByTestId('save-firm-btn').click({ force: true });
     await expect(page.getByTestId('save-firm-btn')).toBeHidden();

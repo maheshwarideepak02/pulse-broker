@@ -35,6 +35,8 @@ const Ledger = () => {
     // Invoice View State
     const [showInvoice, setShowInvoice] = useState(false);
     const [invoiceData, setInvoiceData] = useState(null);
+    const [showMultiInvoice, setShowMultiInvoice] = useState(false);
+    const [multiInvoiceData, setMultiInvoiceData] = useState([]);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' }); 
     const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '' });
     const [isExporting, setIsExporting] = useState(false);
@@ -343,6 +345,28 @@ const Ledger = () => {
         return <span className="font-black text-primary">₹ {item.computedBrokerage?.toFixed(2)}</span>;
     };
 
+    const handlePrintAllFirmBills = async () => {
+        if (filteredHistoryBills.length === 0) {
+            addToast(t('No invoices match the current filter to print.', 'प्रिंट करने के लिए कोई बिल नहीं मिला।'), 'error');
+            return;
+        }
+        setIsProcessing(true);
+        try {
+            const details = await Promise.all(filteredHistoryBills.map(b => getBillDetail(b.id)));
+            const groupedDetails = details.map(detail => {
+                if (detail.items) detail.items = groupBillItems(detail.items);
+                return detail;
+            });
+            setMultiInvoiceData(groupedDetails);
+            setShowMultiInvoice(true);
+        } catch (e) {
+            console.error(e);
+            addToast(t('Could not load bills for printing', 'बिल लोड नहीं हो सके'), 'error');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
     // ===== INVOICE VIEW =====
     if (showInvoice && invoiceData) {
         return (
@@ -459,8 +483,108 @@ const Ledger = () => {
         );
     }
 
+    if (showMultiInvoice && multiInvoiceData.length > 0) {
+        return (
+            <div className="max-w-5xl mx-auto p-4 py-8 animate-slide-in">
+                <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white p-4 sm:p-5 rounded-xl shadow-md border border-gray-100 print:hidden sticky top-4 z-50">
+                    <button onClick={() => { setShowMultiInvoice(false); setMultiInvoiceData([]); }} className="text-gray-500 hover:text-primary transition-colors font-bold flex items-center gap-2 bg-gray-50 hover:bg-red-50 px-4 py-2 rounded-lg">
+                        {t('← Back', '← वापस')}
+                    </button>
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <button onClick={() => window.print()} className="bg-primary hover:bg-red-800 transition-colors text-white px-6 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                            <span>⎙</span> {t('Print All Bills', 'सभी बिल प्रिंट करें')}
+                        </button>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-8 print:gap-0">
+                    {multiInvoiceData.map((inv, index) => (
+                        <div key={inv.id || index} className="overflow-x-auto w-full pb-4 print:pb-0" style={{ pageBreakAfter: 'always', breakAfter: 'page' }}>
+                            <div className="invoice-preview relative bg-white border border-gray-200 min-w-[600px] sm:min-w-0">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
+                                    <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
+                                </div>
+                                <div style={{ textAlign: 'center', borderBottom: '2px solid #9e1b22', paddingBottom: '6px', marginBottom: '10px' }}>
+                                    <h1 style={{ fontSize: '26px', fontWeight: 'bold', margin: '4px 0' }}>संजीव कुमार माहेश्वरी</h1>
+                                    <div style={{ fontSize: '14px', fontWeight: 'bold' }}>ब्रोकर: दलहन, गल्ला, चावल आदि</div>
+                                </div>
+                                <div style={{ textAlign: 'center', borderTop: '1px solid #9e1b22', borderBottom: '1px solid #9e1b22', padding: '4px 0', marginBottom: '10px', position: 'relative' }}>
+                                    <span style={{ position: 'absolute', left: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                                        क्रमांक <span className="bill-line" style={{ minWidth: '80px' }}>{inv.billNumber}</span>
+                                    </span>
+                                    <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold', display: 'inline-block' }}>बिल दलाली</h2>
+                                    <span style={{ position: 'absolute', right: 0, bottom: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                                        दिनांक <span className="bill-line" style={{ minWidth: '100px' }}>{formatDate(inv.billDate)}</span>
+                                    </span>
+                                </div>
+                                <div style={{ textAlign: 'center', fontSize: '18px', fontWeight: 'bold', marginBottom: '15px' }}>
+                                    <span className="bill-line" style={{ minWidth: '300px' }}>{inv.firmName}</span>
+                                </div>
+                                {inv.items && (
+                                    <div className="overflow-x-auto w-full pb-2">
+                                        <table style={{ minWidth: '600px' }}>
+                                            <thead>
+                                                <tr>
+                                                    <th style={{ width: '11%' }}>सौदे की तारीख</th>
+                                                    <th style={{ width: '11%' }}>लोडिंग<br/>तारीख</th>
+                                                    <th style={{ width: '23%' }}>फर्म का नाम</th>
+                                                    <th style={{ width: '15%' }}>जिन्स का नाम</th>
+                                                    <th style={{ width: '10%' }}>वजन (कु.मे.)</th>
+                                                    <th style={{ width: '10%' }}>बोरा/कट्टा</th>
+                                                    <th style={{ width: '10%' }}>दर</th>
+                                                    <th style={{ width: '10%' }}>दलाली</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {inv.items.map((d, i) => {
+                                                    const isBothMode = d.brokeragePayer === 'PURCHASER_BOTH' || d.brokeragePayer === 'SELLER_BOTH';
+                                                    const pBrok = parseFloat(d.pBrokerage) || 0;
+                                                    const sBrok = parseFloat(d.sBrokerage) || 0;
+                                                    return (
+                                                        <React.Fragment key={d.dealId || i}>
+                                                            <tr>
+                                                                <td>{formatDate(d.dealDate)}</td>
+                                                                <td>{formatDate(d.loadDate)}</td>
+                                                                <td>{d.oppositePartyName}</td>
+                                                                <td>{d.itemMarka}</td>
+                                                                <td>{d.weight}</td>
+                                                                <td>{d.numberOfPackets || '-'}</td>
+                                                                <td>{d.rate}</td>
+                                                                <td>{isBothMode ? `₹ ${pBrok.toFixed(0)}` : `₹ ${d.computedBrokerage?.toFixed(2)}`}</td>
+                                                            </tr>
+                                                            {isBothMode && (
+                                                                <tr className="sub-row">
+                                                                    <td>"</td><td>"</td><td>"</td>
+                                                                    <td style={{ fontWeight: 'bold' }}>विक्रेता की दलाली</td>
+                                                                    <td>---</td><td>---</td><td>---</td>
+                                                                    <td>₹ {sBrok.toFixed(0)}</td>
+                                                                </tr>
+                                                            )}
+                                                        </React.Fragment>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                                <div style={{ marginTop: '15px', position: 'relative', height: '100px' }}>
+                                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', width: '100%' }}>
+                                        <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
+                                        <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
+                                    </div>
+                                    <div style={{ position: 'absolute', right: 0, bottom: '20px', border: '1px solid #9e1b22', padding: '2px 10px', fontWeight: 'bold', fontSize: '14px' }}>
+                                        कुल दलाली: <span className="bill-line" style={{ minWidth: '80px' }}>₹ {inv.totalAmount?.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-6xl mx-auto p-4 py-8 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative">
             {isProcessing && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9999] flex items-center justify-center">
                     <div className="bg-white p-8 rounded-2xl shadow-2xl flex flex-col items-center animate-slide-in">
@@ -520,7 +644,14 @@ const Ledger = () => {
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Select Firm', 'फर्म चुनें')}</label>
-                            <select value={filterFirm} onChange={e => setFilterFirm(e.target.value)} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
+                            <select value={filterFirm} onChange={e => {
+                                const val = e.target.value;
+                                setFilterFirm(val);
+                                if (val) {
+                                    const found = firms.find(f => f.id === Number(val));
+                                    if (found?.contact) setFilterParty(String(found.contact.id || found.contact));
+                                }
+                            }} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
                                 <option value="">-- {t('Select Firm', 'फर्म चुनें')} --</option>
                                 {filteredGenerateFirms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                             </select>
@@ -662,11 +793,21 @@ const Ledger = () => {
                             <option value="">-- {t('All Parties', 'सभी पार्टियां')} --</option>
                             {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                         </select>
-                        <select value={historyFirm} onChange={e => setHistoryFirm(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary">
+                        <select value={historyFirm} onChange={e => {
+                            const val = e.target.value;
+                            setHistoryFirm(val);
+                            if (val) {
+                                const found = firms.find(f => f.id === Number(val));
+                                if (found?.contact) setHistoryParty(String(found.contact.id || found.contact));
+                            }
+                        }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary">
                             <option value="">-- {t('All Firms', 'सभी फर्म')} --</option>
                             {filteredHistoryFirms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                         </select>
-                        <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm ml-auto">
+                        <button onClick={handlePrintAllFirmBills} className="bg-primary text-white hover:bg-red-800 transition-colors px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm ml-auto">
+                            <span>🖨️</span> {t('Print Bills', 'बिल प्रिंट')}
+                        </button>
+                        <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm">
                             <span>⎙</span> {t('Print List', 'प्रिंट सूची')}
                         </button>
                     </div>

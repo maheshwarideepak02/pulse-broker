@@ -69,7 +69,7 @@ public class DealController {
         if (deal.getRate() != null) {
             deal.setPurchaserRate(deal.getRate().add(deal.getMarginMarkup()));
         }
-        computeBrokerages(deal);
+        com.pulsebroker.pulse_broker_api.util.BrokerageCalculator.computeBrokerages(deal);
         return dealRepository.save(deal);
     }
 
@@ -128,7 +128,7 @@ public class DealController {
         deal.setSBrokType(dealDetails.getSBrokType());
         deal.setSBrokVal(dealDetails.getSBrokVal());
         
-        computeBrokerages(deal);
+        com.pulsebroker.pulse_broker_api.util.BrokerageCalculator.computeBrokerages(deal);
         
         deal.setBrokeragePayer(dealDetails.getBrokeragePayer());
         deal.setLoadDate(dealDetails.getLoadDate());
@@ -271,35 +271,5 @@ public class DealController {
         return ResponseEntity.ok().build();
     }
 
-    private void computeBrokerages(Deal deal) {
-        if (deal.getWeight() != null) {
-            // compute P Brokerage
-            if (deal.getPBrokVal() != null) {
-                if ("FIXED".equals(deal.getPBrokType())) {
-                    deal.setPBrokerage(deal.getPBrokVal().multiply(deal.getWeight()).setScale(2, java.math.RoundingMode.HALF_UP));
-                } else if ("PERCENT".equals(deal.getPBrokType()) && deal.getRate() != null) {
-                    java.math.BigDecimal totalValue = deal.getWeight().multiply(deal.getRate());
-                    deal.setPBrokerage(totalValue.multiply(deal.getPBrokVal()).divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
-                } else {
-                    deal.setPBrokerage(java.math.BigDecimal.ZERO);
-                }
-            } else {
-                deal.setPBrokerage(java.math.BigDecimal.ZERO);
-            }
-            
-            // compute S Brokerage
-            if (deal.getSBrokVal() != null) {
-                if ("FIXED".equals(deal.getSBrokType())) {
-                    deal.setSBrokerage(deal.getSBrokVal().multiply(deal.getWeight()).setScale(2, java.math.RoundingMode.HALF_UP));
-                } else if ("PERCENT".equals(deal.getSBrokType()) && deal.getRate() != null) {
-                    java.math.BigDecimal totalValue = deal.getWeight().multiply(deal.getRate());
-                    deal.setSBrokerage(totalValue.multiply(deal.getSBrokVal()).divide(new java.math.BigDecimal("100"), 2, java.math.RoundingMode.HALF_UP));
-                } else {
-                    deal.setSBrokerage(java.math.BigDecimal.ZERO);
-                }
-            } else {
-                deal.setSBrokerage(java.math.BigDecimal.ZERO);
-            }
-        }
-    }
+
 }

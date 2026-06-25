@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface BillRepository extends JpaRepository<Bill, Long> {
     
-    @Query("SELECT b FROM Bill b JOIN FETCH b.firm ORDER BY b.id DESC")
+    @Query("SELECT b FROM Bill b JOIN FETCH b.firm f LEFT JOIN FETCH f.contact ORDER BY b.id DESC")
     List<Bill> findAllWithFirm();
 
     boolean existsByFirmId(Long firmId);

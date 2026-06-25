@@ -6,40 +6,44 @@ test.describe('Pulse Broker UI E2E Validation', () => {
         // Go to home and login
         await page.goto('/');
         await page.fill('input[type="password"]', 'PULSE99');
-        await page.click('button:has-text("Enter")');
+        await page.getByTestId('prompt-confirm-btn').click();
         // Wait for dashboard to load
         await expect(page.locator('h1', { hasText: 'Good day' })).toBeVisible();
     });
 
     test('Settings UI Validation - Cannot submit empty string', async ({ page }) => {
         await page.click('a[href="/app/settings"]');
-        await expect(page.locator('h1', { hasText: 'Settings' })).toBeVisible();
-
-        // Find the first Marka edit button and click it
-        const editButtons = page.locator('button[title="Edit Marka"]');
-        if (await editButtons.count() > 0) {
-            await editButtons.first().click();
-            
-            // Clear the input and try to save
-            await page.fill('input[placeholder*="Name"]', '   ');
-            await page.click('button:has-text("Save")');
-
-            // Expect the validation toast
-            await expect(page.locator('text=Name is required')).toBeVisible();
-            
-            // Cancel dialog
-            await page.click('button:has-text("Cancel")');
-        }
+        await expect(page.locator('h2', { hasText: 'Manage Pulse Categories' })).toBeVisible();
+        
+        // Try submitting empty item
+        await page.getByTestId('add-item-btn').click();
+        await expect(page.locator('text=Item name cannot be empty')).toBeVisible();
     });
 
-    test('Full Load Journey with Form Validation', async ({ page }) => {
-        // Step 1: Create a Deal
-        await page.click('a[href="/app/deals/new"]');
-        await expect(page.locator('h1', { hasText: 'Create New Deal' })).toBeVisible();
+    test('Settings UI Validation - Cannot submit empty marka', async ({ page }) => {
+        await page.click('a[href="/app/settings"]');
+        await page.getByTestId('add-marka-btn').click();
+        await expect(page.locator('text=Marka name cannot be empty')).toBeVisible();
+    });
 
-        // We skip filling out the full form to avoid database clutter, 
-        // but we verify the UI prevents saving empty deals.
-        await page.click('button:has-text("Save Deal")');
+    test('Parties UI Validation - Empty Contact Form', async ({ page }) => {
+        await page.click('a[href="/app/parties"]');
+        await page.getByTestId('add-new-party-btn').click();
+        await page.getByTestId('save-contact-btn').click();
+        
+        await expect(page.locator('text=Name is required')).toBeVisible();
+        
+        // Close modal
+        await page.locator('button', { hasText: 'Cancel' }).click();
+    });
+
+    test('New Deal UI Validation - Empty form submission', async ({ page }) => {
+        await page.click('a[href="/app/new-deal"]');
+        // Wait for component to mount
+        await page.waitForTimeout(500);
+        
+        // Submit without filling anything
+        await page.getByTestId('submit-deal-btn').click();
         
         // Assert HTML5 validation or custom toast
         // If the form has required fields, it shouldn't proceed.

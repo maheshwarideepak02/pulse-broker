@@ -339,7 +339,7 @@ const Pending = () => {
                             </div>
 
                             <div className="flex gap-2 pt-3 border-t border-gray-100 mt-2">
-                                <button onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95">
+                                <button data-testid="load-btn" onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="flex-1 bg-secondary hover:bg-yellow-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-md text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 active:scale-95">
                                     <span>🚚</span> {t('Load', 'लोड')}
                                 </button>
                                 <button data-testid="edit-deal-btn" onClick={() => openEditDeal(deal)} className="bg-gray-50 border border-gray-200 hover:bg-gray-100 text-gray-700 font-bold py-2.5 px-5 rounded-xl shadow-sm transition-all text-xs uppercase tracking-wider flex items-center justify-center active:scale-95">
@@ -425,7 +425,7 @@ const Pending = () => {
                         </div>
                         <div className="flex justify-end gap-3 pt-4 pb-5 -mb-5 mt-4 border-t border-gray-100 sticky bottom-0 bg-white z-20 shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.05)] rounded-b-xl">
                             <button onClick={() => setSelectedDeal(null)} className="px-6 py-2.5 bg-gray-100 hover:bg-gray-200 transition-colors font-bold rounded-lg text-gray-600">{t('Cancel', 'रद्द करें')}</button>
-                            <button onClick={handleLoad} disabled={isProcessing} className={`px-6 py-2.5 transition-colors text-white font-bold rounded-lg shadow-lg flex items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-secondary hover:bg-yellow-600'}`}>
+                            <button data-testid="confirm-load-btn" onClick={handleLoad} disabled={isProcessing} className={`px-6 py-2.5 transition-colors text-white font-bold rounded-lg shadow-lg flex items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-secondary hover:bg-yellow-600'}`}>
                                 <span>{isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('Confirm Loading', 'लोडिंग पक्की करें')}</span>
                             </button>
                         </div>

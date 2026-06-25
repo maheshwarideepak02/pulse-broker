@@ -53,6 +53,7 @@ const ConfirmModal = ({ isOpen, title, message, confirmText, cancelText, confirm
                         {cancelText || t('Cancel', 'रद्द करें')}
                     </button>
                     <button 
+                        data-testid="modal-confirm-btn"
                         onClick={onConfirm}
                         className={`px-5 py-2.5 rounded-lg font-bold text-white shadow-md transition-colors ${colorClass}`}
                     >

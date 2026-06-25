@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail } from '../api';
+import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail, getContacts } from '../api';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
@@ -18,6 +18,8 @@ const Ledger = () => {
     
     // Generate Bill State
     const [firms, setFirms] = useState([]);
+    const [contacts, setContacts] = useState([]);
+    const [filterParty, setFilterParty] = useState('');
     const [filterFirm, setFilterFirm] = useState('');
     const [fromDate, setFromDate] = useState('');
     const [toDate, setToDate] = useState('');
@@ -27,6 +29,8 @@ const Ledger = () => {
     
     // History State
     const [billsHistory, setBillsHistory] = useState([]);
+    const [historyParty, setHistoryParty] = useState('');
+    const [historyFirm, setHistoryFirm] = useState('');
     
     // Invoice View State
     const [showInvoice, setShowInvoice] = useState(false);
@@ -77,11 +81,26 @@ const Ledger = () => {
         setIsInitialLoading(true);
         Promise.all([
             getFirms().then(setFirms),
+            getContacts().then(setContacts),
             activeTab === 'history' ? getAllBills().then(setBillsHistory) : Promise.resolve()
         ])
         .catch(console.error)
         .finally(() => setIsInitialLoading(false));
     }, [activeTab]);
+
+    const filteredGenerateFirms = filterParty
+        ? firms.filter(f => f.contact?.id === Number(filterParty) || f.contact === Number(filterParty))
+        : firms;
+
+    const filteredHistoryFirms = historyParty
+        ? firms.filter(f => f.contact?.id === Number(historyParty) || f.contact === Number(historyParty))
+        : firms;
+
+    const filteredHistoryBills = billsHistory.filter(b => {
+        if (historyParty && b.firm?.contact?.id !== Number(historyParty) && b.firm?.contact !== Number(historyParty)) return false;
+        if (historyFirm && b.firm?.id !== Number(historyFirm)) return false;
+        return true;
+    });
 
     const loadHistory = async () => {
         setIsLoading(true);
@@ -329,7 +348,7 @@ const Ledger = () => {
         return (
             <div className="max-w-5xl mx-auto p-4 py-8 animate-slide-in">
                 <div className="mb-8 flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white p-4 sm:p-5 rounded-xl shadow-md border border-gray-100 print:hidden sticky top-4 z-50">
-                    <button onClick={() => { setShowInvoice(false); setInvoiceData(null); if(activeTab==='generate') fetchPreview(); else loadHistory(); }} className="text-gray-500 hover:text-primary transition-colors font-bold flex items-center gap-2 bg-gray-50 hover:bg-red-50 px-4 py-2 rounded-lg">
+                    <button data-testid="back-btn" onClick={() => { setShowInvoice(false); setInvoiceData(null); if(activeTab==='generate') fetchPreview(); else loadHistory(); }} className="text-gray-500 hover:text-primary transition-colors font-bold flex items-center gap-2 bg-gray-50 hover:bg-red-50 px-4 py-2 rounded-lg">
                         {t('← Back', '← वापस')}
                     </button>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
@@ -468,7 +487,7 @@ const Ledger = () => {
                     >
                         {t('Generate Bills', 'बिल जनरेट करें')}
                     </button>
-                    <button 
+                    <button data-testid="invoice-history-btn"
                         onClick={() => setActiveTab('history')}
                         className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold transition-all text-sm ${activeTab === 'history' ? 'bg-white text-primary shadow-sm ring-1 ring-black/5' : 'text-gray-500 hover:text-gray-700'}`}
                     >
@@ -492,11 +511,18 @@ const Ledger = () => {
                         <span>🔍</span> {t('Filter & Generate Bill for Firm', 'फर्म के लिए बिल फ़िल्टर करें')}
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end relative z-10">
-                        <div className="md:col-span-2">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Select Party', 'पार्टी चुनें')}</label>
+                            <select value={filterParty} onChange={e => { setFilterParty(e.target.value); setFilterFirm(''); }} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
+                                <option value="">-- {t('All Parties', 'सभी पार्टियां')} --</option>
+                                {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                            </select>
+                        </div>
+                        <div>
                             <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Select Firm', 'फर्म चुनें')}</label>
                             <select value={filterFirm} onChange={e => setFilterFirm(e.target.value)} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
                                 <option value="">-- {t('Select Firm', 'फर्म चुनें')} --</option>
-                                {firms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                {filteredGenerateFirms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                             </select>
                         </div>
                         <div>
@@ -561,7 +587,7 @@ const Ledger = () => {
                                                 <button onClick={handleViewPreview} className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all px-6 py-2 rounded-lg font-bold shadow-sm flex items-center gap-2">
                                                     <span>👀</span> {t('Preview PDF', 'पूर्वावलोकन')}
                                                 </button>
-                                                <button onClick={handleFinalize} className="bg-primary hover:bg-red-800 transition-all text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:-translate-y-0.5 flex items-center gap-2">
+                                                <button data-testid="finalize-bill-btn" onClick={handleFinalize} className="bg-primary hover:bg-red-800 transition-all text-white px-6 py-2 rounded-lg font-bold shadow-lg hover:-translate-y-0.5 flex items-center gap-2">
                                                     <span>🔒</span> {t('Finalize & Lock Bill', 'बिल पक्का करें')}
                                                 </button>
                                             </div>
@@ -612,7 +638,7 @@ const Ledger = () => {
                                             <button onClick={handleViewPreview} className="w-full bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all px-4 py-3 rounded-lg font-bold shadow-sm flex items-center justify-center gap-2">
                                                 <span>👀</span> {t('Preview PDF', 'पूर्वावलोकन')}
                                             </button>
-                                            <button onClick={handleFinalize} className="w-full bg-primary hover:bg-red-800 transition-all text-white px-4 py-3 rounded-lg font-bold shadow-lg flex items-center justify-center gap-2">
+                                            <button data-testid="finalize-bill-btn-mobile" onClick={handleFinalize} className="w-full bg-primary hover:bg-red-800 transition-all text-white px-4 py-3 rounded-lg font-bold shadow-lg flex items-center justify-center gap-2">
                                                 <span>🔒</span> {t('Finalize & Lock Bill', 'बिल पक्का करें')}
                                             </button>
                                         </div>
@@ -627,10 +653,23 @@ const Ledger = () => {
 
             {activeTab === 'history' && (
             <div className="bg-white border border-gray-100 rounded-xl shadow-md overflow-hidden mb-8 animate-fade-in">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <h2 className="font-bold text-gray-700 uppercase tracking-wider text-sm flex items-center gap-2">
                         <span>📜</span> {t('All Generated Invoices', 'सभी बिल')}
                     </h2>
+                    <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                        <select value={historyParty} onChange={e => { setHistoryParty(e.target.value); setHistoryFirm(''); }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary">
+                            <option value="">-- {t('All Parties', 'सभी पार्टियां')} --</option>
+                            {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <select value={historyFirm} onChange={e => setHistoryFirm(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary">
+                            <option value="">-- {t('All Firms', 'सभी फर्म')} --</option>
+                            {filteredHistoryFirms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                        </select>
+                        <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm ml-auto">
+                            <span>⎙</span> {t('Print List', 'प्रिंट सूची')}
+                        </button>
+                    </div>
                 </div>
                     <div className="hidden md:block overflow-x-auto">
                         <table className="w-full text-left text-sm text-textMain">
@@ -645,9 +684,9 @@ const Ledger = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {billsHistory.length === 0 ? (
+                                {filteredHistoryBills.length === 0 ? (
                                     <tr><td colSpan="6" className="p-12 text-center text-gray-500 font-medium">{t('No invoices generated yet.', 'अभी तक कोई बिल नहीं बनाया गया है।')}</td></tr>
-                                ) : billsHistory.map(b => (
+                                ) : filteredHistoryBills.map(b => (
                                     <tr key={b.id} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-6 py-4 font-bold text-gray-600">{b.billNumber}</td>
                                         <td className="px-6 py-4 font-bold text-primary">{b.firm?.name}</td>
@@ -705,9 +744,9 @@ const Ledger = () => {
 
                     {/* Mobile Card Layout for History */}
                     <div className="md:hidden flex flex-col gap-3 p-3 bg-gray-50/50">
-                        {billsHistory.length === 0 ? (
+                        {filteredHistoryBills.length === 0 ? (
                             <div className="p-8 text-center text-gray-500 font-medium bg-white rounded-xl border border-gray-100">{t('No invoices generated yet.', 'अभी तक कोई बिल नहीं बनाया गया है।')}</div>
-                        ) : billsHistory.map(b => (
+                        ) : filteredHistoryBills.map(b => (
                             <div key={b.id} className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
                                 <div className={`absolute top-0 left-0 w-1 h-full bg-gradient-to-b ${b.status === 'PAID' ? 'from-moneyGreen to-green-500' : 'from-yellow-400 to-yellow-600'}`}></div>
                                 <div className="flex justify-between items-start mb-2">
@@ -741,7 +780,7 @@ const Ledger = () => {
                                         <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">👁️</button>
                                         {b.status === 'UNPAID' && (
                                             <>
-                                                <button onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">✓ {t('Pay', 'भुगतान')}</button>
+                                                <button data-testid="clear-bill-btn" onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">✓ {t('Pay', 'भुगतान')}</button>
                                                 <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">🗑️</button>
                                             </>
                                         )}
@@ -781,7 +820,7 @@ const Ledger = () => {
 
                         <div className="flex justify-end gap-3">
                             <button onClick={() => setClearBillDialog({ ...clearBillDialog, isOpen: false })} className="px-5 py-2.5 rounded-lg font-bold text-gray-500 hover:bg-gray-100 transition-colors">{t('Cancel', 'रद्द करें')}</button>
-                            <button onClick={executeClearBill} disabled={isProcessing} className={`px-5 py-2.5 rounded-lg font-bold text-white shadow-md transition-colors ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
+                            <button data-testid="mark-paid-btn" onClick={executeClearBill} disabled={isProcessing} className={`px-5 py-2.5 rounded-lg font-bold text-white shadow-md transition-colors ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
                                 {isProcessing ? t('Processing...', 'प्रक्रिया चल रही है...') : t('✓ Mark Paid', '✓ भुगतान करें')}
                             </button>
                         </div>

@@ -521,7 +521,7 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
                     </div>
 
                     <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-gray-200 z-40 sm:relative sm:bg-transparent sm:border-0 sm:p-0 pb-safe sm:pb-0">
-                        <button type="submit" disabled={isProcessing} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all transform text-lg uppercase tracking-wider flex justify-center items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1'}`}>
+                        <button data-testid="submit-deal-btn" type="submit" disabled={isProcessing} className={`w-full text-white font-bold py-4 rounded-xl shadow-lg transition-all transform text-lg uppercase tracking-wider flex justify-center items-center gap-2 ${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1'}`}>
                             {isProcessing ? (
                                 <>
                                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

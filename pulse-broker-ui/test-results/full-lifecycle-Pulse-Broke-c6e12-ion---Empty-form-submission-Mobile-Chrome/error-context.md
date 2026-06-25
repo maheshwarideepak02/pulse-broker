@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: full-lifecycle.spec.js >> Pulse Broker UI E2E Validation >> Settings UI Validation - Cannot submit empty string
-- Location: tests/full-lifecycle.spec.js:14:5
+- Name: full-lifecycle.spec.js >> Pulse Broker UI E2E Validation >> New Deal UI Validation - Empty form submission
+- Location: tests/full-lifecycle.spec.js:40:5
 
 # Error details
 
@@ -25,37 +25,26 @@ Call log:
 # Page snapshot
 
 ```yaml
-- generic [ref=e3]:
-  - generic [ref=e4]:
-    - generic [ref=e7]:
-      - generic [ref=e8]: ॐ
-      - generic [ref=e9]:
-        - generic [ref=e10]: Pulse Broker
-        - generic [ref=e11]: Trade operations
-    - generic [ref=e12]:
-      - generic [ref=e13]: Simple. Accurate. Dependable.
-      - heading "Your brokerage business, organised in one place." [level=1] [ref=e14]
-      - paragraph [ref=e15]: Manage deals, loadings, brokerage and payments with confidence.
-    - paragraph [ref=e16]: Secure business workspace
-  - generic [ref=e17]:
-    - button "हिंदी" [ref=e19]
+- generic [ref=e4]:
+  - button "हिंदी" [ref=e6]
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e10]: ॐ
+      - generic [ref=e11]: First-time setup
+      - heading "Create your PIN" [level=2] [ref=e12]
+      - paragraph [ref=e13]: Choose a memorable 4-digit PIN
     - generic [ref=e20]:
-      - generic [ref=e21]:
-        - generic [ref=e22]: First-time setup
-        - heading "Create your PIN" [level=2] [ref=e23]
-        - paragraph [ref=e24]: Choose a memorable 4-digit PIN
-      - generic [ref=e31]:
-        - button "1" [ref=e32]
-        - button "2" [ref=e33]
-        - button "3" [ref=e34]
-        - button "4" [ref=e35]
-        - button "5" [ref=e36]
-        - button "6" [ref=e37]
-        - button "7" [ref=e38]
-        - button "8" [ref=e39]
-        - button "9" [ref=e40]
-        - button "0" [ref=e42]
-        - button "⌫" [ref=e43]
+      - button "1" [ref=e21]
+      - button "2" [ref=e22]
+      - button "3" [ref=e23]
+      - button "4" [ref=e24]
+      - button "5" [ref=e25]
+      - button "6" [ref=e26]
+      - button "7" [ref=e27]
+      - button "8" [ref=e28]
+      - button "9" [ref=e29]
+      - button "0" [ref=e31]
+      - button "⌫" [ref=e32]
 ```
 
 # Test source

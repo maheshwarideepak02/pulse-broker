@@ -200,7 +200,7 @@ const Parties = () => {
                             🔍
                         </div>
                     </div>
-                    <button onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1 transition-all text-white px-5 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap">
+                    <button data-testid="add-new-party-btn" onClick={() => { setEditContact(null); setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' }); setShowContactForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 hover:shadow-xl hover:-translate-y-1 transition-all text-white px-5 sm:px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap">
                         {t('+ Add New Party', '+ नई पार्टी जोड़ें')}
                     </button>
                 </div>
@@ -224,7 +224,7 @@ const Parties = () => {
                             </div>
                         </div>
                         <div className="flex gap-4 relative z-10 items-center">
-                            <button onClick={handleSaveContact} className="bg-primary text-white font-bold px-8 py-2.5 rounded-lg shadow-md hover:bg-red-800 transition-colors">{t('Save Contact', 'संपर्क सहेजें')}</button>
+                            <button data-testid="save-contact-btn" onClick={handleSaveContact} className="bg-primary text-white font-bold px-8 py-2.5 rounded-lg shadow-md hover:bg-red-800 transition-colors">{t('Save Contact', 'संपर्क सहेजें')}</button>
                             <button onClick={() => { setShowContactForm(false); setEditContact(null); }} className="text-sm font-semibold text-textMuted hover:text-primary transition-colors underline">{t('Cancel', 'रद्द करें')}</button>
                         </div>
                     </div>
@@ -240,7 +240,7 @@ const Parties = () => {
                             <input type="text" placeholder={t('Firm Name *', 'फर्म का नाम *')} value={fc.name} onChange={e => setFc({...fc, name: e.target.value})} className="border-2 border-yellow-200 p-2.5 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition-all w-full bg-white" />
                         </div>
                         <div className="flex gap-4 relative z-10">
-                            <button onClick={handleSaveFirm} className="bg-secondary hover:bg-yellow-600 text-white font-bold px-8 py-2.5 rounded-lg shadow-md transition-colors">{t('Save Firm', 'फर्म सहेजें')}</button>
+                            <button data-testid="save-firm-btn" onClick={handleSaveFirm} className="bg-secondary hover:bg-yellow-600 text-white font-bold px-8 py-2.5 rounded-lg shadow-md transition-colors">{t('Save Firm', 'फर्म सहेजें')}</button>
                             <button onClick={() => { setShowFirmForm(false); setEditFirm(null); }} className="text-sm font-semibold text-textMuted hover:text-secondary transition-colors underline px-4 py-2.5">{t('Cancel', 'रद्द करें')}</button>
                         </div>
                     </div>

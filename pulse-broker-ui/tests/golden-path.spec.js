@@ -31,7 +31,7 @@ test.describe('Golden Path E2E', () => {
       const dialogInput = page.locator('div[role="dialog"] input');
       await dialogInput.waitFor({ state: 'visible' });
       await dialogInput.fill('PULSE99');
-      await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+      await page.getByTestId('prompt-confirm-btn').click();
     } else {
       // Try existing PIN 1234
       await page.locator('button', { hasText: /^1$/ }).click();
@@ -43,14 +43,14 @@ test.describe('Golden Path E2E', () => {
           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
       } catch (e) {
           // If we didn't navigate, the PIN was probably wrong. Reset it.
-          const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
+          const resetBtn = page.getByTestId('reset-pin-btn');
           await resetBtn.waitFor({ state: 'visible' });
           await resetBtn.click();
           
           const dialogInput = page.locator('div[role="dialog"] input').first();
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
-          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          await page.getByTestId('prompt-confirm-btn').click();
           
           // Wait for keypad to appear again
           await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
@@ -63,7 +63,7 @@ test.describe('Golden Path E2E', () => {
     
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
-          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          await page.getByTestId('prompt-confirm-btn').click();
       }
     }
 
@@ -75,8 +75,8 @@ test.describe('Golden Path E2E', () => {
     if (isMobile) await page.getByLabel('Menu').click();
 
     // 2. Add Contact & Firms
-    await page.locator('a:has-text("Parties & Firms") >> visible=true').click();
-    await page.locator('button:has-text("Add New Party") >> visible=true').click();
+    await page.getByTestId(isMobile ? 'nav-mobile-parties' : 'nav-parties').click();
+    await page.getByTestId('add-new-party-btn').click();
     
     // Fill Purchaser Contact
     await page.fill('input[placeholder*="Name"]', pContact);
@@ -84,40 +84,40 @@ test.describe('Golden Path E2E', () => {
     await page.fill('input[placeholder*="Phone"]', '9876543210');
     await page.selectOption('select', { label: '% Percent' });
     await page.fill('input[placeholder*="Default Brokerage"]', '1.5');
-    await page.click('button:has-text("Save Contact")');
+    await page.getByTestId('save-contact-btn').click();
     
     // Add Purchaser Firm
-    await page.locator(`div:has(> div > div > h3:has-text("${pContact}"))`).locator('button:has-text("Add Firm")').first().click();
+    await page.locator(`div:has(> div > div > h3:has-text("${pContact}"))`).locator('[data-testid="add-firm-btn"]').first().click();
     await page.fill('input[placeholder*="Firm Name"]', pFirm);
-    await page.click('button:has-text("Save Firm")');
+    await page.getByTestId('save-firm-btn').click();
 
     // Fill Seller Contact
-    await page.locator('button:has-text("Add New Party") >> visible=true').click();
+    await page.getByTestId('add-new-party-btn').click();
     await page.fill('input[placeholder*="Name"]', sContact);
     await page.fill('input[placeholder*="City"]', 'Delhi');
     await page.fill('input[placeholder*="Phone"]', '9876543211');
     await page.selectOption('select', { label: '₹ Fixed/Qtl' });
     await page.fill('input[placeholder*="Default Brokerage"]', '10');
-    await page.click('button:has-text("Save Contact")');
+    await page.getByTestId('save-contact-btn').click();
 
     // Add Seller Firm
-    await page.locator(`div:has(> div > div > h3:has-text("${sContact}"))`).locator('button:has-text("Add Firm")').first().click();
+    await page.locator(`div:has(> div > div > h3:has-text("${sContact}"))`).locator('[data-testid="add-firm-btn"]').first().click();
     await page.fill('input[placeholder*="Firm Name"]', sFirm);
-    await page.click('button:has-text("Save Firm")');
+    await page.getByTestId('save-firm-btn').click();
 
     // 3. Add Item & Marka
     if (isMobile) await page.getByLabel('Menu').click();
-    await page.locator('a:has-text("Settings") >> visible=true').click();
+    await page.getByTestId(isMobile ? 'nav-mobile-settings' : 'nav-settings').click();
     
     await page.fill('input[placeholder*="Item Name"]', testItem);
-    await page.click('button:has-text("Add Item")');
+    await page.getByTestId('add-item-btn').click();
     
     await page.fill('input[placeholder*="Marka Name"]', testMarka);
-    await page.click('button:has-text("Add Marka")');
+    await page.getByTestId('add-marka-btn').click();
 
     // 4. Create New Deal
     if (isMobile) await page.getByLabel('Menu').click();
-    await page.locator('a:has-text("New Deal") >> visible=true').click();
+    await page.getByTestId(isMobile ? 'nav-mobile-new-deal' : 'nav-new-deal').click();
     
     await page.selectOption('select[name="purchaserContactId"]', { label: pContact });
     await page.waitForTimeout(500);
@@ -135,14 +135,14 @@ test.describe('Golden Path E2E', () => {
     await page.fill('input[name="packetWeight"]', '25'); // 100 quintal * 100 kg / 25 kg = 400 bags
     await expect(page.locator('input[name="numberOfPackets"]')).toHaveValue('400');
     
-    await page.click('button:has-text("Save New Deal")');
+    await page.getByTestId('submit-deal-btn').click();
     
     // Should redirect to Dashboard
     await expect(page).toHaveURL(/.*\/app\/dashboard/);
 
     // 5. Load Deal
     if (isMobile) await page.getByLabel('Menu').click();
-    await page.locator('a:has-text("Pending Deals") >> visible=true').click();
+    await page.getByTestId(isMobile ? 'nav-mobile-pending' : 'nav-pending').click();
     
     // Find the row with our item and click Load
     // Search for our firm to ensure we don't load an old deal from a dirty database
@@ -154,12 +154,12 @@ test.describe('Golden Path E2E', () => {
     await editBtn.click();
     await expect(page.locator('h2:has-text("Edit Pending Deal")')).toBeVisible();
     await page.fill('input[name="rate"]', '5000'); // Resave same rate to avoid changing test's total bill expectation
-    await page.click('button:has-text("Save Changes")');
+    await page.getByTestId('submit-deal-btn').click();
     await expect(page.locator('text=Deal Updated Successfully')).toBeVisible();
     await page.waitForTimeout(1000);
     
     // Click Load for our specific deal
-    const loadBtn = page.locator('button:has-text("Load") >> visible=true').first();
+    const loadBtn = page.getByTestId('load-btn').first();
     await loadBtn.click();
     
     // Fill required Loading Date in Modal
@@ -167,39 +167,39 @@ test.describe('Golden Path E2E', () => {
     await page.getByPlaceholder('Select date').press('Enter');
     
     // Confirm Loading
-    await page.click('button:has-text("Confirm Loading")');
+    await page.getByTestId('confirm-load-btn').click();
 
     // 6. Generate Bill
     // Wait for the modal to disappear and the success toast
     await expect(page.locator('text=Deal Loaded Successfully')).toBeVisible();
     
     if (isMobile) await page.getByLabel('Menu').click();
-    await page.locator('a:has-text("Ledger & Bills") >> visible=true').click();
+    await page.getByTestId(isMobile ? 'nav-mobile-ledger' : 'nav-ledger').click();
     
     await page.selectOption('select', { label: pFirm });
     
     // Finalize the bill
-    await page.locator('button:has-text("Finalize & Lock Bill") >> visible=true').first().click();
-    await page.locator('button:has-text("Yes, Delete") >> visible=true').first().click(); // Confirm Modal uses this text
+    await page.getByTestId(isMobile ? 'finalize-bill-btn-mobile' : 'finalize-bill-btn').first().click();
+    await page.getByTestId('modal-confirm-btn').first().click(); // Confirm Modal uses this text
     
     // Wait for the printable invoice to render
     await expect(page.locator('text=Print / Download PDF')).toBeVisible({ timeout: 10000 });
     
     // Go back to Ledger
-    await page.click('button:has-text("← Back")');
+    await page.getByTestId('back-btn').click();
     
     // Go to History tab
-    await page.click('button:has-text("Invoice History")');
+    await page.getByTestId('invoice-history-btn').click();
     await expect(page.locator(`text=${pFirm} >> visible=true`).first()).toBeVisible();
     
     // Mark as PAID
     // Mark as PAID with Kasar
     const clearText = isMobile ? '✓ Pay' : 'Mark Cleared';
-    await page.locator(`button:has-text("${clearText}") >> visible=true`).first().click();
+    await page.getByTestId('clear-bill-btn').first().click();
     
     // Fill Kasar amount
     await page.fill('input[placeholder="Optional"]', '150');
-    await page.locator('button:has-text("✓ Mark Paid") >> visible=true').first().click();
+    await page.getByTestId('mark-paid-btn').first().click();
     
     // Verify Kasar badge is visible
     await expect(page.locator('text=Kasar: ₹150 >> visible=true').first()).toBeVisible();

@@ -67,6 +67,7 @@ const PromptModal = ({ isOpen, title, message, defaultValue = '', placeholder = 
                         {cancelText || t('Cancel', 'रद्द करें')}
                     </button>
                     <button 
+                        data-testid="prompt-confirm-btn"
                         onClick={() => onConfirm(value)}
                         disabled={isBusy}
                         className="btn-primary bg-primary hover:bg-red-800 transition-colors text-white px-6 py-2.5 rounded-xl font-bold shadow-md active:scale-95 transform disabled:opacity-50 flex items-center gap-2"

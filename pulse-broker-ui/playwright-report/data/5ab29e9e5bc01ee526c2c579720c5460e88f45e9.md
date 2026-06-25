@@ -6,8 +6,8 @@
 
 # Test info
 
-- Name: full-lifecycle.spec.js >> Pulse Broker UI E2E Validation >> Settings UI Validation - Cannot submit empty string
-- Location: tests/full-lifecycle.spec.js:14:5
+- Name: full-lifecycle.spec.js >> Pulse Broker UI E2E Validation >> New Deal UI Validation - Empty form submission
+- Location: tests/full-lifecycle.spec.js:40:5
 
 # Error details
 

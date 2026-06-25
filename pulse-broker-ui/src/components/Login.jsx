@@ -172,7 +172,7 @@ const Login = () => {
 
                 {!isSetupMode && (
                     <div className="text-center mt-2">
-                        <button onClick={handleReset} className="text-xs font-bold text-gray-400 hover:text-primary transition-colors">
+                        <button data-testid="reset-pin-btn" onClick={handleReset} className="text-xs font-bold text-gray-400 hover:text-primary transition-colors">
                             {t('Reset PIN', 'पिन रीसेट करें')}
                         </button>
                     </div>

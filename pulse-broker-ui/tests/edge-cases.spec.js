@@ -15,25 +15,25 @@ test.describe('Edge Cases & Robustness', () => {
       try {
           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
       } catch (e) {
-          const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
+          const resetBtn = page.getByTestId('reset-pin-btn');
           await resetBtn.waitFor({ state: 'visible' });
           await resetBtn.click();
           const dialogInput = page.locator('div[role="dialog"] input').first();
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
-          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          await page.getByTestId('prompt-confirm-btn').click();
           await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
           for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
-          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          await page.getByTestId('prompt-confirm-btn').click();
       }
     } else {
         for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
         const dialogInput = page.locator('div[role="dialog"] input');
         await dialogInput.waitFor({ state: 'visible' });
         await dialogInput.fill('PULSE99');
-        await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+        await page.getByTestId('prompt-confirm-btn').click();
     }
     await page.route('**/api/contacts', route => route.fulfill({
       status: 200,
@@ -77,7 +77,7 @@ test.describe('Edge Cases & Robustness', () => {
     await page.fill('input[name="packetWeight"]', '50');
 
     // 5. Submit the form
-    await page.locator('button', { hasText: 'Save Deal' }).click();
+    await page.getByTestId('submit-deal-btn').click();
 
     // 6. Assert UI does not crash and shows Toast
     const toast = page.locator('text=Simulated Database Failure');
@@ -97,25 +97,25 @@ test.describe('Edge Cases & Robustness', () => {
       try {
           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
       } catch (e) {
-          const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
+          const resetBtn = page.getByTestId('reset-pin-btn');
           await resetBtn.waitFor({ state: 'visible' });
           await resetBtn.click();
           const dialogInput = page.locator('div[role="dialog"] input').first();
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
-          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          await page.getByTestId('prompt-confirm-btn').click();
           await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
           for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
           await dialogInput.waitFor({ state: 'visible' });
           await dialogInput.fill('PULSE99');
-          await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+          await page.getByTestId('prompt-confirm-btn').click();
       }
     } else {
         for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
         const dialogInput = page.locator('div[role="dialog"] input');
         await dialogInput.waitFor({ state: 'visible' });
         await dialogInput.fill('PULSE99');
-        await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+        await page.getByTestId('prompt-confirm-btn').click();
     }
 
     // Mock Contacts with Margins API

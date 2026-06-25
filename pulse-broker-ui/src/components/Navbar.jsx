@@ -36,7 +36,7 @@ const Navbar = () => {
 
                     <nav className="hidden xl:flex items-center gap-1 bg-stone-100/80 p-1.5 rounded-xl border border-stone-200/80">
                         {links.map(link => (
-                            <NavLink key={link.to} to={link.to} className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all whitespace-nowrap ${isActive ? 'bg-white text-primary shadow-sm ring-1 ring-stone-200' : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'}`}>
+                            <NavLink data-testid={`nav-${link.icon}`} key={link.to} to={link.to} className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all whitespace-nowrap ${isActive ? 'bg-white text-primary shadow-sm ring-1 ring-stone-200' : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'}`}>
                                 <Icon name={link.icon} className="w-4 h-4" /> {t(link.en, link.hi)}
                             </NavLink>
                         ))}
@@ -49,7 +49,7 @@ const Navbar = () => {
                         <button onClick={handleLogout} className="hidden sm:grid h-10 w-10 place-items-center rounded-lg border border-stone-200 text-gray-500 hover:text-primary hover:bg-red-50 transition-colors" title={t('Logout', 'लॉग आउट')}>
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-5 h-5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg>
                         </button>
-                        <NavLink to="/app/new-deal" className="hidden lg:flex h-10 items-center gap-2 px-4 rounded-lg bg-primary hover:bg-red-900 text-white text-sm font-bold shadow-sm transition-all hover:-translate-y-px">
+                        <NavLink data-testid="nav-new-deal" to="/app/new-deal" className="hidden lg:flex h-10 items-center gap-2 px-4 rounded-lg bg-primary hover:bg-red-900 text-white text-sm font-bold shadow-sm transition-all hover:-translate-y-px">
                             <Icon name="new" className="w-4 h-4" /> {t('New Deal', 'नया सौदा')}
                         </NavLink>
                     </div>
@@ -59,22 +59,22 @@ const Navbar = () => {
             {menuOpen && <button className="lg:hidden fixed inset-0 z-40 bg-gray-950/30 backdrop-blur-[2px]" onClick={() => setMenuOpen(false)} aria-label="Close menu" />}
             <div className={`lg:hidden fixed z-50 left-3 right-3 bottom-[86px] bg-white rounded-2xl border border-stone-200 shadow-2xl p-3 transition-all duration-200 ${menuOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
                 <div className="grid grid-cols-2 gap-2">
-                    {links.filter((_, i) => [2, 3, 5, 6].includes(i)).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${isActive ? 'bg-red-50 text-primary' : 'text-gray-600 bg-stone-50'}`}><Icon name={link.icon}/>{t(link.en,link.hi)}</NavLink>)}
+                    {links.filter((_, i) => [2, 3, 5, 6].includes(i)).map(link => <NavLink data-testid={`nav-mobile-${link.icon}`} key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `flex items-center gap-3 p-3 rounded-xl text-sm font-bold ${isActive ? 'bg-red-50 text-primary' : 'text-gray-600 bg-stone-50'}`}><Icon name={link.icon}/>{t(link.en,link.hi)}</NavLink>)}
                     <button onClick={() => { handleLogout(); setMenuOpen(false); }} className="flex items-center gap-3 p-3 rounded-xl text-sm font-bold text-red-700 bg-red-50">↪ {t('Logout','लॉग आउट')}</button>
                 </div>
             </div>
 
             <nav className="lg:hidden fixed z-50 bottom-3 left-3 right-3 h-[70px] rounded-2xl border border-stone-200/90 bg-white/95 backdrop-blur-xl shadow-[0_12px_40px_rgba(30,25,20,.18)] px-2 grid grid-cols-5 items-center print:hidden">
-                {links.filter((_, i) => [0, 1].includes(i)).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
+                {links.filter((_, i) => [0, 1].includes(i)).map(link => <NavLink data-testid={`nav-mobile-${link.icon}`} key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
                 
                 <div className="flex justify-center h-full relative">
-                    <NavLink to="/app/new-deal" onClick={() => setMenuOpen(false)} className="absolute -top-4 w-[60px] h-[60px] flex flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 border-[4px] border-white active:scale-95 transition-transform">
+                    <NavLink data-testid="nav-mobile-new-deal" to="/app/new-deal" onClick={() => setMenuOpen(false)} className="absolute -top-4 w-[60px] h-[60px] flex flex-col items-center justify-center gap-0.5 rounded-full text-[10px] font-bold text-white bg-gradient-to-tr from-primary to-red-600 shadow-lg shadow-red-900/30 border-[4px] border-white active:scale-95 transition-transform">
                         <Icon name="new" className="w-5 h-5"/>
                         <span className="leading-none mt-0.5">{t('New','नया')}</span>
                     </NavLink>
                 </div>
 
-                {links.filter((_, i) => i === 4).map(link => <NavLink key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
+                {links.filter((_, i) => i === 4).map(link => <NavLink data-testid={`nav-mobile-${link.icon}`} key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
                 
                 <button onClick={() => setMenuOpen(v => !v)} className={`h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold ${menuOpen ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name="more"/><span>{t('More','अधिक')}</span></button>
             </nav>

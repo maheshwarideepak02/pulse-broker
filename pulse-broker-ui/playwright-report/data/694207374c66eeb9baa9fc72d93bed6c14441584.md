@@ -12,10 +12,60 @@
 # Error details
 
 ```
-Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
-Call log:
-  - navigating to "http://localhost:5173/", waiting until "load"
+Test timeout of 30000ms exceeded.
+```
 
+```
+Error: locator.waitFor: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for getByTestId('reset-pin-btn') to be visible
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: ॐ
+      - generic [ref=e9]:
+        - generic [ref=e10]: Pulse Broker
+        - generic [ref=e11]: Trade operations
+    - generic [ref=e12]:
+      - generic [ref=e13]: Simple. Accurate. Dependable.
+      - heading "Your brokerage business, organised in one place." [level=1] [ref=e14]
+      - paragraph [ref=e15]: Manage deals, loadings, brokerage and payments with confidence.
+    - paragraph [ref=e16]: Secure business workspace
+  - generic [ref=e17]:
+    - button "हिंदी" [ref=e19]
+    - generic [ref=e20]:
+      - generic [ref=e21]:
+        - generic [ref=e22]: First-time setup
+        - heading "Create your PIN" [level=2] [ref=e23]
+        - paragraph [ref=e24]: Choose a memorable 4-digit PIN
+      - generic [ref=e31]:
+        - button "1" [ref=e32]
+        - button "2" [ref=e33]
+        - button "3" [ref=e34]
+        - button "4" [ref=e35]
+        - button "5" [ref=e36]
+        - button "6" [ref=e37]
+        - button "7" [ref=e38]
+        - button "8" [ref=e39]
+        - button "9" [ref=e40]
+        - button "0" [ref=e42]
+        - button "⌫" [ref=e43]
+  - dialog "Authorise setup" [ref=e44]:
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - heading "Authorise setup" [level=2] [ref=e48]
+        - paragraph [ref=e49]: Enter the server master secret to continue securely.
+        - generic [ref=e50]: Master secret
+        - textbox [active] [ref=e51]
+      - generic [ref=e52]:
+        - button "Cancel" [ref=e53]
+        - button "Continue" [ref=e54]
 ```
 
 # Test source
@@ -26,8 +76,7 @@ Call log:
   3   | test.describe('Edge Cases & Robustness', () => {
   4   | 
   5   |   test('UI gracefully handles 500 Internal Server Error when saving deal', async ({ page }) => {
-> 6   |     await page.goto('/');
-      |                ^ Error: page.goto: net::ERR_CONNECTION_REFUSED at http://localhost:5173/
+  6   |     await page.goto('/');
   7   |     
   8   |     // Quick robust login
   9   |     const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
@@ -39,25 +88,26 @@ Call log:
   15  |       try {
   16  |           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
   17  |       } catch (e) {
-  18  |           const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
-  19  |           await resetBtn.waitFor({ state: 'visible' });
+  18  |           const resetBtn = page.getByTestId('reset-pin-btn');
+> 19  |           await resetBtn.waitFor({ state: 'visible' });
+      |                          ^ Error: locator.waitFor: Test timeout of 30000ms exceeded.
   20  |           await resetBtn.click();
   21  |           const dialogInput = page.locator('div[role="dialog"] input').first();
   22  |           await dialogInput.waitFor({ state: 'visible' });
   23  |           await dialogInput.fill('PULSE99');
-  24  |           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+  24  |           await page.getByTestId('prompt-confirm-btn').click();
   25  |           await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
   26  |           for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
   27  |           await dialogInput.waitFor({ state: 'visible' });
   28  |           await dialogInput.fill('PULSE99');
-  29  |           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+  29  |           await page.getByTestId('prompt-confirm-btn').click();
   30  |       }
   31  |     } else {
   32  |         for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
   33  |         const dialogInput = page.locator('div[role="dialog"] input');
   34  |         await dialogInput.waitFor({ state: 'visible' });
   35  |         await dialogInput.fill('PULSE99');
-  36  |         await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+  36  |         await page.getByTestId('prompt-confirm-btn').click();
   37  |     }
   38  |     await page.route('**/api/contacts', route => route.fulfill({
   39  |       status: 200,
@@ -101,7 +151,7 @@ Call log:
   77  |     await page.fill('input[name="packetWeight"]', '50');
   78  | 
   79  |     // 5. Submit the form
-  80  |     await page.locator('button', { hasText: 'Save Deal' }).click();
+  80  |     await page.getByTestId('submit-deal-btn').click();
   81  | 
   82  |     // 6. Assert UI does not crash and shows Toast
   83  |     const toast = page.locator('text=Simulated Database Failure');
@@ -121,11 +171,24 @@ Call log:
   97  |       try {
   98  |           await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
   99  |       } catch (e) {
-  100 |           const resetBtn = page.locator('button', { hasText: /Reset PIN|पिन रीसेट करें/ });
+  100 |           const resetBtn = page.getByTestId('reset-pin-btn');
   101 |           await resetBtn.waitFor({ state: 'visible' });
   102 |           await resetBtn.click();
   103 |           const dialogInput = page.locator('div[role="dialog"] input').first();
   104 |           await dialogInput.waitFor({ state: 'visible' });
   105 |           await dialogInput.fill('PULSE99');
-  106 |           await page.locator('div[role="dialog"] button', { hasText: /Continue|जारी रखें/ }).click();
+  106 |           await page.getByTestId('prompt-confirm-btn').click();
+  107 |           await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
+  108 |           for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
+  109 |           await dialogInput.waitFor({ state: 'visible' });
+  110 |           await dialogInput.fill('PULSE99');
+  111 |           await page.getByTestId('prompt-confirm-btn').click();
+  112 |       }
+  113 |     } else {
+  114 |         for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
+  115 |         const dialogInput = page.locator('div[role="dialog"] input');
+  116 |         await dialogInput.waitFor({ state: 'visible' });
+  117 |         await dialogInput.fill('PULSE99');
+  118 |         await page.getByTestId('prompt-confirm-btn').click();
+  119 |     }
 ```

@@ -76,7 +76,7 @@ const Navbar = () => {
 
                 {links.filter((_, i) => i === 4).map(link => <NavLink data-testid={`nav-mobile-${link.icon}`} key={link.to} to={link.to} onClick={() => setMenuOpen(false)} className={({isActive}) => `h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold transition-colors ${isActive ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name={link.icon}/><span>{t(link.en,link.hi)}</span></NavLink>)}
                 
-                <button onClick={() => setMenuOpen(v => !v)} className={`h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold ${menuOpen ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name="more"/><span>{t('More','अधिक')}</span></button>
+                <button data-testid="nav-mobile-more" onClick={() => setMenuOpen(v => !v)} className={`h-14 flex flex-col items-center justify-center gap-1 rounded-xl text-[10px] font-bold ${menuOpen ? 'text-primary bg-red-50' : 'text-gray-500'}`}><Icon name="more"/><span>{t('More','अधिक')}</span></button>
             </nav>
         </>
     );

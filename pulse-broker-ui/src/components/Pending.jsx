@@ -51,7 +51,10 @@ const Pending = () => {
 
     const handleLoad = async () => {
         const finalLoadDate = loadData.loadDates.filter(d => d).join(', ');
-        if (!selectedDeal || !loadData.weight || !finalLoadDate) return;
+        if (!selectedDeal || !loadData.weight || !finalLoadDate) {
+            addToast('Please provide weight and loading date', 'error');
+            return;
+        }
 
         const dealDateObj = new Date(selectedDeal.dealDate);
         const loadDatesArray = loadData.loadDates.filter(d => d);
@@ -272,7 +275,7 @@ const Pending = () => {
                                         <button onClick={() => handleCancelDeal(deal.id)} className="bg-white hover:bg-orange-50 border-2 border-orange-200 text-orange-600 transition-all font-bold py-1.5 px-3 rounded-lg shadow-sm text-xs mr-2" title={t('Cancel Remaining', 'शेष रद्द करें')}>
                                             🚫 {t('Cancel', 'रद्द करें')}
                                         </button>
-                                        <button onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
+                                        <button data-testid="load-btn" onClick={() => { setSelectedDeal(deal); setLoadData({ loadDates: [getLocalTodayDateString()], weight: deal.weight, purchaserId: '', sellerId: '' }); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="bg-secondary hover:bg-yellow-600 hover:-translate-y-0.5 transition-all text-white font-bold py-1.5 px-4 rounded-lg shadow-md text-xs uppercase tracking-wider">
                                             {t('Load Now', 'लोड करें')}
                                         </button>
                                     </td>

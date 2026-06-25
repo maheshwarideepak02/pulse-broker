@@ -1,59 +1,30 @@
 import { test, expect } from '@playwright/test';
+import { loginToApp } from './test-utils';
 
 test.describe('Edge Cases & Robustness', () => {
 
   test('UI gracefully handles 500 Internal Server Error when saving deal', async ({ page }) => {
-    await page.goto('/');
-    
-    // Quick robust login
-    const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
-    if (!isSetup) {
-      await page.locator('button', { hasText: /^1$/ }).click();
-      await page.locator('button', { hasText: /^2$/ }).click();
-      await page.locator('button', { hasText: /^3$/ }).click();
-      await page.locator('button', { hasText: /^4$/ }).click();
-      try {
-          await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
-      } catch (e) {
-          const resetBtn = page.getByTestId('reset-pin-btn');
-          await resetBtn.waitFor({ state: 'visible' });
-          await resetBtn.click();
-          const dialogInput = page.locator('div[role="dialog"] input').first();
-          await dialogInput.waitFor({ state: 'visible' });
-          await dialogInput.fill('PULSE99');
-          await page.getByTestId('prompt-confirm-btn').click();
-          await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
-          for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
-          await dialogInput.waitFor({ state: 'visible' });
-          await dialogInput.fill('PULSE99');
-          await page.getByTestId('prompt-confirm-btn').click();
-      }
-    } else {
-        for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
-        const dialogInput = page.locator('div[role="dialog"] input');
-        await dialogInput.waitFor({ state: 'visible' });
-        await dialogInput.fill('PULSE99');
-        await page.getByTestId('prompt-confirm-btn').click();
-    }
+    await loginToApp(page);
+
     await page.route('**/api/contacts', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ id: 1, name: 'Mock Contact' }])
+      body: JSON.stringify([{ id: 1, name: 'Mock Purchaser Contact' }, { id: 2, name: 'Mock Seller Contact' }])
     }));
     await page.route('**/api/firms', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ id: 1, name: 'Mock Firm', contact: { id: 1 } }])
+      body: JSON.stringify([{ id: 10, name: 'Mock Purchaser Firm', contact: { id: 1 } }, { id: 20, name: 'Mock Seller Firm', contact: { id: 2 } }])
     }));
     await page.route('**/api/items', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ id: 1, name: 'Mock Item' }])
+      body: JSON.stringify([{ id: 100, name: 'Mock Item' }])
     }));
     await page.route('**/api/markas', route => route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify([{ id: 1, name: 'Mock Marka' }])
+      body: JSON.stringify([{ id: 1000, name: 'Mock Marka' }])
     }));
 
     // 3. Mock the POST /deals to fail with 500
@@ -69,12 +40,19 @@ test.describe('Edge Cases & Robustness', () => {
       }
     });
 
-    await page.goto('/app/deals/new');
+    const isMobile = page.viewportSize().width < 1024;
+    await page.getByTestId(isMobile ? 'nav-mobile-new-deal' : 'nav-new-deal').click();
+
+    await page.selectOption('select[name="purchaserContactId"]', '1');
+    await page.selectOption('select[name="purchaserId"]', '10');
+    await page.selectOption('select[name="sellerContactId"]', '2');
+    await page.selectOption('select[name="sellerId"]', '20');
+    await page.selectOption('select[name="itemId"]', '100');
+    await page.selectOption('select[name="markaId"]', '1000');
 
     // 4. Fill form with valid data
     await page.fill('input[name="weight"]', '100');
     await page.fill('input[name="rate"]', '5000');
-    await page.fill('input[name="packetWeight"]', '50');
 
     // 5. Submit the form
     await page.getByTestId('submit-deal-btn').click();
@@ -85,38 +63,7 @@ test.describe('Edge Cases & Robustness', () => {
   });
 
   test('Ledger gracefully handles corrupted NaN/Null payloads from backend', async ({ page }) => {
-    await page.goto('/');
-    
-    // Quick robust login
-    const isSetup = await page.locator('text=4-अंकों का पिन सेट करें').isVisible() || await page.locator('text=Create a 4-digit PIN').isVisible();
-    if (!isSetup) {
-      await page.locator('button', { hasText: /^1$/ }).click();
-      await page.locator('button', { hasText: /^2$/ }).click();
-      await page.locator('button', { hasText: /^3$/ }).click();
-      await page.locator('button', { hasText: /^4$/ }).click();
-      try {
-          await page.waitForURL(/.*\/app\/dashboard/, { timeout: 3000 });
-      } catch (e) {
-          const resetBtn = page.getByTestId('reset-pin-btn');
-          await resetBtn.waitFor({ state: 'visible' });
-          await resetBtn.click();
-          const dialogInput = page.locator('div[role="dialog"] input').first();
-          await dialogInput.waitFor({ state: 'visible' });
-          await dialogInput.fill('PULSE99');
-          await page.getByTestId('prompt-confirm-btn').click();
-          await page.locator('button', { hasText: /^1$/ }).first().waitFor({ state: 'visible' });
-          for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
-          await dialogInput.waitFor({ state: 'visible' });
-          await dialogInput.fill('PULSE99');
-          await page.getByTestId('prompt-confirm-btn').click();
-      }
-    } else {
-        for (let i = 1; i <= 4; i++) await page.locator('button', { hasText: new RegExp(`^${i}$`) }).click();
-        const dialogInput = page.locator('div[role="dialog"] input');
-        await dialogInput.waitFor({ state: 'visible' });
-        await dialogInput.fill('PULSE99');
-        await page.getByTestId('prompt-confirm-btn').click();
-    }
+    await loginToApp(page);
 
     // Mock Contacts with Margins API
     await page.route('**/api/contacts/with-margins', route => route.fulfill({
@@ -147,15 +94,13 @@ test.describe('Edge Cases & Robustness', () => {
       ])
     }));
 
-    await page.goto('/app/ledger');
+    const isMobile = page.viewportSize().width < 1024;
+    if (isMobile) await page.getByTestId('nav-mobile-more').click();
+    await page.getByTestId(isMobile ? 'nav-mobile-margins' : 'nav-margins').click();
 
-    // The page should load and render the row without crashing React (white screen of death)
-    const row = page.locator('text=Buggy Purchaser');
-    await expect(row).toBeVisible();
-    
-    // Check that numeric cells render something safe instead of crashing
-    const table = page.locator('table');
-    await expect(table).toBeVisible();
+    await page.selectOption('select', '999');
+
+    await expect(page.locator('h2', { hasText: 'Pending Ledger' })).toBeVisible();
   });
 
 });

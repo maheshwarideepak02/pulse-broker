@@ -280,7 +280,7 @@ const Parties = () => {
                                         ) : null}
                                     </div>
                                 </div>
-                                <button onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2.5 rounded-xl font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
+                                <button data-testid="add-firm-btn" onClick={() => { setSelectedContact(c); setEditFirm(null); setFc({ name: '' }); setShowFirmForm(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="w-full sm:w-auto text-xs bg-white text-primary hover:bg-primary hover:text-white px-4 py-2.5 rounded-xl font-bold border-2 border-primary transition-all shadow-sm whitespace-nowrap text-center">
                                     {t('+ Add Firm', '+ फर्म जोड़ें')}
                                 </button>
                             </div>

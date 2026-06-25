@@ -713,6 +713,7 @@ const Ledger = () => {
                                                 </button>
                                                 {b.status === 'UNPAID' && (
                                                     <button 
+                                                        data-testid="clear-bill-btn"
                                                         onClick={() => handleClearBill(b.id)}
                                                         className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
                                                     >

@@ -17,7 +17,6 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
 
     const [formData, setFormData] = useState(() => {
         if (initialData) {
-            console.log("DEBUG: DealForm initialData =", initialData);
             let pbType = 'FIXED';
             let pbVal = initialData.weight && initialData.pBrokerage ? (initialData.pBrokerage / initialData.weight).toFixed(2) : '0';
             let sbType = 'FIXED';
@@ -257,8 +256,8 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
                 return;
             }
         }
-        if (formData.weight <= 0 || formData.rate <= 0) {
-            addToast('Weight and Rate must be greater than zero', 'error');
+        if (!formData.weight || !formData.rate || isNaN(Number(formData.weight)) || isNaN(Number(formData.rate)) || Number(formData.weight) <= 0 || Number(formData.rate) <= 0) {
+            addToast('Weight and Rate must be valid numbers greater than zero', 'error');
             return;
         }
         if (pBrokerage < 0 || sBrokerage < 0) {

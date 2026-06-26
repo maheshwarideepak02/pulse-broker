@@ -91,7 +91,7 @@ const Pending = () => {
             });
             addToast('Deal Loaded Successfully!', 'success');
             setSelectedDeal(null);
-            fetchDeals(); // refresh list
+            await fetchDeals(); // refresh list
         } catch (e) {
             addToast(e.response?.data?.message || 'Failed to load deal', 'error');
         } finally {
@@ -119,7 +119,7 @@ const Pending = () => {
                 await cancelDeal(id);
                 addToast('Deal Cancelled Successfully!', 'success');
             }
-            fetchDeals();
+            await fetchDeals();
         } catch (e) {
             addToast(e.response?.data?.message || `Failed to ${action} deal`, 'error');
         } finally {

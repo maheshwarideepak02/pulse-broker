@@ -126,11 +126,11 @@ const Ledger = () => {
                 grouped.set(key, { ...item, _allLoadDates: item.loadDate ? item.loadDate.split(',').map(s=>s.trim()) : [] });
             } else {
                 const existing = grouped.get(key);
-                existing.weight += item.weight;
+                existing.weight = (existing.weight || 0) + (item.weight || 0);
                 existing.numberOfPackets = (existing.numberOfPackets || 0) + (item.numberOfPackets || 0);
-                existing.computedBrokerage += item.computedBrokerage;
-                existing.pBrokerage += item.pBrokerage;
-                existing.sBrokerage += item.sBrokerage;
+                existing.computedBrokerage = (existing.computedBrokerage || 0) + (item.computedBrokerage || 0);
+                existing.pBrokerage = (existing.pBrokerage || 0) + (item.pBrokerage || 0);
+                existing.sBrokerage = (existing.sBrokerage || 0) + (item.sBrokerage || 0);
                 if (item.loadDate) {
                     const dates = item.loadDate.split(',').map(s=>s.trim());
                     dates.forEach(date => {

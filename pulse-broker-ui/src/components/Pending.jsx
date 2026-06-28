@@ -27,9 +27,7 @@ const Pending = () => {
     const [dateSort, setDateSort] = useState('desc'); // 'original', 'asc', 'desc'
 
     const handleSortToggle = () => {
-        if (dateSort === 'original') setDateSort('desc');
-        else if (dateSort === 'desc') setDateSort('asc');
-        else setDateSort('original');
+        setDateSort(prev => prev === 'desc' ? 'asc' : 'desc');
     };
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, id: null });
@@ -143,13 +141,18 @@ const Pending = () => {
             (deal.marka?.name || '').toLowerCase().includes(q)
         );
     }).sort((a, b) => {
-        if (dateSort === 'desc' || dateSort === 'asc') {
-            const dateB = new Date(b.purchaserDealDate || b.dealDate);
-            const dateA = new Date(a.purchaserDealDate || a.dealDate);
-            const dateDiff = dateB - dateA;
-            if (dateDiff !== 0) return dateSort === 'desc' ? dateDiff : -dateDiff;
-        }
-        return b.id - a.id;
+        const getEffectiveDate = (deal) => {
+            const pDate = deal.purchaserDealDate || deal.parentDeal?.purchaserDealDate;
+            if (pDate && String(pDate).trim() !== '') return new Date(pDate).getTime();
+            const sDate = deal.dealDate || deal.parentDeal?.dealDate;
+            if (sDate && String(sDate).trim() !== '') return new Date(sDate).getTime();
+            return 0;
+        };
+        const timeB = getEffectiveDate(b);
+        const timeA = getEffectiveDate(a);
+        const diff = timeB - timeA;
+        if (diff !== 0) return dateSort === 'asc' ? -diff : diff;
+        return dateSort === 'asc' ? a.id - b.id : b.id - a.id;
     });
 
     return (

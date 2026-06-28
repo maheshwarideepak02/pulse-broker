@@ -23,9 +23,7 @@ const Dashboard = () => {
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, dealOrId: null });
 
     const handleSortToggle = () => {
-        if (dateSort === 'original') setDateSort('desc');
-        else if (dateSort === 'desc') setDateSort('asc');
-        else setDateSort('original');
+        setDateSort(prev => prev === 'desc' ? 'asc' : 'desc');
     };
 
     const fetchData = () => {
@@ -97,21 +95,27 @@ const Dashboard = () => {
         }
     });
 
+    const getEffectiveDate = (deal) => {
+        const pDate = deal.purchaserDealDate || deal.parentDeal?.purchaserDealDate;
+        if (pDate && String(pDate).trim() !== '') return new Date(pDate).getTime();
+        const sDate = deal.dealDate || deal.parentDeal?.dealDate;
+        if (sDate && String(sDate).trim() !== '') return new Date(sDate).getTime();
+        return 0;
+    };
+
     const loadedDeals = Array.from(groupedMap.values()).map(d => {
         if (d._allLoadDates && d._allLoadDates.length > 0) {
             d.loadDate = d._allLoadDates.join(', ');
         }
         return d;
     }).sort((a, b) => {
-        if (dateSort === 'desc' || dateSort === 'asc') {
-            const dateB = new Date(b.purchaserDealDate || b.dealDate);
-            const dateA = new Date(a.purchaserDealDate || a.dealDate);
-            const dateDiff = dateB - dateA;
-            if (dateDiff !== 0) return dateSort === 'desc' ? dateDiff : -dateDiff;
-        }
+        const timeB = getEffectiveDate(b);
+        const timeA = getEffectiveDate(a);
+        const diff = timeB - timeA;
+        if (diff !== 0) return dateSort === 'asc' ? -diff : diff;
         const bId = b._childIds ? Math.max(...b._childIds) : b.id;
         const aId = a._childIds ? Math.max(...a._childIds) : a.id;
-        return bId - aId;
+        return dateSort === 'asc' ? aId - bId : bId - aId;
     });
     
     const filteredLoadedDeals = loadedDeals.filter(deal => {

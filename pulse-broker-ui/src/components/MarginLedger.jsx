@@ -151,11 +151,7 @@ const MarginLedger = () => {
     });
 
     const getNetMargin = (d) => {
-        let net = (d.marginMarkup || 0) * (d.weight || 0);
-        if (d.sellerContact?.id === Number(selectedParty)) {
-            return -net;
-        }
-        return net;
+        return (d.marginMarkup || 0) * (d.weight || 0);
     };
 
     const totalMargin = filteredDeals.reduce((sum, d) => sum + getNetMargin(d), 0);

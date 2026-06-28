@@ -34,9 +34,9 @@ const Navbar = () => {
                         </span>
                     </button>
 
-                    <nav className="hidden xl:flex items-center gap-1 bg-stone-100/80 p-1.5 rounded-xl border border-stone-200/80">
+                    <nav className="hidden lg:flex items-center gap-1 bg-stone-100/80 p-1.5 rounded-xl border border-stone-200/80">
                         {links.map(link => (
-                            <NavLink data-testid={`nav-${link.icon}`} key={link.to} to={link.to} className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all whitespace-nowrap ${isActive ? 'bg-white text-primary shadow-sm ring-1 ring-stone-200' : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'}`}>
+                            <NavLink data-testid={`nav-${link.icon}`} key={link.to} to={link.to} className={({ isActive }) => `flex items-center gap-1.5 xl:gap-2 px-2.5 xl:px-3 py-1.5 xl:py-2 rounded-lg text-xs xl:text-sm font-semibold transition-all whitespace-nowrap ${isActive ? 'bg-white text-primary shadow-sm ring-1 ring-stone-200' : 'text-gray-600 hover:bg-white/70 hover:text-gray-900'}`}>
                                 <Icon name={link.icon} className="w-4 h-4" /> {t(link.en, link.hi)}
                             </NavLink>
                         ))}

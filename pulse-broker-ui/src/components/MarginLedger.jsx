@@ -407,7 +407,7 @@ const MarginLedger = () => {
                         </div>
 
                         <div className="overflow-x-auto w-full pb-4">
-                            <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200 min-w-[600px] sm:min-w-0">
+                            <div ref={invoiceRef} className="invoice-preview relative bg-white border border-gray-200 w-full p-3 sm:p-6">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>
                                     <span>Pan No. ANOPM1632M</span><span>📞 9837052398</span>
                                 </div>

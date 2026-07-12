@@ -27,7 +27,9 @@ const Pending = () => {
     const [dateSort, setDateSort] = useState('desc'); // 'original', 'asc', 'desc'
 
     const handleSortToggle = () => {
-        setDateSort(prev => prev === 'desc' ? 'asc' : 'desc');
+        if (dateSort === 'original') setDateSort('desc');
+        else if (dateSort === 'desc') setDateSort('asc');
+        else setDateSort('original');
     };
 
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, id: null });
@@ -141,18 +143,21 @@ const Pending = () => {
             (deal.marka?.name || '').toLowerCase().includes(q)
         );
     }).sort((a, b) => {
-        const getEffectiveDate = (deal) => {
-            const pDate = deal.purchaserDealDate || deal.parentDeal?.purchaserDealDate;
-            if (pDate && String(pDate).trim() !== '') return new Date(pDate).getTime();
-            const sDate = deal.dealDate || deal.parentDeal?.dealDate;
-            if (sDate && String(sDate).trim() !== '') return new Date(sDate).getTime();
-            return 0;
-        };
-        const timeB = getEffectiveDate(b);
-        const timeA = getEffectiveDate(a);
-        const diff = timeB - timeA;
-        if (diff !== 0) return dateSort === 'asc' ? -diff : diff;
-        return dateSort === 'asc' ? a.id - b.id : b.id - a.id;
+        if (dateSort === 'desc' || dateSort === 'asc') {
+            const getEffectiveDate = (deal) => {
+                const pDate = deal.purchaserDealDate || deal.parentDeal?.purchaserDealDate;
+                if (pDate && String(pDate).trim() !== '') return new Date(pDate).getTime();
+                const sDate = deal.dealDate || deal.parentDeal?.dealDate;
+                if (sDate && String(sDate).trim() !== '') return new Date(sDate).getTime();
+                return 0;
+            };
+            const timeB = getEffectiveDate(b);
+            const timeA = getEffectiveDate(a);
+            const diff = timeB - timeA;
+            if (diff !== 0) return dateSort === 'desc' ? diff : -diff;
+            return dateSort === 'desc' ? b.id - a.id : a.id - b.id;
+        }
+        return b.id - a.id;
     });
 
     return (

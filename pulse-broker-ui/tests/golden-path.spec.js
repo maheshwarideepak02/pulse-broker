@@ -29,14 +29,19 @@ test.describe('Golden Path E2E', () => {
     await page.selectOption('select', { label: '% Percent' });
     await page.fill('input[placeholder*="Default Brokerage"]', '1.5');
     await page.getByTestId('save-contact-btn').click({ force: true });
-    await expect(page.getByTestId('save-contact-btn')).toBeHidden();
+    await expect(page.getByTestId('save-contact-btn')).toBeHidden({ timeout: 10000 });
+    await expect(page.locator('text=Contact Added Successfully')).toBeVisible({ timeout: 10000 });
     
     // Add Purchaser Firm
     await expect(page.locator('h3', { hasText: pContact })).toBeVisible({ timeout: 10000 });
     await page.getByTestId('contact-card').filter({ hasText: pContact }).getByTestId('add-firm-btn').click();
-    await page.fill('input[placeholder*="Firm Name"]', pFirm);
+    const pFirmInput = page.locator('input[placeholder*="Firm Name"]');
+    await pFirmInput.waitFor({ state: 'visible' });
+    await pFirmInput.fill(pFirm);
+    await expect(pFirmInput).toHaveValue(pFirm);
     await page.getByTestId('save-firm-btn').click({ force: true });
-    await expect(page.getByTestId('save-firm-btn')).toBeHidden();
+    await expect(page.getByTestId('save-firm-btn')).toBeHidden({ timeout: 10000 });
+    await expect(page.locator('text=Firm Added Successfully')).toBeVisible({ timeout: 10000 });
 
     // Fill Seller Contact
     await page.getByTestId('add-new-party-btn').click();
@@ -46,14 +51,19 @@ test.describe('Golden Path E2E', () => {
     await page.selectOption('select', { label: '₹ Fixed/Qtl' });
     await page.fill('input[placeholder*="Default Brokerage"]', '10');
     await page.getByTestId('save-contact-btn').click({ force: true });
-    await expect(page.getByTestId('save-contact-btn')).toBeHidden();
+    await expect(page.getByTestId('save-contact-btn')).toBeHidden({ timeout: 10000 });
+    await expect(page.locator('text=Contact Added Successfully')).toBeVisible({ timeout: 10000 });
 
     // Add Seller Firm
     await expect(page.locator('h3', { hasText: sContact })).toBeVisible({ timeout: 10000 });
     await page.getByTestId('contact-card').filter({ hasText: sContact }).getByTestId('add-firm-btn').click();
-    await page.fill('input[placeholder*="Firm Name"]', sFirm);
+    const sFirmInput = page.locator('input[placeholder*="Firm Name"]');
+    await sFirmInput.waitFor({ state: 'visible' });
+    await sFirmInput.fill(sFirm);
+    await expect(sFirmInput).toHaveValue(sFirm);
     await page.getByTestId('save-firm-btn').click({ force: true });
-    await expect(page.getByTestId('save-firm-btn')).toBeHidden();
+    await expect(page.getByTestId('save-firm-btn')).toBeHidden({ timeout: 10000 });
+    await expect(page.locator('text=Firm Added Successfully')).toBeVisible({ timeout: 10000 });
 
     // 3. Add Item & Marka
     if (isMobile) await page.getByTestId('nav-mobile-more').click();

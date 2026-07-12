@@ -23,7 +23,9 @@ const Dashboard = () => {
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, dealOrId: null });
 
     const handleSortToggle = () => {
-        setDateSort(prev => prev === 'desc' ? 'asc' : 'desc');
+        if (dateSort === 'original') setDateSort('desc');
+        else if (dateSort === 'desc') setDateSort('asc');
+        else setDateSort('original');
     };
 
     const fetchData = () => {
@@ -109,13 +111,16 @@ const Dashboard = () => {
         }
         return d;
     }).sort((a, b) => {
-        const timeB = getEffectiveDate(b);
-        const timeA = getEffectiveDate(a);
-        const diff = timeB - timeA;
-        if (diff !== 0) return dateSort === 'asc' ? -diff : diff;
         const bId = b._childIds ? Math.max(...b._childIds) : b.id;
         const aId = a._childIds ? Math.max(...a._childIds) : a.id;
-        return dateSort === 'asc' ? aId - bId : bId - aId;
+        if (dateSort === 'desc' || dateSort === 'asc') {
+            const timeB = getEffectiveDate(b);
+            const timeA = getEffectiveDate(a);
+            const diff = timeB - timeA;
+            if (diff !== 0) return dateSort === 'desc' ? diff : -diff;
+            return dateSort === 'desc' ? bId - aId : aId - bId;
+        }
+        return bId - aId;
     });
     
     const filteredLoadedDeals = loadedDeals.filter(deal => {

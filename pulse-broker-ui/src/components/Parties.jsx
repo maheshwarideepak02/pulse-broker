@@ -66,12 +66,13 @@ const Parties = () => {
             };
             if (editContact) {
                 await updateContact(editContact.id, payload);
+                await fetchData();
                 addToast('Contact Updated Successfully!', 'success');
             } else {
                 await createContact(payload);
+                await fetchData();
                 addToast('Contact Added Successfully!', 'success');
             }
-            await fetchData();
             setNc({ name: '', phone: '', city: '', defaultBrokType: 'PERCENT', defaultBrokVal: '' });
             setShowContactForm(false);
             setEditContact(null);
@@ -100,12 +101,13 @@ const Parties = () => {
             };
             if (editFirm) {
                 await updateFirm(editFirm.id, payload);
+                await fetchData();
                 addToast('Firm Updated Successfully!', 'success');
             } else {
                 await createFirm({ ...payload, contact: { id: selectedContact.id } });
+                await fetchData();
                 addToast('Firm Added Successfully!', 'success');
             }
-            await fetchData();
             setFc({ name: '' });
             setShowFirmForm(false);
             setEditFirm(null);

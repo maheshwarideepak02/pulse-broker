@@ -57,9 +57,11 @@ const Pending = () => {
         }
 
         const dealDateObj = new Date(selectedDeal.dealDate);
+        const pDateObj = selectedDeal.purchaserDealDate ? new Date(selectedDeal.purchaserDealDate) : dealDateObj;
+        const earliestDateObj = new Date(Math.min(dealDateObj.getTime(), pDateObj.getTime()));
         const loadDatesArray = loadData.loadDates.filter(d => d);
         for (const d of loadDatesArray) {
-            if (new Date(d) < dealDateObj) {
+            if (new Date(d) < earliestDateObj) {
                 addToast(t('Loading date cannot be before the deal date', 'लोडिंग की तारीख सौदे की तारीख से पहले नहीं हो सकती'), 'error');
                 return;
             }

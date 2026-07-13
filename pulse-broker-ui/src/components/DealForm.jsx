@@ -218,13 +218,16 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
     };
 
     const calcBrokerage = (val, type) => {
-        if (type === 'PERCENT') return (formData.weight * formData.rate * (parseFloat(val) || 0)) / 100;
-        return formData.weight * (parseFloat(val) || 0); // Fixed per qtl
+        const w = parseFloat(formData.weight) || 0;
+        const r = parseFloat(formData.rate) || 0;
+        const v = parseFloat(val) || 0;
+        const raw = type === 'PERCENT' ? (w * r * v) / 100 : w * v;
+        return Number(raw.toFixed(2));
     };
 
     const pBrokerage = calcBrokerage(formData.pBrokVal, formData.pBrokType);
     const sBrokerage = calcBrokerage(formData.sBrokVal, formData.sBrokType);
-    let totalBrokerage = pBrokerage + sBrokerage;
+    let totalBrokerage = Number((pBrokerage + sBrokerage).toFixed(2));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -244,9 +247,11 @@ const DealForm = ({ initialData, onSubmit, isProcessing, title, buttonText }) =>
 
         if (finalLoadDate) {
             const dealDateObj = new Date(formData.dealDate);
+            const pDateObj = showPurchaserDate && formData.purchaserDealDate ? new Date(formData.purchaserDealDate) : dealDateObj;
+            const earliestDateObj = new Date(Math.min(dealDateObj.getTime(), pDateObj.getTime()));
             const loadDatesArray = formData.loadDates.filter(d => d);
             for (const d of loadDatesArray) {
-                if (new Date(d) < dealDateObj) {
+                if (new Date(d) < earliestDateObj) {
                     addToast(t('Loading date cannot be before the deal date', 'लोडिंग की तारीख सौदे की तारीख से पहले नहीं हो सकती'), 'error');
                     return;
                 }

@@ -133,19 +133,14 @@ const MarginLedger = () => {
         if (activeTab === 'pending' && isCleared) return false;
         if (activeTab === 'cleared' && !isCleared) return false;
 
-        if (startDate) {
-            if (!d.dealDate) return true;
-            const [y, m, day] = d.dealDate.split('-');
+        if (startDate || endDate) {
+            const dateStr = d.purchaserDealDate || d.dealDate;
+            if (!dateStr) return true;
+            const [y, m, day] = dateStr.split('-');
             const dealDate = new Date(y, parseInt(m, 10) - 1, parseInt(day, 10));
             dealDate.setHours(0,0,0,0);
-            if (dealDate < startDate) return false;
-        }
-        if (endDate) {
-            if (!d.dealDate) return true;
-            const [y, m, day] = d.dealDate.split('-');
-            const dealDate = new Date(y, parseInt(m, 10) - 1, parseInt(day, 10));
-            dealDate.setHours(0,0,0,0);
-            if (dealDate > endDate) return false;
+            if (startDate && dealDate < startDate) return false;
+            if (endDate && dealDate > endDate) return false;
         }
         return true;
     });
@@ -309,7 +304,18 @@ const MarginLedger = () => {
                                                     />
                                                 </td>
                                                 <td className="p-4 text-sm text-gray-500 font-medium">#{d.id}</td>
-                                                <td className="p-4 font-bold text-gray-800">{formatDate(d.dealDate)}</td>
+                                                <td className="p-4 font-bold text-gray-800">
+                                                    <div className="flex flex-col gap-1">
+                                                        {d.purchaserDealDate && d.purchaserDealDate !== d.dealDate ? (
+                                                            <>
+                                                                <span className="text-secondary text-xs" title="Seller Date">S: {formatDate(d.dealDate)}</span>
+                                                                <span className="text-primary text-xs" title="Buyer Date">P: {formatDate(d.purchaserDealDate)}</span>
+                                                            </>
+                                                        ) : (
+                                                            <span>{formatDate(d.dealDate)}</span>
+                                                        )}
+                                                    </div>
+                                                </td>
                                                 <td className="p-4">
                                                     <div className="font-bold text-gray-800">{d.purchaser?.name}</div>
                                                     <div className="text-xs text-gray-500 font-bold uppercase">{d.purchaserContact?.name}</div>
@@ -354,7 +360,11 @@ const MarginLedger = () => {
                                                     onChange={() => toggleSelection(d.id)}
                                                     onClick={(e) => e.stopPropagation()}
                                                 />
-                                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(d.dealDate)}</span>
+                                                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                                    {d.purchaserDealDate && d.purchaserDealDate !== d.dealDate 
+                                                        ? `P: ${formatDate(d.purchaserDealDate)}` 
+                                                        : formatDate(d.dealDate)}
+                                                </span>
                                             </div>
                                             <div className="text-right">
                                                 <span className={`font-black text-lg ${netMargin > 0 ? 'text-green-600' : 'text-red-600'}`}>₹{netMargin.toFixed(2)}</span>

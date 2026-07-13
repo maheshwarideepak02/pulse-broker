@@ -143,8 +143,16 @@ const Ledger = () => {
             if (item._allLoadDates && item._allLoadDates.length > 0) {
                 item.loadDate = item._allLoadDates.join(', ');
             }
+            if (typeof item.weight === 'number') item.weight = Number(item.weight.toFixed(2));
+            if (typeof item.computedBrokerage === 'number') item.computedBrokerage = Number(item.computedBrokerage.toFixed(2));
+            if (typeof item.pBrokerage === 'number') item.pBrokerage = Number(item.pBrokerage.toFixed(2));
+            if (typeof item.sBrokerage === 'number') item.sBrokerage = Number(item.sBrokerage.toFixed(2));
             return item;
-        }).sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
+        }).sort((a, b) => {
+            const dateA = a.purchaserDealDate || a.dealDate;
+            const dateB = b.purchaserDealDate || b.dealDate;
+            return new Date(dateA) - new Date(dateB);
+        });
     };
 
     const fetchPreview = async () => {
@@ -696,7 +704,18 @@ const Ledger = () => {
                                     <tr><td colSpan="7" className="p-12 text-center text-gray-500 font-medium">{filterFirm ? t('No unbilled deals match the selected filter.', 'चुने गए फिल्टर में कोई अनबिल्ड सौदा नहीं मिला।') : t('Please select a firm to view their ledger.', 'खाता देखने के लिए फर्म चुनें।')}</td></tr>
                                 ) : billPreview.items.map(d => (
                                     <tr key={d.dealId} className="hover:bg-red-50/30 transition-colors">
-                                        <td className="px-6 py-4 text-gray-500">{formatDate(d.dealDate)}</td>
+                                        <td className="px-6 py-4 text-gray-500">
+                                            <div className="flex flex-col gap-1">
+                                                {d.purchaserDealDate && d.purchaserDealDate !== d.dealDate ? (
+                                                    <>
+                                                        <span className="text-secondary text-xs" title="Seller Date">S: {formatDate(d.dealDate)}</span>
+                                                        <span className="text-primary text-xs" title="Buyer Date">P: {formatDate(d.purchaserDealDate)}</span>
+                                                    </>
+                                                ) : (
+                                                    <span>{formatDate(d.dealDate)}</span>
+                                                )}
+                                            </div>
+                                        </td>
                                         <td className="px-6 py-4 font-bold text-primary">{d.oppositePartyName}</td>
                                         <td className="px-6 py-4"><span className="bg-gray-100 px-2 py-1 rounded border border-gray-200 font-bold text-xs">{d.itemMarka}</span></td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-600">{d.weight}</td>
@@ -751,7 +770,13 @@ const Ledger = () => {
                                             <span className="font-bold text-gray-600">{d.weight} {t('qtl', 'क्विंटल')} {d.numberOfPackets ? `(${d.numberOfPackets} ${t('Bags', 'बोरी')})` : ''}</span>
                                         </div>
                                         <div className="flex justify-between items-center mt-3 pt-3 border-t border-gray-50">
-                                            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(d.dealDate)}</div>
+                                            <div className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                                                {d.purchaserDealDate && d.purchaserDealDate !== d.dealDate ? (
+                                                    <span>P: {formatDate(d.purchaserDealDate)} | S: {formatDate(d.dealDate)}</span>
+                                                ) : (
+                                                    <span>{formatDate(d.dealDate)}</span>
+                                                )}
+                                            </div>
                                             <button onClick={() => handleRevertDeal(d.dealId)} className="text-[11px] font-bold text-gray-500 hover:text-red-600 flex items-center gap-1 bg-white border border-gray-200 shadow-sm px-2 py-1 rounded-md active:scale-95 transition-all">
                                                 ↩️ {t('Revert', 'वापस')}
                                             </button>

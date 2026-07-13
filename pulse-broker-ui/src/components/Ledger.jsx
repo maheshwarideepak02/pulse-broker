@@ -148,11 +148,7 @@ const Ledger = () => {
             if (typeof item.pBrokerage === 'number') item.pBrokerage = Number(item.pBrokerage.toFixed(2));
             if (typeof item.sBrokerage === 'number') item.sBrokerage = Number(item.sBrokerage.toFixed(2));
             return item;
-        }).sort((a, b) => {
-            const dateA = a.purchaserDealDate || a.dealDate;
-            const dateB = b.purchaserDealDate || b.dealDate;
-            return new Date(dateA) - new Date(dateB);
-        });
+        }).sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
     };
 
     const fetchPreview = async () => {

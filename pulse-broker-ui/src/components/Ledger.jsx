@@ -153,11 +153,13 @@ const Ledger = () => {
 
     const getBrokerageBreakdown = (items) => {
         if (!items || !Array.isArray(items)) return { kreta: 0, vikreta: 0 };
+        console.log('[DEBUG] getBrokerageBreakdown items:', items.map(i => ({ brokeragePayer: i.brokeragePayer, pBrokerage: i.pBrokerage, sBrokerage: i.sBrokerage })));
         const kreta = items.reduce((sum, item) => sum + (Number(item.pBrokerage) || 0), 0);
         const vikreta = items.reduce((sum, item) => {
             const isBothMode = item.brokeragePayer === 'PURCHASER_BOTH' || item.brokeragePayer === 'SELLER_BOTH';
             return sum + (isBothMode ? (Number(item.sBrokerage) || 0) : 0);
         }, 0);
+        console.log('[DEBUG] Breakdown result:', { kreta, vikreta });
         return { kreta, vikreta };
     };
 
@@ -793,14 +795,6 @@ const Ledger = () => {
                                                         </div>
                                                     </td>
                                                     <td className="text-right font-bold uppercase py-5 text-gray-500 tracking-wider">
-                                                        {(() => {
-                                                            const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
-                                                            return vikreta > 0 ? (
-                                                                <div className="text-xs text-gray-400 font-medium">
-                                                                    {`${t('Buyer', 'क्रेता')}: ₹${kreta.toFixed(2)} + ${t('Seller', 'विक्रेता')}: ₹${vikreta.toFixed(2)}`}
-                                                                </div>
-                                                            ) : null;
-                                                        })()}
                                                         <div className="mt-1">{t('Total to Bill:', 'कुल बिल:')}</div>
                                                     </td>
                                                     <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</td>
@@ -847,15 +841,6 @@ const Ledger = () => {
                                                 <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-moneyGreen to-green-500"></div>
                                                 <div className="flex flex-col mb-4 gap-1">
                                                     <div className="flex justify-between items-center text-xs font-semibold text-gray-400">
-                                                        {(() => {
-                                                            const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
-                                                            return vikreta > 0 ? (
-                                                                <>
-                                                                    <span>{t('Buyer', 'क्रेता')}: ₹{kreta.toFixed(2)}</span>
-                                                                    <span>{t('Seller', 'विक्रेता')}: ₹{vikreta.toFixed(2)}</span>
-                                                                </>
-                                                            ) : null;
-                                                        })()}
                                                     </div>
                                                     <div className="flex justify-between items-center pt-1 border-t border-gray-100">
                                                         <span className="font-bold uppercase text-gray-500 tracking-wider text-sm">{t('Total to Bill:', 'कुल बिल:')}</span>

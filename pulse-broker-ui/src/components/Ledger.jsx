@@ -485,30 +485,10 @@ const Ledger = () => {
                             <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
                         </div>
                         <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
-                            {(() => {
-                                const { kreta, vikreta } = getBrokerageBreakdown(invoiceData?.items);
-                                const total = (kreta + vikreta).toFixed(2);
-                                return (
-                                    <>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555' }}>
-                                            <span>क्रेता दलाली:</span>
-                                            <span style={{ fontWeight: 'bold' }}>₹ {kreta.toFixed(2)}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '3px', marginBottom: '3px' }}>
-                                            <span>विक्रेता दलाली:</span>
-                                            <span style={{ fontWeight: 'bold' }}>₹ {vikreta.toFixed(2)}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
-                                            <span>कुल दलाली:</span>
-                                            <span>₹ {total}</span>
-                                        </div>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#0044cc' }}>
-                                            <span>बिल का भुगतान योग्य कुल:</span>
-                                            <span>₹ {invoiceData?.totalAmount?.toFixed(2) ?? '0.00'}</span>
-                                        </div>
-                                    </>
-                                );
-                            })()}
+                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
+                                <span>कुल दलाली:</span>
+                                <span>₹ {invoiceData?.totalAmount?.toFixed(2) ?? '0.00'}</span>
+                            </div>
                         </div>
                         </div>
                     </div>

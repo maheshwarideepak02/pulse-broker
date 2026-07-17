@@ -154,7 +154,10 @@ const Ledger = () => {
     const getBrokerageBreakdown = (items) => {
         if (!items || !Array.isArray(items)) return { kreta: 0, vikreta: 0 };
         const kreta = items.reduce((sum, item) => sum + (Number(item.pBrokerage) || 0), 0);
-        const vikreta = items.reduce((sum, item) => sum + (Number(item.sBrokerage) || 0), 0);
+        const vikreta = items.reduce((sum, item) => {
+            const isBothMode = item.brokeragePayer === 'PURCHASER_BOTH' || item.brokeragePayer === 'SELLER_BOTH';
+            return sum + (isBothMode ? (Number(item.sBrokerage) || 0) : 0);
+        }, 0);
         return { kreta, vikreta };
     };
 
@@ -485,10 +488,22 @@ const Ledger = () => {
                             <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
                         </div>
                         <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
-                                <span>कुल दलाली:</span>
-                                <span>₹ {invoiceData?.totalAmount?.toFixed(2) ?? '0.00'}</span>
-                            </div>
+                            {(() => {
+                                const { vikreta } = getBrokerageBreakdown(invoiceData?.items);
+                                return (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
+                                            <span>कुल दलाली:</span>
+                                            <span>₹ {invoiceData?.totalAmount?.toFixed(2) ?? '0.00'}</span>
+                                        </div>
+                                        {vikreta > 0 && (
+                                            <div style={{ fontSize: '10px', color: '#777', marginTop: '2px', textAlign: 'right' }}>
+                                                (क्रेता एवं विक्रेता दलाली सहित)
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </div>
                         </div>
                     </div>

@@ -482,12 +482,12 @@ const Ledger = () => {
                                 </table>
                             </div>
                         )}
-                        <div style={{ marginTop: '15px', position: 'relative', height: '100px' }}>
-                            <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', width: '100%' }}>
+                        <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '15px', minHeight: '80px' }}>
+                            <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', flex: '1' }}>
                                 <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
                                 <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
                             </div>
-                            <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
+                            <div style={{ border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px', flexShrink: 0 }}>
                                 {(() => {
                                     const { kreta, vikreta } = getBrokerageBreakdown(invoiceData?.items);
                                     return (
@@ -602,12 +602,12 @@ const Ledger = () => {
                                         </table>
                                     </div>
                                 )}
-                                <div style={{ marginTop: '15px', position: 'relative', height: '100px' }}>
-                                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', width: '100%' }}>
+                                <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '15px', minHeight: '80px' }}>
+                                    <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', flex: '1' }}>
                                         <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
                                         <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
                                     </div>
-                                    <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
+                                    <div style={{ border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px', flexShrink: 0 }}>
                                         {(() => {
                                             const { kreta, vikreta } = getBrokerageBreakdown(inv?.items);
                                             return (

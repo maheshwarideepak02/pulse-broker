@@ -612,18 +612,22 @@ const Ledger = () => {
                                             const { kreta, vikreta } = getBrokerageBreakdown(inv?.items);
                                             return (
                                                 <>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555' }}>
-                                                        <span>क्रेता दलाली:</span>
-                                                        <span style={{ fontWeight: 'bold' }}>₹ {kreta.toFixed(2)}</span>
-                                                    </div>
-                                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '3px', marginBottom: '3px' }}>
-                                                        <span>विक्रेता दलाली:</span>
-                                                        <span style={{ fontWeight: 'bold' }}>₹ {vikreta.toFixed(2)}</span>
-                                                    </div>
                                                     <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
                                                         <span>कुल दलाली:</span>
                                                         <span>₹ {inv.totalAmount?.toFixed(2)}</span>
                                                     </div>
+                                                    {vikreta > 0 && (
+                                                        <div style={{ fontSize: '10px', color: '#666', marginTop: '3px', borderTop: '1px dashed #ddd', paddingTop: '3px' }}>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                                                                <span>क्रेता दलाली:</span>
+                                                                <span>₹ {kreta.toFixed(2)}</span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+                                                                <span>विक्रेता दलाली:</span>
+                                                                <span>₹ {vikreta.toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </>
                                             );
                                         })()}
@@ -789,16 +793,17 @@ const Ledger = () => {
                                                         </div>
                                                     </td>
                                                     <td className="text-right font-bold uppercase py-5 text-gray-500 tracking-wider">
-                                                        <div className="text-xs text-gray-400 font-medium">
-                                                            {(() => {
-                                                                const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
-                                                                const total = (kreta + vikreta).toFixed(2);
-                                                                return `${t('Buyer', 'क्रेता')}: ₹${kreta.toFixed(2)} + ${t('Seller', 'विक्रेता')}: ₹${vikreta.toFixed(2)} = ${t('Total', 'कुल')}: ₹${total}`;
-                                                            })()}
-                                                        </div>
+                                                        {(() => {
+                                                            const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
+                                                            return vikreta > 0 ? (
+                                                                <div className="text-xs text-gray-400 font-medium">
+                                                                    {`${t('Buyer', 'क्रेता')}: ₹${kreta.toFixed(2)} + ${t('Seller', 'विक्रेता')}: ₹${vikreta.toFixed(2)}`}
+                                                                </div>
+                                                            ) : null;
+                                                        })()}
                                                         <div className="mt-1">{t('Total to Bill:', 'कुल बिल:')}</div>
                                                     </td>
-                                                    <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {(() => { const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items); return (kreta + vikreta).toFixed(2); })()}</td>
+                                                    <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</td>
                                                 </tr>
                                             </tfoot>
                                         )}
@@ -844,12 +849,12 @@ const Ledger = () => {
                                                     <div className="flex justify-between items-center text-xs font-semibold text-gray-400">
                                                         {(() => {
                                                             const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
-                                                            return (
+                                                            return vikreta > 0 ? (
                                                                 <>
                                                                     <span>{t('Buyer', 'क्रेता')}: ₹{kreta.toFixed(2)}</span>
                                                                     <span>{t('Seller', 'विक्रेता')}: ₹{vikreta.toFixed(2)}</span>
                                                                 </>
-                                                            );
+                                                            ) : null;
                                                         })()}
                                                     </div>
                                                     <div className="flex justify-between items-center pt-1 border-t border-gray-100">

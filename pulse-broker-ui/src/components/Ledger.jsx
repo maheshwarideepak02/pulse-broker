@@ -487,6 +487,7 @@ const Ledger = () => {
                         <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
                             {(() => {
                                 const { kreta, vikreta } = getBrokerageBreakdown(invoiceData?.items);
+                                const total = (kreta + vikreta).toFixed(2);
                                 return (
                                     <>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555' }}>
@@ -499,7 +500,11 @@ const Ledger = () => {
                                         </div>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
                                             <span>कुल दलाली:</span>
-                                            <span>₹ {invoiceData.totalAmount?.toFixed(2)}</span>
+                                            <span>₹ {total}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#0044cc' }}>
+                                            <span>बिल का भुगतान योग्य कुल:</span>
+                                            <span>₹ {invoiceData?.totalAmount?.toFixed(2) ?? '0.00'}</span>
                                         </div>
                                     </>
                                 );
@@ -785,12 +790,13 @@ const Ledger = () => {
                                             <div className="text-xs text-gray-400 font-medium">
                                                 {(() => {
                                                     const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
-                                                    return `${t('Buyer', 'क्रेता')}: ₹${kreta.toFixed(2)} + ${t('Seller', 'विक्रेता')}: ₹${vikreta.toFixed(2)}`;
+                                                    const total = (kreta + vikreta).toFixed(2);
+                                                    return `${t('Buyer', 'क्रेता')}: ₹${kreta.toFixed(2)} + ${t('Seller', 'विक्रेता')}: ₹${vikreta.toFixed(2)} = ${t('Total', 'कुल')}: ₹${total}`;
                                                 })()}
                                             </div>
                                             <div className="mt-1">{t('Total to Bill:', 'कुल बिल:')}</div>
                                         </td>
-                                        <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {billPreview.totalAmount.toFixed(2)}</td>
+                                        <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ { (() => { const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items); return (kreta + vikreta).toFixed(2); })() }</td>
                                     </tr>
                                 </tfoot>
                             )}

@@ -151,6 +151,13 @@ const Ledger = () => {
         }).sort((a, b) => new Date(a.dealDate) - new Date(b.dealDate));
     };
 
+    const getBrokerageBreakdown = (items) => {
+        if (!items || !Array.isArray(items)) return { kreta: 0, vikreta: 0 };
+        const kreta = items.reduce((sum, item) => sum + (Number(item.pBrokerage) || 0), 0);
+        const vikreta = items.reduce((sum, item) => sum + (Number(item.sBrokerage) || 0), 0);
+        return { kreta, vikreta };
+    };
+
     const fetchPreview = async () => {
         if (!filterFirm) return;
         setIsLoading(true);
@@ -477,8 +484,26 @@ const Ledger = () => {
                             <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
                             <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
                         </div>
-                        <div style={{ position: 'absolute', right: 0, bottom: '20px', border: '1px solid #9e1b22', padding: '2px 10px', fontWeight: 'bold', fontSize: '14px' }}>
-                            कुल दलाली: <span className="bill-line" style={{ minWidth: '80px' }}>₹ {invoiceData.totalAmount?.toFixed(2)}</span>
+                        <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
+                            {(() => {
+                                const { kreta, vikreta } = getBrokerageBreakdown(invoiceData?.items);
+                                return (
+                                    <>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555' }}>
+                                            <span>क्रेता दलाली:</span>
+                                            <span style={{ fontWeight: 'bold' }}>₹ {kreta.toFixed(2)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '3px', marginBottom: '3px' }}>
+                                            <span>विक्रेता दलाली:</span>
+                                            <span style={{ fontWeight: 'bold' }}>₹ {vikreta.toFixed(2)}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
+                                            <span>कुल दलाली:</span>
+                                            <span>₹ {invoiceData.totalAmount?.toFixed(2)}</span>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </div>
                         </div>
                     </div>
@@ -575,8 +600,26 @@ const Ledger = () => {
                                         <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
                                         <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
                                     </div>
-                                    <div style={{ position: 'absolute', right: 0, bottom: '20px', border: '1px solid #9e1b22', padding: '2px 10px', fontWeight: 'bold', fontSize: '14px' }}>
-                                        कुल दलाली: <span className="bill-line" style={{ minWidth: '80px' }}>₹ {inv.totalAmount?.toFixed(2)}</span>
+                                    <div style={{ position: 'absolute', right: 0, bottom: '15px', border: '1px solid #9e1b22', padding: '6px 12px', fontSize: '13px', background: '#fff9f9', borderRadius: '4px' }}>
+                                        {(() => {
+                                            const { kreta, vikreta } = getBrokerageBreakdown(inv?.items);
+                                            return (
+                                                <>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555' }}>
+                                                        <span>क्रेता दलाली:</span>
+                                                        <span style={{ fontWeight: 'bold' }}>₹ {kreta.toFixed(2)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', color: '#555', borderBottom: '1px solid #ddd', paddingBottom: '3px', marginBottom: '3px' }}>
+                                                        <span>विक्रेता दलाली:</span>
+                                                        <span style={{ fontWeight: 'bold' }}>₹ {vikreta.toFixed(2)}</span>
+                                                    </div>
+                                                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px', fontWeight: 'bold', fontSize: '14px', color: '#9e1b22' }}>
+                                                        <span>कुल दलाली:</span>
+                                                        <span>₹ {inv.totalAmount?.toFixed(2)}</span>
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 </div>
                             </div>
@@ -738,7 +781,15 @@ const Ledger = () => {
                                                 </button>
                                             </div>
                                         </td>
-                                        <td className="text-right font-bold uppercase py-5 text-gray-500 tracking-wider">{t('Total to Bill:', 'कुल बिल:')}</td>
+                                        <td className="text-right font-bold uppercase py-5 text-gray-500 tracking-wider">
+                                            <div className="text-xs text-gray-400 font-medium">
+                                                {(() => {
+                                                    const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
+                                                    return `${t('Buyer', 'क्रेता')}: ₹${kreta.toFixed(2)} + ${t('Seller', 'विक्रेता')}: ₹${vikreta.toFixed(2)}`;
+                                                })()}
+                                            </div>
+                                            <div className="mt-1">{t('Total to Bill:', 'कुल बिल:')}</div>
+                                        </td>
                                         <td className="text-right font-black text-moneyGreen text-2xl pr-6">₹ {billPreview.totalAmount.toFixed(2)}</td>
                                     </tr>
                                 </tfoot>
@@ -781,9 +832,22 @@ const Ledger = () => {
                                 ))}
                                 <div className="p-4 bg-white rounded-2xl shadow-sm border border-gray-100 mt-2 relative overflow-hidden">
                                     <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-moneyGreen to-green-500"></div>
-                                    <div className="flex justify-between items-center mb-4">
-                                        <span className="font-bold uppercase text-gray-500 tracking-wider text-sm">{t('Total to Bill:', 'कुल बिल:')}</span>
-                                        <span className="font-black text-moneyGreen text-2xl">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</span>
+                                    <div className="flex flex-col mb-4 gap-1">
+                                        <div className="flex justify-between items-center text-xs font-semibold text-gray-400">
+                                            {(() => {
+                                                const { kreta, vikreta } = getBrokerageBreakdown(billPreview?.items);
+                                                return (
+                                                    <>
+                                                        <span>{t('Buyer', 'क्रेता')}: ₹{kreta.toFixed(2)}</span>
+                                                        <span>{t('Seller', 'विक्रेता')}: ₹{vikreta.toFixed(2)}</span>
+                                                    </>
+                                                );
+                                            })()}
+                                        </div>
+                                        <div className="flex justify-between items-center pt-1 border-t border-gray-100">
+                                            <span className="font-bold uppercase text-gray-500 tracking-wider text-sm">{t('Total to Bill:', 'कुल बिल:')}</span>
+                                            <span className="font-black text-moneyGreen text-2xl">₹ {billPreview?.totalAmount?.toFixed(2) || '0.00'}</span>
+                                        </div>
                                     </div>
                                     {billPreview && billPreview.items.length > 0 && (
                                         <div className="flex flex-col gap-3">

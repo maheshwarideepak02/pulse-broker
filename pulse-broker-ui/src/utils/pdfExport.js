@@ -62,12 +62,14 @@ const findBestBreak = (breakPoints, startY, maxSliceHeight, totalHeight) => {
     return bestBreak;
 };
 
-/**
- * Captures an HTML element and creates a professional multi-page A4 PDF
- * with smart page breaks that never cut through table rows.
- */
-const elementToPdfBlob = async (element, fileName) => {
+const elementToPdfBlob = async (element, fileName, firmName = '') => {
     if (!element) throw new Error('Element not found for PDF export.');
+
+    // Try to extract firm name from the DOM if not provided
+    if (!firmName) {
+        const billLine = element.querySelector('.bill-line');
+        if (billLine) firmName = billLine.textContent?.trim() || '';
+    }
 
     // Wait for fonts and a render tick
     if (document.fonts?.ready) await document.fonts.ready;
@@ -122,6 +124,8 @@ const elementToPdfBlob = async (element, fileName) => {
     const PAGE_H_MM = 297;
     const CONTENT_W_MM = PAGE_W_MM - MARGIN_MM * 2;
     const CONTENT_H_MM = PAGE_H_MM - MARGIN_MM * 2;
+    const HEADER_H_MM = 8;  // space reserved for continuation header on page 2+
+    const FOOTER_H_MM = 6;  // space reserved for page number footer
 
     const canvasW = fullCanvas.width;
     const canvasH = fullCanvas.height;
@@ -129,22 +133,39 @@ const elementToPdfBlob = async (element, fileName) => {
     // DOM pixels per mm (before canvas scale)
     const domWidth = canvasW / SCALE;
     const domPxPerMm = domWidth / CONTENT_W_MM;
-    const maxSliceHeightDom = CONTENT_H_MM * domPxPerMm; // max DOM px per page
     const totalHeightDom = canvasH / SCALE;
 
+    // First pass: calculate total pages for "Page X of Y" footer
+    const pageBreaks = [0];
+    let tempY = 0;
+    let tempPage = 0;
+    while (tempY < totalHeightDom - 1) {
+        const availableH = tempPage === 0
+            ? (CONTENT_H_MM - FOOTER_H_MM) * domPxPerMm
+            : (CONTENT_H_MM - HEADER_H_MM - FOOTER_H_MM) * domPxPerMm;
+        const nextBreak = findBestBreak(breakPoints, tempY, availableH, totalHeightDom);
+        pageBreaks.push(nextBreak);
+        tempY = nextBreak;
+        tempPage++;
+        if (tempPage > 50) break;
+    }
+    const totalPages = tempPage;
+
+    // Second pass: render pages
     const pdf = new jsPDF('portrait', 'mm', 'a4');
-    let currentY = 0; // in DOM pixels
-    let pageNum = 0;
 
-    while (currentY < totalHeightDom - 1) {
-        if (pageNum > 0) pdf.addPage();
+    for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
 
-        // Find smart break point (in DOM pixels)
-        const nextBreak = findBestBreak(breakPoints, currentY, maxSliceHeightDom, totalHeightDom);
-        const sliceHeightDom = nextBreak - currentY;
+        const startY = pageBreaks[page];
+        const endY = pageBreaks[page + 1];
+        const sliceHeightDom = endY - startY;
+
+        // Where to place the image on this page
+        const imgTopMm = page === 0 ? MARGIN_MM : (MARGIN_MM + HEADER_H_MM);
 
         // Convert to canvas pixels
-        const srcY = Math.round(currentY * SCALE);
+        const srcY = Math.round(startY * SCALE);
         const srcH = Math.round(sliceHeightDom * SCALE);
         const actualSrcH = Math.min(srcH, canvasH - srcY);
 
@@ -154,11 +175,9 @@ const elementToPdfBlob = async (element, fileName) => {
         sliceCanvas.height = actualSrcH;
         const ctx = sliceCanvas.getContext('2d');
 
-        // White background
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, canvasW, actualSrcH);
 
-        // Copy this page's portion
         ctx.drawImage(
             fullCanvas,
             0, srcY, canvasW, actualSrcH,
@@ -170,15 +189,29 @@ const elementToPdfBlob = async (element, fileName) => {
 
         pdf.addImage(
             sliceImgData, 'JPEG',
-            MARGIN_MM, MARGIN_MM,
+            MARGIN_MM, imgTopMm,
             CONTENT_W_MM, sliceHeightMm
         );
 
-        currentY = nextBreak;
-        pageNum++;
+        // --- Continuation header on page 2+ ---
+        if (page > 0 && firmName) {
+            pdf.setFontSize(9);
+            pdf.setTextColor(120, 120, 120);
+            pdf.text(`${firmName} (contd.)`, MARGIN_MM, MARGIN_MM + 4);
+            // Thin separator line
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setLineWidth(0.3);
+            pdf.line(MARGIN_MM, MARGIN_MM + HEADER_H_MM - 1, PAGE_W_MM - MARGIN_MM, MARGIN_MM + HEADER_H_MM - 1);
+        }
 
-        // Safety: prevent infinite loops
-        if (pageNum > 50) break;
+        // --- Page number footer on all pages (only if multi-page) ---
+        if (totalPages > 1) {
+            pdf.setFontSize(8);
+            pdf.setTextColor(150, 150, 150);
+            const pageText = `Page ${page + 1} / ${totalPages}`;
+            const textWidth = pdf.getTextWidth(pageText);
+            pdf.text(pageText, PAGE_W_MM - MARGIN_MM - textWidth, PAGE_H_MM - MARGIN_MM + 2);
+        }
     }
 
     const resolvedName = `${safeFileName(fileName)}.pdf`;

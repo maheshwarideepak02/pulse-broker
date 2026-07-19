@@ -53,8 +53,8 @@ const Ledger = () => {
             await downloadInvoicePdf(invoiceRef.current, invoiceFileName());
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
         } catch (error) {
-            console.error(error);
-            addToast(t('Could not create PDF', 'पीडीएफ नहीं बन सका'), 'error');
+            console.error('[PDF Download Error]', error);
+            addToast(`${t('Could not create PDF', 'पीडीएफ नहीं बन सका')}: ${error?.message || 'Unknown error'}`, 'error');
         } finally {
             setIsExporting(false);
         }

@@ -1,4 +1,5 @@
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 export const safeFileName = (value, fallback = 'invoice') => {
     const cleaned = String(value || fallback)
@@ -8,28 +9,19 @@ export const safeFileName = (value, fallback = 'invoice') => {
     return cleaned || fallback;
 };
 
-const getPdfOptions = (fileName) => ({
-    margin: [5, 5, 5, 5],
-    filename: `${safeFileName(fileName)}.pdf`,
-    image: { type: 'jpeg', quality: 0.95 },
-    html2canvas: {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: 800,
-        width: 780,
-        scrollX: 0,
-        scrollY: 0,
-        allowTaint: true,
-        removeContainer: true
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
-});
+/**
+ * Captures an HTML element as a canvas, then converts it to a multi-page A4 PDF.
+ * Uses jsPDF + html2canvas directly (bypassing html2pdf.js which has known issues).
+ */
+const elementToPdfBlob = async (element, fileName) => {
+    if (!element) throw new Error('Element not found for PDF export.');
 
-const prepareElement = (element) => {
+    // Wait for fonts
+    if (document.fonts?.ready) await document.fonts.ready;
+    await new Promise(r => setTimeout(r, 200));
+
     // Hide print:hidden elements during capture
-    const hiddenEls = element.querySelectorAll('.print\\:hidden, [class*="print:hidden"]');
+    const hiddenEls = element.querySelectorAll('[class*="print:hidden"], .print\\:hidden');
     const origDisplays = [];
     hiddenEls.forEach(el => {
         origDisplays.push(el.style.display);
@@ -37,61 +29,77 @@ const prepareElement = (element) => {
     });
 
     // Set fixed width for consistent rendering
-    const originalMinWidth = element.style.minWidth;
-    const originalWidth = element.style.width;
-    const originalOverflow = element.style.overflow;
+    const origStyles = {
+        minWidth: element.style.minWidth,
+        width: element.style.width,
+        overflow: element.style.overflow,
+        position: element.style.position,
+    };
     element.style.minWidth = '780px';
     element.style.width = '780px';
     element.style.overflow = 'visible';
 
-    return () => {
-        element.style.minWidth = originalMinWidth;
-        element.style.width = originalWidth;
-        element.style.overflow = originalOverflow;
+    let canvas;
+    try {
+        canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            logging: false,
+            windowWidth: 800,
+            width: 780,
+            scrollX: 0,
+            scrollY: -window.scrollY,
+        });
+    } finally {
+        // Restore original styles
+        Object.assign(element.style, origStyles);
         hiddenEls.forEach((el, i) => {
             el.style.display = origDisplays[i];
         });
-    };
+    }
+
+    // A4 dimensions in mm
+    const pageWidth = 210;
+    const pageHeight = 297;
+    const margin = 5; // mm
+    const contentWidth = pageWidth - margin * 2;
+    const contentHeight = pageHeight - margin * 2;
+
+    // Calculate image dimensions
+    const imgWidth = contentWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    const pdf = new jsPDF('portrait', 'mm', 'a4');
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+
+    let heightLeft = imgHeight;
+    let position = margin;
+    let page = 0;
+
+    // Add pages as needed
+    while (heightLeft > 0) {
+        if (page > 0) {
+            pdf.addPage();
+        }
+        pdf.addImage(imgData, 'JPEG', margin, position - (page * contentHeight), imgWidth, imgHeight);
+        heightLeft -= contentHeight;
+        page++;
+        position = margin;
+    }
+
+    const resolvedName = `${safeFileName(fileName)}.pdf`;
+    return { pdf, blob: pdf.output('blob'), resolvedName };
 };
 
 export const downloadInvoicePdf = async (element, fileName) => {
-    if (!element) throw new Error('Invoice element not found. Please try again.');
-    
-    // Wait for fonts and images to load
-    if (document.fonts?.ready) await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 300));
-
-    const restore = prepareElement(element);
-    try {
-        await html2pdf().set(getPdfOptions(fileName)).from(element).save();
-    } catch (err) {
-        console.error('[PDF Export] Error:', err);
-        throw new Error(`PDF generation failed: ${err.message}`);
-    } finally {
-        restore();
-    }
+    const { pdf, resolvedName } = await elementToPdfBlob(element, fileName);
+    pdf.save(resolvedName);
     return { success: true };
 };
 
 export const shareInvoice = async ({ element, fileName, title, text }) => {
-    if (!element) throw new Error('Invoice element not found. Please try again.');
-    
-    if (document.fonts?.ready) await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 300));
-    
-    const resolvedName = `${safeFileName(fileName)}.pdf`;
-    const restore = prepareElement(element);
-    let blob;
-    
-    try {
-        blob = await html2pdf().set(getPdfOptions(fileName)).from(element).outputPdf('blob');
-    } catch (err) {
-        console.error('[PDF Share] Error:', err);
-        throw new Error(`PDF generation failed: ${err.message}`);
-    } finally {
-        restore();
-    }
-
+    const { blob, resolvedName } = await elementToPdfBlob(element, fileName);
     const file = new File([blob], resolvedName, { type: 'application/pdf' });
 
     if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {

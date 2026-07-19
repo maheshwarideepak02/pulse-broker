@@ -10,17 +10,17 @@ export const safeFileName = (value, fallback = 'invoice') => {
 };
 
 /**
- * Captures an HTML element as a canvas, then converts it to a multi-page A4 PDF.
- * Uses jsPDF + html2canvas directly (bypassing html2pdf.js which has known issues).
+ * Captures an HTML element as a high-quality canvas, then slices it into
+ * clean A4 pages with no row cutting. Each page gets its own canvas slice.
  */
 const elementToPdfBlob = async (element, fileName) => {
     if (!element) throw new Error('Element not found for PDF export.');
 
-    // Wait for fonts
+    // Wait for fonts and a render tick
     if (document.fonts?.ready) await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 200));
+    await new Promise(r => setTimeout(r, 300));
 
-    // Hide print:hidden elements during capture
+    // --- Prepare element for capture ---
     const hiddenEls = element.querySelectorAll('[class*="print:hidden"], .print\\:hidden');
     const origDisplays = [];
     hiddenEls.forEach(el => {
@@ -28,28 +28,26 @@ const elementToPdfBlob = async (element, fileName) => {
         el.style.display = 'none';
     });
 
-    // Set fixed width for consistent rendering
     const origStyles = {
         minWidth: element.style.minWidth,
         width: element.style.width,
         overflow: element.style.overflow,
-        position: element.style.position,
     };
     element.style.minWidth = '780px';
     element.style.width = '780px';
     element.style.overflow = 'visible';
 
-    let canvas;
+    let fullCanvas;
     try {
-        canvas = await html2canvas(element, {
+        fullCanvas = await html2canvas(element, {
             scale: 2,
             useCORS: true,
             allowTaint: true,
             logging: false,
-            windowWidth: 800,
-            width: 780,
+            windowWidth: 820,
             scrollX: 0,
             scrollY: -window.scrollY,
+            backgroundColor: '#ffffff',
         });
     } finally {
         // Restore original styles
@@ -59,33 +57,58 @@ const elementToPdfBlob = async (element, fileName) => {
         });
     }
 
-    // A4 dimensions in mm
-    const pageWidth = 210;
-    const pageHeight = 297;
-    const margin = 5; // mm
-    const contentWidth = pageWidth - margin * 2;
-    const contentHeight = pageHeight - margin * 2;
+    // --- PDF dimensions ---
+    const MARGIN_MM = 8;
+    const PAGE_W_MM = 210;                          // A4 width
+    const PAGE_H_MM = 297;                          // A4 height
+    const CONTENT_W_MM = PAGE_W_MM - MARGIN_MM * 2; // printable width
+    const CONTENT_H_MM = PAGE_H_MM - MARGIN_MM * 2; // printable height
 
-    // Calculate image dimensions
-    const imgWidth = contentWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    // Pixels per mm at the canvas scale
+    const canvasW = fullCanvas.width;
+    const canvasH = fullCanvas.height;
+    const pxPerMm = canvasW / CONTENT_W_MM;
+    const sliceHeightPx = Math.floor(CONTENT_H_MM * pxPerMm); // px height per page
 
+    const totalPages = Math.ceil(canvasH / sliceHeightPx);
     const pdf = new jsPDF('portrait', 'mm', 'a4');
-    const imgData = canvas.toDataURL('image/jpeg', 0.95);
 
-    let heightLeft = imgHeight;
-    let position = margin;
-    let page = 0;
+    for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
 
-    // Add pages as needed
-    while (heightLeft > 0) {
-        if (page > 0) {
-            pdf.addPage();
-        }
-        pdf.addImage(imgData, 'JPEG', margin, position - (page * contentHeight), imgWidth, imgHeight);
-        heightLeft -= contentHeight;
-        page++;
-        position = margin;
+        const srcY = page * sliceHeightPx;
+        const srcH = Math.min(sliceHeightPx, canvasH - srcY);
+
+        // Create a clean slice canvas for this page
+        const sliceCanvas = document.createElement('canvas');
+        sliceCanvas.width = canvasW;
+        sliceCanvas.height = srcH;
+        const ctx = sliceCanvas.getContext('2d');
+
+        // White background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvasW, srcH);
+
+        // Draw the slice from the full canvas
+        ctx.drawImage(
+            fullCanvas,
+            0, srcY,       // source x, y
+            canvasW, srcH,  // source width, height
+            0, 0,           // dest x, y
+            canvasW, srcH   // dest width, height
+        );
+
+        const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+        const sliceHeightMm = (srcH / pxPerMm);
+
+        pdf.addImage(
+            sliceImgData,
+            'JPEG',
+            MARGIN_MM,          // x
+            MARGIN_MM,          // y
+            CONTENT_W_MM,       // width in mm
+            sliceHeightMm       // height in mm
+        );
     }
 
     const resolvedName = `${safeFileName(fileName)}.pdf`;

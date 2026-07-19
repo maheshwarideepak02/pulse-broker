@@ -137,14 +137,14 @@ const Analytics = () => {
                 tradingPairsMap[pairStr] = (tradingPairsMap[pairStr] || 0) + dealVolume;
             }
 
-            // Price Trends
-            if (deal.item?.name && deal.rate && dDate) {
+            // Price Trends (By Marka)
+            if (deal.marka?.name && deal.rate && dDate) {
                 const mIndex = dDate.getMonth();
                 const mName = new Date(2000, mIndex, 1).toLocaleString('default', { month: 'short' });
-                if (!priceTrendsMap[deal.item.name]) priceTrendsMap[deal.item.name] = {};
-                if (!priceTrendsMap[deal.item.name][mName]) priceTrendsMap[deal.item.name][mName] = { sum: 0, count: 0 };
-                priceTrendsMap[deal.item.name][mName].sum += parseFloat(deal.rate);
-                priceTrendsMap[deal.item.name][mName].count += 1;
+                if (!priceTrendsMap[deal.marka.name]) priceTrendsMap[deal.marka.name] = {};
+                if (!priceTrendsMap[deal.marka.name][mName]) priceTrendsMap[deal.marka.name][mName] = { sum: 0, count: 0 };
+                priceTrendsMap[deal.marka.name][mName].sum += parseFloat(deal.rate);
+                priceTrendsMap[deal.marka.name][mName].count += 1;
             }
         });
 
@@ -197,17 +197,17 @@ const Analytics = () => {
             .sort((a, b) => b.volume - a.volume)
             .slice(0, 5);
 
-        // Prepare Price Trends (Top 3 items)
-        const top3ItemsArr = sortMap(itemMap).slice(0, 3).map(i => i.name);
+        // Prepare Price Trends (Top 3 markas)
+        const top3MarkasArr = sortMap(markaMap).slice(0, 3).map(i => i.name);
         const monthsStr = Array(12).fill(0).map((_, i) => new Date(2000, i, 1).toLocaleString('default', { month: 'short' }));
         const priceTrendsData = monthsStr.map(mName => {
             const row = { name: mName };
-            top3ItemsArr.forEach(item => {
-                const p = priceTrendsMap[item];
+            top3MarkasArr.forEach(marka => {
+                const p = priceTrendsMap[marka];
                 if (p && p[mName] && p[mName].count > 0) {
-                    row[item] = Math.round(p[mName].sum / p[mName].count);
+                    row[marka] = Math.round(p[mName].sum / p[mName].count);
                 } else {
-                    row[item] = null;
+                    row[marka] = null;
                 }
             });
             return row;
@@ -223,7 +223,7 @@ const Analytics = () => {
             sellerInsights,
             topPairs,
             priceTrendsData,
-            top3ItemsArr,
+            top3MarkasArr,
             totalBrokerageYTD,
             avgBrokeragePerDeal: totalDealsYTD > 0 ? (totalBrokerageYTD / totalDealsYTD) : 0,
             biggestDeal,
@@ -687,9 +687,9 @@ const Analytics = () => {
                 </div>
 
                 {/* Market Price Trends */}
-                {stats.top3ItemsArr.length > 0 && (
+                {stats.top3MarkasArr.length > 0 && (
                     <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
-                        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Market Price Trends (Top Items)', 'बाजार मूल्य रुझान')}</h3>
+                        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Market Price Trends (Top Markas)', 'बाजार मूल्य रुझान (शीर्ष मार्का)')}</h3>
                         <div className="h-[250px] sm:h-[300px] w-full -ml-4 sm:ml-0">
                             <ResponsiveContainer width="100%" height="100%">
                                 <LineChart data={stats.priceTrendsData} margin={{ left: 0, right: 10, bottom: 0, top: 0 }}>
@@ -698,8 +698,8 @@ const Analytics = () => {
                                     <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} tickFormatter={(val) => `₹${val}`} width={60} />
                                     <RechartsTooltip content={<CustomTooltip />} />
                                     <Legend verticalAlign="top" wrapperStyle={{ fontSize: '11px', fontWeight: 600, paddingBottom: '10px' }} />
-                                    {stats.top3ItemsArr.map((item, idx) => (
-                                        <Line key={item} type="monotone" dataKey={item} stroke={COLORS[idx % COLORS.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} connectNulls />
+                                    {stats.top3MarkasArr.map((marka, idx) => (
+                                        <Line key={marka} type="monotone" dataKey={marka} stroke={COLORS[idx % COLORS.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} connectNulls />
                                     ))}
                                 </LineChart>
                             </ResponsiveContainer>

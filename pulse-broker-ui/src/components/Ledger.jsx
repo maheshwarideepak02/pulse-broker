@@ -41,6 +41,7 @@ const Ledger = () => {
     const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '' });
     const [isExporting, setIsExporting] = useState(false);
     const invoiceRef = useRef(null);
+    const multiInvoiceRef = useRef(null);
 
     const [isInitialLoading, setIsInitialLoading] = useState(true);
 
@@ -85,6 +86,47 @@ const Ledger = () => {
         document.title = ' ';
         window.print();
         setTimeout(() => { document.title = originalTitle; }, 1000);
+    };
+
+    const multiInvoiceFileName = () => {
+        const party = contacts.find(c => c.id === Number(historyParty));
+        return safeFileName(`bills-${party ? party.name : 'all'}-${getLocalTodayDateString()}`);
+    };
+
+    const handleMultiPdfDownload = async () => {
+        setIsExporting(true);
+        try {
+            const { downloadInvoicePdf } = await import('../utils/pdfExport');
+            const party = contacts.find(c => c.id === Number(historyParty));
+            await downloadInvoicePdf(multiInvoiceRef.current, multiInvoiceFileName(), party?.name || '');
+            addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
+        } catch (error) {
+            console.error('[PDF Download Error]', error);
+            addToast(`${t('Could not create PDF', 'पीडीएफ नहीं बन सका')}: ${error?.message || 'Unknown error'}`, 'error');
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
+    const handleMultiInvoiceShare = async () => {
+        setIsExporting(true);
+        try {
+            const { shareInvoice } = await import('../utils/pdfExport');
+            const party = contacts.find(c => c.id === Number(historyParty));
+            const total = multiInvoiceData.reduce((sum, inv) => sum + (Number(inv.totalAmount) || 0), 0);
+            const result = await shareInvoice({
+                element: multiInvoiceRef.current,
+                fileName: multiInvoiceFileName(),
+                title: t('Multiple Brokerage Bills', 'एकाधिक दलाली बिल'),
+                text: `${t('Brokerage bills for', 'दलाली बिल')}: ${party?.name || t('All Parties', 'सभी पार्टियां')}\n${t('Total Bills', 'कुल बिल')}: ${multiInvoiceData.length}\n${t('Total Amount', 'कुल राशि')}: ₹${total.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+                firmName: party?.name || ''
+            });
+            addToast(result.method === 'native' ? t('Bills ready to share', 'बिल साझा करने के लिए तैयार है') : t('PDF downloaded; WhatsApp opened', 'पीडीएफ डाउनलोड हुआ; व्हाट्सऐप खोला गया'), 'success');
+        } catch (error) {
+            if (error?.name !== 'AbortError') addToast(t('Could not share bills', 'बिल साझा नहीं हो सके'), 'error');
+        } finally {
+            setIsExporting(false);
+        }
     };
 
     useEffect(() => {
@@ -535,12 +577,18 @@ const Ledger = () => {
                         {t('← Back', '← वापस')}
                     </button>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <button onClick={handlePrint} className="bg-primary hover:bg-red-800 transition-colors text-white px-6 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                        <button onClick={handleMultiPdfDownload} disabled={isExporting} className="bg-primary hover:bg-red-800 disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                            <span>↓</span> {isExporting ? t('Preparing…', 'बन रहा है…') : t('Download PDF', 'पीडीएफ डाउनलोड')}
+                        </button>
+                        <button onClick={handleMultiInvoiceShare} disabled={isExporting} className="bg-[#128c4b] hover:bg-[#0d713c] disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                            <span>↗</span> {t('Share / WhatsApp', 'शेयर / व्हाट्सऐप')}
+                        </button>
+                        <button onClick={handlePrint} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2">
                             <span>⎙</span> {t('Print All Bills', 'सभी बिल प्रिंट करें')}
                         </button>
                     </div>
                 </div>
-                <div className="flex flex-col gap-8 print:gap-0">
+                <div className="flex flex-col gap-8 print:gap-0" ref={multiInvoiceRef}>
                     {multiInvoiceData.map((inv, index) => (
                         <div key={inv.id || index} className="overflow-x-auto w-full pb-4 print:pb-0" style={{ pageBreakAfter: 'always', breakAfter: 'page' }}>
                             <div className="invoice-preview relative bg-white border border-gray-200 w-full p-3 sm:p-6">

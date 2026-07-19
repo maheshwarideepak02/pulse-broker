@@ -230,22 +230,64 @@ table tbody tr { transition: background-color .16s ease; }
 
 /* Print-specific styles */
 @media print {
-    body {
-        background: white !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+    /* Remove browser-generated headers and footers (title, URL, date, page numbers) */
+    @page {
+        size: A4 portrait;
+        margin: 8mm;
     }
-    .print\:hidden {
+
+    /* Reset everything */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        font-size: 12px !important;
+    }
+
+    /* Hide all non-bill elements */
+    .print\:hidden,
+    nav,
+    .modal-overlay,
+    header,
+    footer,
+    .sticky {
         display: none !important;
     }
+
+    /* Make the invoice fill the full page */
     .invoice-preview {
         box-shadow: none !important;
         border: none !important;
         max-width: 100% !important;
-        padding: 10px !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
     }
-    nav, .modal-overlay {
-        display: none !important;
+
+    /* Remove container padding/margin */
+    .max-w-5xl,
+    .max-w-7xl {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Ensure tables stretch full width */
+    table {
+        width: 100% !important;
+        min-width: unset !important;
+    }
+
+    /* Avoid page breaks inside rows */
+    tr {
+        page-break-inside: avoid;
+    }
+
+    /* Multi-invoice page breaks */
+    .print\:pb-0 {
+        padding-bottom: 0 !important;
     }
 }
-

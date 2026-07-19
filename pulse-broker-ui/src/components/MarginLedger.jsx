@@ -67,6 +67,13 @@ const MarginLedger = () => {
         }
     };
 
+    const handlePrint = () => {
+        const originalTitle = document.title;
+        document.title = ' ';
+        window.print();
+        setTimeout(() => { document.title = originalTitle; }, 1000);
+    };
+
     useEffect(() => {
         setIsInitialLoading(true);
         getContactsWithMargins()
@@ -408,7 +415,7 @@ const MarginLedger = () => {
                             <div className="flex flex-wrap gap-2">
                                 <button onClick={handlePdfDownload} disabled={isExporting} className="bg-primary hover:bg-red-800 disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2"><span>↓</span>{isExporting ? t('Preparing…', 'बन रहा है…') : t('Download PDF', 'पीडीएफ डाउनलोड')}</button>
                                 <button onClick={handleMarginShare} disabled={isExporting} className="bg-[#128c4b] hover:bg-[#0d713c] disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2"><span>↗</span>{t('Share / WhatsApp', 'शेयर / व्हाट्सऐप')}</button>
-                                <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2"><span>⎙</span>{t('Print', 'प्रिंट')}</button>
+                                <button onClick={handlePrint} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2"><span>⎙</span>{t('Print', 'प्रिंट')}</button>
                             </div>
                         </div>
 

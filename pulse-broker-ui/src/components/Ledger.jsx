@@ -79,6 +79,13 @@ const Ledger = () => {
         }
     };
 
+    const handlePrint = () => {
+        const originalTitle = document.title;
+        document.title = ' ';
+        window.print();
+        setTimeout(() => { document.title = originalTitle; }, 1000);
+    };
+
     useEffect(() => {
         setIsInitialLoading(true);
         Promise.all([
@@ -153,13 +160,11 @@ const Ledger = () => {
 
     const getBrokerageBreakdown = (items) => {
         if (!items || !Array.isArray(items)) return { kreta: 0, vikreta: 0 };
-        console.log('[DEBUG] getBrokerageBreakdown items:', items.map(i => ({ brokeragePayer: i.brokeragePayer, pBrokerage: i.pBrokerage, sBrokerage: i.sBrokerage })));
         const kreta = items.reduce((sum, item) => sum + (Number(item.pBrokerage) || 0), 0);
         const vikreta = items.reduce((sum, item) => {
             const isBothMode = item.brokeragePayer === 'PURCHASER_BOTH' || item.brokeragePayer === 'SELLER_BOTH';
             return sum + (isBothMode ? (Number(item.sBrokerage) || 0) : 0);
         }, 0);
-        console.log('[DEBUG] Breakdown result:', { kreta, vikreta });
         return { kreta, vikreta };
     };
 
@@ -403,7 +408,7 @@ const Ledger = () => {
                         <button onClick={handleInvoiceShare} disabled={isExporting} className="bg-[#128c4b] hover:bg-[#0d713c] disabled:opacity-60 transition-colors text-white px-4 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
                             <span>↗</span> {t('Share / WhatsApp', 'शेयर / व्हाट्सऐप')}
                         </button>
-                        <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2">
+                        <button onClick={handlePrint} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-4 py-2.5 rounded-lg font-bold flex items-center gap-2">
                             <span>⎙</span> {t('Print', 'प्रिंट')}
                         </button>
                     </div>
@@ -529,7 +534,7 @@ const Ledger = () => {
                         {t('← Back', '← वापस')}
                     </button>
                     <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <button onClick={() => window.print()} className="bg-primary hover:bg-red-800 transition-colors text-white px-6 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
+                        <button onClick={handlePrint} className="bg-primary hover:bg-red-800 transition-colors text-white px-6 py-2.5 rounded-lg font-bold shadow-md flex items-center gap-2">
                             <span>⎙</span> {t('Print All Bills', 'सभी बिल प्रिंट करें')}
                         </button>
                     </div>
@@ -890,7 +895,7 @@ const Ledger = () => {
                                     <button onClick={handlePrintAllFirmBills} className="bg-primary text-white hover:bg-red-800 transition-colors px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm ml-auto">
                                         <span>🖨️</span> {t('Print Bills', 'बिल प्रिंट')}
                                     </button>
-                                    <button onClick={() => window.print()} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                                    <button onClick={handlePrint} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm">
                                         <span>⎙</span> {t('Print List', 'प्रिंट सूची')}
                                     </button>
                                 </div>

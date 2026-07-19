@@ -50,6 +50,8 @@ const Analytics = () => {
         let totalVolumeBilled = 0;
         let totalVolumePending = 0;
 
+        const partyInsightsMap = {};
+
         deals.forEach(deal => {
             if (deal.status === 'CANCELLED') return;
 
@@ -98,6 +100,17 @@ const Analytics = () => {
             } else if (deal.status === 'PENDING' || deal.status === 'OPEN_UNASSIGNED' || deal.status === 'LOADED') {
                 totalVolumePending += dealVolume;
             }
+
+            // Party Insights (Preferences & Frequency)
+            const dDate = dateStr ? new Date(dateStr) : null;
+            if (deal.purchaser?.name) {
+                const pName = deal.purchaser.name;
+                if (!partyInsightsMap[pName]) partyInsightsMap[pName] = { items: {}, dates: [] };
+                if (deal.item?.name) {
+                    partyInsightsMap[pName].items[deal.item.name] = (partyInsightsMap[pName].items[deal.item.name] || 0) + dealVolume;
+                }
+                if (dDate) partyInsightsMap[pName].dates.push(dDate.getTime());
+            }
         });
 
         const sortMap = (map) => Object.entries(map)
@@ -115,12 +128,34 @@ const Analytics = () => {
             momGrowth = 100; // infinite growth from 0
         }
 
+        // Compute Party Insights
+        const partyInsights = Object.entries(partyInsightsMap).map(([partyName, data]) => {
+            const topItem = Object.entries(data.items).sort((a, b) => b[1] - a[1])[0];
+            let avgDelay = 0;
+            if (data.dates.length > 1) {
+                const sortedDates = data.dates.sort();
+                let totalDiff = 0;
+                for (let i = 1; i < sortedDates.length; i++) {
+                    totalDiff += (sortedDates[i] - sortedDates[i-1]);
+                }
+                avgDelay = Math.round(totalDiff / (sortedDates.length - 1) / (1000 * 60 * 60 * 24));
+            }
+            return {
+                partyName,
+                preferredItem: topItem ? topItem[0] : '-',
+                itemVolume: topItem ? topItem[1] : 0,
+                avgDelayDays: avgDelay,
+                totalDeals: data.dates.length
+            };
+        }).filter(p => p.itemVolume > 0).sort((a, b) => b.itemVolume - a.itemVolume).slice(0, 10);
+
         return { 
             monthlyData, 
             topBuyers: sortMap(buyerMap), 
             topSellers: sortMap(sellerMap), 
             topItems: sortMap(itemMap),
             topMarkas: sortMap(markaMap),
+            partyInsights,
             totalBrokerageYTD,
             avgBrokeragePerDeal: totalDealsYTD > 0 ? (totalBrokerageYTD / totalDealsYTD) : 0,
             biggestDeal,
@@ -459,6 +494,45 @@ const Analytics = () => {
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
+                    </div>
+                </div>
+
+                {/* Party Purchase Patterns */}
+                <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Party Purchase Patterns & Frequency', 'पार्टी खरीद पैटर्न और आवृत्ति')}</h3>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left text-sm">
+                            <thead className="bg-gray-50 text-gray-500 uppercase text-xs border-b border-gray-100">
+                                <tr>
+                                    <th className="px-4 py-3 font-bold">{t('Party Name', 'पार्टी का नाम')}</th>
+                                    <th className="px-4 py-3 font-bold">{t('Most Loved Item', 'सबसे पसंदीदा आइटम')}</th>
+                                    <th className="px-4 py-3 font-bold text-right">{t('Volume Bought', 'मात्रा खरीदी गई')}</th>
+                                    <th className="px-4 py-3 font-bold text-center">{t('Avg Delay Between Purchases', 'खरीद के बीच औसत देरी')}</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {stats.partyInsights.length > 0 ? stats.partyInsights.map((insight, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3 font-bold text-gray-800">{insight.partyName}</td>
+                                        <td className="px-4 py-3 font-semibold text-primary">{insight.preferredItem}</td>
+                                        <td className="px-4 py-3 font-bold text-gray-600 text-right">{insight.itemVolume} Qtl</td>
+                                        <td className="px-4 py-3 font-semibold text-gray-600 text-center">
+                                            {insight.totalDeals > 1 ? (
+                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs">
+                                                    <span>⏱️</span> {insight.avgDelayDays} {t('Days', 'दिन')}
+                                                </span>
+                                            ) : (
+                                                <span className="text-xs text-gray-400 italic">{t('Not enough data', 'पर्याप्त डेटा नहीं')}</span>
+                                            )}
+                                        </td>
+                                    </tr>
+                                )) : (
+                                    <tr>
+                                        <td colSpan="4" className="text-center py-6 text-gray-400 font-medium">No purchase patterns found.</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

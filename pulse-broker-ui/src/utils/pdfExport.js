@@ -119,7 +119,7 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     }
 
     // --- PDF dimensions ---
-    const MARGIN_MM = 8;
+    const MARGIN_MM = 4; // Reduced margin to occupy more width
     const PAGE_W_MM = 210;
     const PAGE_H_MM = 297;
     const CONTENT_W_MM = PAGE_W_MM - MARGIN_MM * 2;
@@ -218,14 +218,14 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     return { pdf, blob: pdf.output('blob'), resolvedName };
 };
 
-export const downloadInvoicePdf = async (element, fileName) => {
-    const { pdf, resolvedName } = await elementToPdfBlob(element, fileName);
+export const downloadInvoicePdf = async (element, fileName, firmName) => {
+    const { pdf, resolvedName } = await elementToPdfBlob(element, fileName, firmName);
     pdf.save(resolvedName);
     return { success: true };
 };
 
-export const shareInvoice = async ({ element, fileName, title, text }) => {
-    const { blob, resolvedName } = await elementToPdfBlob(element, fileName);
+export const shareInvoice = async ({ element, fileName, title, text, firmName }) => {
+    const { blob, resolvedName } = await elementToPdfBlob(element, fileName, firmName);
     const file = new File([blob], resolvedName, { type: 'application/pdf' });
 
     if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [file] }))) {

@@ -50,7 +50,7 @@ const Ledger = () => {
         setIsExporting(true);
         try {
             const { downloadInvoicePdf } = await import('../utils/pdfExport');
-            await downloadInvoicePdf(invoiceRef.current, invoiceFileName());
+            await downloadInvoicePdf(invoiceRef.current, invoiceFileName(), invoiceData?.firmName);
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
         } catch (error) {
             console.error('[PDF Download Error]', error);
@@ -70,6 +70,7 @@ const Ledger = () => {
                 fileName: invoiceFileName(),
                 title: `${t('Brokerage Invoice', 'दलाली बिल')} ${invoiceData?.billNumber || ''}`,
                 text: `${t('Brokerage invoice for', 'दलाली बिल')}: ${invoiceData?.firmName || ''}\n${t('Total', 'कुल')}: ₹${total}`,
+                firmName: invoiceData?.firmName
             });
             addToast(result.method === 'native' ? t('Invoice ready to share', 'बिल साझा करने के लिए तैयार है') : t('PDF downloaded; WhatsApp opened', 'पीडीएफ डाउनलोड हुआ; व्हाट्सऐप खोला गया'), 'success');
         } catch (error) {

@@ -38,7 +38,7 @@ const MarginLedger = () => {
         setIsExporting(true);
         try {
             const { downloadInvoicePdf } = await import('../utils/pdfExport');
-            await downloadInvoicePdf(invoiceRef.current, marginFileName());
+            await downloadInvoicePdf(invoiceRef.current, marginFileName(), selectedPartyName);
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
         } catch (error) {
             console.error('[PDF Download Error]', error);
@@ -58,6 +58,7 @@ const MarginLedger = () => {
                 fileName: marginFileName(),
                 title: t('Trade Margin Statement', 'ट्रेड मार्जिन स्टेटमेंट'),
                 text: `${t('Trade margin statement for', 'ट्रेड मार्जिन स्टेटमेंट')}: ${selectedPartyName}\n${t('Balance', 'बैलेंस')}: ₹${total}`,
+                firmName: selectedPartyName
             });
             addToast(result.method === 'native' ? t('Statement ready to share', 'स्टेटमेंट साझा करने के लिए तैयार है') : t('PDF downloaded; WhatsApp opened', 'पीडीएफ डाउनलोड हुआ; व्हाट्सऐप खोला गया'), 'success');
         } catch (error) {

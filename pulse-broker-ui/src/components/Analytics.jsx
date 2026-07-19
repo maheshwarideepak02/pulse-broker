@@ -105,9 +105,12 @@ const Analytics = () => {
             const dDate = dateStr ? new Date(dateStr) : null;
             if (deal.purchaser?.name) {
                 const pName = deal.purchaser.name;
-                if (!partyInsightsMap[pName]) partyInsightsMap[pName] = { items: {}, dates: [] };
+                if (!partyInsightsMap[pName]) partyInsightsMap[pName] = { items: {}, markas: {}, dates: [] };
                 if (deal.item?.name) {
                     partyInsightsMap[pName].items[deal.item.name] = (partyInsightsMap[pName].items[deal.item.name] || 0) + dealVolume;
+                }
+                if (deal.marka?.name) {
+                    partyInsightsMap[pName].markas[deal.marka.name] = (partyInsightsMap[pName].markas[deal.marka.name] || 0) + dealVolume;
                 }
                 if (dDate) partyInsightsMap[pName].dates.push(dDate.getTime());
             }
@@ -131,6 +134,7 @@ const Analytics = () => {
         // Compute Party Insights
         const partyInsights = Object.entries(partyInsightsMap).map(([partyName, data]) => {
             const topItem = Object.entries(data.items).sort((a, b) => b[1] - a[1])[0];
+            const topMarka = Object.entries(data.markas).sort((a, b) => b[1] - a[1])[0];
             let avgDelay = 0;
             if (data.dates.length > 1) {
                 const sortedDates = data.dates.sort();
@@ -144,6 +148,7 @@ const Analytics = () => {
                 partyName,
                 preferredItem: topItem ? topItem[0] : '-',
                 itemVolume: topItem ? topItem[1] : 0,
+                preferredMarka: topMarka ? topMarka[0] : '-',
                 avgDelayDays: avgDelay,
                 totalDeals: data.dates.length
             };
@@ -506,6 +511,7 @@ const Analytics = () => {
                                 <tr>
                                     <th className="px-4 py-3 font-bold">{t('Party Name', 'पार्टी का नाम')}</th>
                                     <th className="px-4 py-3 font-bold">{t('Most Loved Item', 'सबसे पसंदीदा आइटम')}</th>
+                                    <th className="px-4 py-3 font-bold">{t('Most Loved Marka', 'सबसे पसंदीदा मार्का')}</th>
                                     <th className="px-4 py-3 font-bold text-right">{t('Volume Bought', 'मात्रा खरीदी गई')}</th>
                                     <th className="px-4 py-3 font-bold text-center">{t('Avg Delay Between Purchases', 'खरीद के बीच औसत देरी')}</th>
                                 </tr>
@@ -515,6 +521,7 @@ const Analytics = () => {
                                     <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                         <td className="px-4 py-3 font-bold text-gray-800">{insight.partyName}</td>
                                         <td className="px-4 py-3 font-semibold text-primary">{insight.preferredItem}</td>
+                                        <td className="px-4 py-3 font-semibold text-[#10b981]">{insight.preferredMarka}</td>
                                         <td className="px-4 py-3 font-bold text-gray-600 text-right">{insight.itemVolume} Qtl</td>
                                         <td className="px-4 py-3 font-semibold text-gray-600 text-center">
                                             {insight.totalDeals > 1 ? (
@@ -528,7 +535,7 @@ const Analytics = () => {
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="4" className="text-center py-6 text-gray-400 font-medium">No purchase patterns found.</td>
+                                        <td colSpan="5" className="text-center py-6 text-gray-400 font-medium">No purchase patterns found.</td>
                                     </tr>
                                 )}
                             </tbody>

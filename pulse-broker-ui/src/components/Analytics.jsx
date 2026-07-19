@@ -150,7 +150,8 @@ const Analytics = () => {
                 itemVolume: topItem ? topItem[1] : 0,
                 preferredMarka: topMarka ? topMarka[0] : '-',
                 avgDelayDays: avgDelay,
-                totalDeals: data.dates.length
+                totalDeals: data.dates.length,
+                lastBoughtDate: data.dates.length > 0 ? new Date(Math.max(...data.dates)).toLocaleDateString('en-GB') : '-'
             };
         }).filter(p => p.itemVolume > 0).sort((a, b) => b.itemVolume - a.itemVolume).slice(0, 10);
 
@@ -514,6 +515,7 @@ const Analytics = () => {
                                     <th className="px-4 py-3 font-bold">{t('Most Loved Marka', 'सबसे पसंदीदा मार्का')}</th>
                                     <th className="px-4 py-3 font-bold text-right">{t('Volume Bought', 'मात्रा खरीदी गई')}</th>
                                     <th className="px-4 py-3 font-bold text-center">{t('Avg Delay Between Purchases', 'खरीद के बीच औसत देरी')}</th>
+                                    <th className="px-4 py-3 font-bold text-center">{t('Last Bought', 'अंतिम खरीद')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -532,10 +534,11 @@ const Analytics = () => {
                                                 <span className="text-xs text-gray-400 italic">{t('Not enough data', 'पर्याप्त डेटा नहीं')}</span>
                                             )}
                                         </td>
+                                        <td className="px-4 py-3 font-semibold text-gray-800 text-center">{insight.lastBoughtDate}</td>
                                     </tr>
                                 )) : (
                                     <tr>
-                                        <td colSpan="5" className="text-center py-6 text-gray-400 font-medium">No purchase patterns found.</td>
+                                        <td colSpan="6" className="text-center py-6 text-gray-400 font-medium">No purchase patterns found.</td>
                                     </tr>
                                 )}
                             </tbody>

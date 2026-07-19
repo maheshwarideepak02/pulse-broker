@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { getDeals } from '../api';
+import { getDeals, getAllBills } from '../api';
 import { useLanguage } from '../context/LanguageContext';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -14,12 +14,15 @@ const Analytics = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedPartyName, setSelectedPartyName] = useState('');
 
+    const [bills, setBills] = useState([]);
+
     useEffect(() => {
-        getDeals().then(data => {
-            setDeals(data);
+        Promise.all([getDeals(), getAllBills()]).then(([dealsData, billsData]) => {
+            setDeals(dealsData);
+            setBills(billsData);
             setIsLoading(false);
         }).catch(err => {
-            console.error('Error fetching deals for analytics:', err);
+            console.error('Error fetching data for analytics:', err);
             setIsLoading(false);
         });
     }, []);
@@ -51,6 +54,9 @@ const Analytics = () => {
         let totalVolumePending = 0;
 
         const partyInsightsMap = {};
+        const sellerInsightsMap = {};
+        const tradingPairsMap = {};
+        const priceTrendsMap = {};
 
         deals.forEach(deal => {
             if (deal.status === 'CANCELLED') return;
@@ -114,6 +120,32 @@ const Analytics = () => {
                 }
                 if (dDate) partyInsightsMap[pName].dates.push(dDate.getTime());
             }
+
+            // Seller Insights
+            if (deal.seller?.name) {
+                const sName = deal.seller.name;
+                if (!sellerInsightsMap[sName]) sellerInsightsMap[sName] = { items: {}, dates: [] };
+                if (deal.item?.name) {
+                    sellerInsightsMap[sName].items[deal.item.name] = (sellerInsightsMap[sName].items[deal.item.name] || 0) + dealVolume;
+                }
+                if (dDate) sellerInsightsMap[sName].dates.push(dDate.getTime());
+            }
+
+            // Trading Pairs
+            if (deal.purchaser?.name && deal.seller?.name) {
+                const pairStr = `${deal.purchaser.name} 🤝 ${deal.seller.name}`;
+                tradingPairsMap[pairStr] = (tradingPairsMap[pairStr] || 0) + dealVolume;
+            }
+
+            // Price Trends
+            if (deal.item?.name && deal.rate && dDate) {
+                const mIndex = dDate.getMonth();
+                const mName = new Date(2000, mIndex, 1).toLocaleString('default', { month: 'short' });
+                if (!priceTrendsMap[deal.item.name]) priceTrendsMap[deal.item.name] = {};
+                if (!priceTrendsMap[deal.item.name][mName]) priceTrendsMap[deal.item.name][mName] = { sum: 0, count: 0 };
+                priceTrendsMap[deal.item.name][mName].sum += parseFloat(deal.rate);
+                priceTrendsMap[deal.item.name][mName].count += 1;
+            }
         });
 
         const sortMap = (map) => Object.entries(map)
@@ -132,9 +164,9 @@ const Analytics = () => {
         }
 
         // Compute Party Insights
-        const partyInsights = Object.entries(partyInsightsMap).map(([partyName, data]) => {
+        const computeInsights = (map, includeMarka = false) => Object.entries(map).map(([name, data]) => {
             const topItem = Object.entries(data.items).sort((a, b) => b[1] - a[1])[0];
-            const topMarka = Object.entries(data.markas).sort((a, b) => b[1] - a[1])[0];
+            const topMarka = includeMarka ? Object.entries(data.markas || {}).sort((a, b) => b[1] - a[1])[0] : null;
             let avgDelay = 0;
             if (data.dates.length > 1) {
                 const sortedDates = data.dates.sort();
@@ -145,15 +177,41 @@ const Analytics = () => {
                 avgDelay = Math.round(totalDiff / (sortedDates.length - 1) / (1000 * 60 * 60 * 24));
             }
             return {
-                partyName,
+                partyName: name,
                 preferredItem: topItem ? topItem[0] : '-',
                 itemVolume: topItem ? topItem[1] : 0,
                 preferredMarka: topMarka ? topMarka[0] : '-',
                 avgDelayDays: avgDelay,
                 totalDeals: data.dates.length,
-                lastBoughtDate: data.dates.length > 0 ? new Date(Math.max(...data.dates)).toLocaleDateString('en-GB') : '-'
+                lastBoughtDate: data.dates.length > 0 ? new Date(Math.max(...data.dates)).toLocaleDateString('en-GB') : '-',
+                lastDateMs: data.dates.length > 0 ? Math.max(...data.dates) : null
             };
         }).filter(p => p.itemVolume > 0).sort((a, b) => b.itemVolume - a.itemVolume).slice(0, 10);
+
+        const partyInsights = computeInsights(partyInsightsMap, true);
+        const sellerInsights = computeInsights(sellerInsightsMap, false);
+
+        // Compute Top Pairs
+        const topPairs = Object.entries(tradingPairsMap)
+            .map(([pair, volume]) => ({ pair, volume }))
+            .sort((a, b) => b.volume - a.volume)
+            .slice(0, 5);
+
+        // Prepare Price Trends (Top 3 items)
+        const top3ItemsArr = sortMap(itemMap).slice(0, 3).map(i => i.name);
+        const monthsStr = Array(12).fill(0).map((_, i) => new Date(2000, i, 1).toLocaleString('default', { month: 'short' }));
+        const priceTrendsData = monthsStr.map(mName => {
+            const row = { name: mName };
+            top3ItemsArr.forEach(item => {
+                const p = priceTrendsMap[item];
+                if (p && p[mName] && p[mName].count > 0) {
+                    row[item] = Math.round(p[mName].sum / p[mName].count);
+                } else {
+                    row[item] = null;
+                }
+            });
+            return row;
+        });
 
         return { 
             monthlyData, 
@@ -162,6 +220,10 @@ const Analytics = () => {
             topItems: sortMap(itemMap),
             topMarkas: sortMap(markaMap),
             partyInsights,
+            sellerInsights,
+            topPairs,
+            priceTrendsData,
+            top3ItemsArr,
             totalBrokerageYTD,
             avgBrokeragePerDeal: totalDealsYTD > 0 ? (totalBrokerageYTD / totalDealsYTD) : 0,
             biggestDeal,
@@ -172,6 +234,31 @@ const Analytics = () => {
             totalVolumePending
         };
     }, [deals]);
+
+    const billingStats = useMemo(() => {
+        if (!bills || !bills.length) return { pendingBrokerage: 0, topDefaulters: [] };
+        
+        let pendingBrokerage = 0;
+        const defaulterMap = {};
+        
+        bills.forEach(b => {
+            if (b.status === 'UNPAID') {
+                const amount = parseFloat(b.totalAmount) || 0;
+                pendingBrokerage += amount;
+                
+                if (b.firm?.name) {
+                    defaulterMap[b.firm.name] = (defaulterMap[b.firm.name] || 0) + amount;
+                }
+            }
+        });
+        
+        const topDefaulters = Object.entries(defaulterMap)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .map(([firm, amount]) => ({ firm, amount }));
+            
+        return { pendingBrokerage, topDefaulters };
+    }, [bills]);
 
     const allParties = useMemo(() => {
         const parties = new Set();
@@ -276,6 +363,56 @@ const Analytics = () => {
         return null;
     };
 
+    const RenderInsightsTable = ({ title, data, showMarka, noDataMessage }) => (
+        <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{title}</h3>
+            <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                    <thead className="bg-gray-50 text-gray-500 uppercase text-xs border-b border-gray-100">
+                        <tr>
+                            <th className="px-4 py-3 font-bold">{t('Party Name', 'पार्टी का नाम')}</th>
+                            <th className="px-4 py-3 font-bold">{t('Preferred Item', 'पसंदीदा आइटम')}</th>
+                            {showMarka && <th className="px-4 py-3 font-bold">{t('Preferred Marka', 'पसंदीदा मार्का')}</th>}
+                            <th className="px-4 py-3 font-bold text-right">{t('Volume', 'मात्रा')}</th>
+                            <th className="px-4 py-3 font-bold text-center">{t('Avg Delay', 'औसत देरी')}</th>
+                            <th className="px-4 py-3 font-bold text-center">{t('Last Trade', 'अंतिम व्यापार')}</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                        {data.length > 0 ? data.map((insight, idx) => {
+                            const isOverdue = insight.totalDeals > 1 && insight.lastDateMs && ((Date.now() - insight.lastDateMs) / (1000 * 60 * 60 * 24)) > (insight.avgDelayDays + 5);
+                            return (
+                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                    <td className="px-4 py-3 font-bold text-gray-800">
+                                        {insight.partyName}
+                                        {isOverdue && <span className="ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-red-100 text-red-700 text-[10px] font-black uppercase tracking-widest animate-pulse">⚠️ OVERDUE</span>}
+                                    </td>
+                                    <td className="px-4 py-3 font-semibold text-primary">{insight.preferredItem}</td>
+                                    {showMarka && <td className="px-4 py-3 font-semibold text-[#10b981]">{insight.preferredMarka}</td>}
+                                    <td className="px-4 py-3 font-bold text-gray-600 text-right">{insight.itemVolume} Qtl</td>
+                                    <td className="px-4 py-3 font-semibold text-gray-600 text-center">
+                                        {insight.totalDeals > 1 ? (
+                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs">
+                                                <span>⏱️</span> {insight.avgDelayDays} {t('Days', 'दिन')}
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-gray-400 italic">{t('Not enough data', 'पर्याप्त डेटा नहीं')}</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-3 font-semibold text-gray-800 text-center">{insight.lastBoughtDate}</td>
+                                </tr>
+                            );
+                        }) : (
+                            <tr>
+                                <td colSpan={showMarka ? 6 : 5} className="text-center py-6 text-gray-400 font-medium">{noDataMessage}</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+
     const isGrowthPositive = stats.momGrowth >= 0;
 
     return (
@@ -320,30 +457,37 @@ const Analytics = () => {
                     </p>
                 </div>
                 
-                {/* 2. Average Deal Value */}
+                {/* 2. Pending Brokerage (Accounts Receivable) */}
+                <div className="bg-red-50 border border-red-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
+                    <div className="absolute right-[-10px] bottom-[-10px] text-5xl opacity-5">⏳</div>
+                    <p className="text-[10px] uppercase font-bold text-red-800 tracking-wider">Unpaid Brokerage</p>
+                    <p className="text-2xl font-black text-red-900 mt-1">₹{billingStats.pendingBrokerage.toLocaleString()}</p>
+                    <p className="text-xs font-bold text-red-700 mt-2">Needs collection</p>
+                </div>
+
+                {/* 3. Average Deal Value */}
                 <div className="bg-white border border-gray-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
                     <div className="absolute right-[-10px] bottom-[-10px] text-5xl opacity-5">💰</div>
                     <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Avg Brokerage / Deal</p>
                     <p className="text-2xl font-black text-gray-900 mt-1">₹{Math.round(stats.avgBrokeragePerDeal).toLocaleString()}</p>
-                    <p className="text-xs font-medium text-gray-400 mt-2">Average value of a single deal</p>
+                    <p className="text-xs font-medium text-gray-400 mt-2">Average value per deal</p>
                 </div>
 
-                {/* 3. Biggest Deal */}
-                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden lg:col-span-2">
+                {/* 4. Biggest Deal */}
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-100 p-4 sm:p-5 rounded-2xl shadow-sm relative overflow-hidden">
                     <div className="absolute right-[-10px] bottom-[-10px] text-5xl opacity-10">🏆</div>
-                    <p className="text-[10px] uppercase font-bold text-amber-800 tracking-wider flex items-center gap-1">🏆 Biggest Deal of the Year</p>
+                    <p className="text-[10px] uppercase font-bold text-amber-800 tracking-wider flex items-center gap-1">🏆 Biggest Deal</p>
                     {stats.biggestDeal ? (
                         <>
                             <div className="flex items-end gap-3 mt-1">
                                 <p className="text-2xl font-black text-amber-900">₹{stats.biggestDealBrokerage.toLocaleString()}</p>
-                                <p className="text-sm font-bold text-amber-700 mb-1">{stats.biggestDeal.weight} Qtl</p>
                             </div>
                             <p className="text-xs font-medium text-amber-800 mt-2 truncate">
-                                <strong>{stats.biggestDeal.purchaser?.name || 'N/A'}</strong> bought from <strong>{stats.biggestDeal.seller?.name || 'N/A'}</strong>
+                                <strong>{stats.biggestDeal.purchaser?.name || 'N/A'}</strong> 🤝 <strong>{stats.biggestDeal.seller?.name || 'N/A'}</strong>
                             </p>
                         </>
                     ) : (
-                        <p className="text-sm text-amber-700 mt-2 font-medium">No deals recorded yet</p>
+                        <p className="text-sm text-amber-700 mt-2 font-medium">No deals yet</p>
                     )}
                 </div>
             </div>
@@ -502,49 +646,66 @@ const Analytics = () => {
                         </div>
                     </div>
                 </div>
+                {/* Advanced Analytics Grids */}
+                <RenderInsightsTable 
+                    title={t('Buyer Purchase Patterns & Frequency (At-Risk)', 'खरीदार पैटर्न')} 
+                    data={stats.partyInsights} 
+                    showMarka={true} 
+                    noDataMessage="No purchase patterns found."
+                />
+                
+                <RenderInsightsTable 
+                    title={t('Seller Supply Patterns & Frequency', 'विक्रेता पैटर्न')} 
+                    data={stats.sellerInsights} 
+                    showMarka={false} 
+                    noDataMessage="No supply patterns found."
+                />
 
-                {/* Party Purchase Patterns */}
+                {/* Top Trading Pairs */}
                 <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
-                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Party Purchase Patterns & Frequency', 'पार्टी खरीद पैटर्न और आवृत्ति')}</h3>
+                    <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Top Trading Pairs (Network Intelligence)', 'शीर्ष व्यापारिक जोड़े')}</h3>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="bg-gray-50 text-gray-500 uppercase text-xs border-b border-gray-100">
                                 <tr>
-                                    <th className="px-4 py-3 font-bold">{t('Party Name', 'पार्टी का नाम')}</th>
-                                    <th className="px-4 py-3 font-bold">{t('Most Loved Item', 'सबसे पसंदीदा आइटम')}</th>
-                                    <th className="px-4 py-3 font-bold">{t('Most Loved Marka', 'सबसे पसंदीदा मार्का')}</th>
-                                    <th className="px-4 py-3 font-bold text-right">{t('Volume Bought', 'मात्रा खरीदी गई')}</th>
-                                    <th className="px-4 py-3 font-bold text-center">{t('Avg Delay Between Purchases', 'खरीद के बीच औसत देरी')}</th>
-                                    <th className="px-4 py-3 font-bold text-center">{t('Last Bought', 'अंतिम खरीद')}</th>
+                                    <th className="px-4 py-3 font-bold">{t('Buyer 🤝 Seller', 'क्रेता 🤝 विक्रेता')}</th>
+                                    <th className="px-4 py-3 font-bold text-right">{t('Total Volume', 'कुल मात्रा')}</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {stats.partyInsights.length > 0 ? stats.partyInsights.map((insight, idx) => (
+                                {stats.topPairs.length > 0 ? stats.topPairs.map((pair, idx) => (
                                     <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3 font-bold text-gray-800">{insight.partyName}</td>
-                                        <td className="px-4 py-3 font-semibold text-primary">{insight.preferredItem}</td>
-                                        <td className="px-4 py-3 font-semibold text-[#10b981]">{insight.preferredMarka}</td>
-                                        <td className="px-4 py-3 font-bold text-gray-600 text-right">{insight.itemVolume} Qtl</td>
-                                        <td className="px-4 py-3 font-semibold text-gray-600 text-center">
-                                            {insight.totalDeals > 1 ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs">
-                                                    <span>⏱️</span> {insight.avgDelayDays} {t('Days', 'दिन')}
-                                                </span>
-                                            ) : (
-                                                <span className="text-xs text-gray-400 italic">{t('Not enough data', 'पर्याप्त डेटा नहीं')}</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 font-semibold text-gray-800 text-center">{insight.lastBoughtDate}</td>
+                                        <td className="px-4 py-3 font-bold text-gray-800">{pair.pair}</td>
+                                        <td className="px-4 py-3 font-bold text-primary text-right">{pair.volume} Qtl</td>
                                     </tr>
                                 )) : (
-                                    <tr>
-                                        <td colSpan="6" className="text-center py-6 text-gray-400 font-medium">No purchase patterns found.</td>
-                                    </tr>
+                                    <tr><td colSpan="2" className="text-center py-6 text-gray-400 font-medium">No trading pairs found.</td></tr>
                                 )}
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                {/* Market Price Trends */}
+                {stats.top3ItemsArr.length > 0 && (
+                    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 col-span-1 lg:col-span-2">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">{t('Market Price Trends (Top Items)', 'बाजार मूल्य रुझान')}</h3>
+                        <div className="h-[250px] sm:h-[300px] w-full -ml-4 sm:ml-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={stats.priceTrendsData} margin={{ left: 0, right: 10, bottom: 0, top: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 11 }} tickFormatter={(val) => `₹${val}`} width={60} />
+                                    <RechartsTooltip content={<CustomTooltip />} />
+                                    <Legend verticalAlign="top" wrapperStyle={{ fontSize: '11px', fontWeight: 600, paddingBottom: '10px' }} />
+                                    {stats.top3ItemsArr.map((item, idx) => (
+                                        <Line key={item} type="monotone" dataKey={item} stroke={COLORS[idx % COLORS.length]} strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} connectNulls />
+                                    ))}
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

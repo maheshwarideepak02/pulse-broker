@@ -31,6 +31,8 @@ const Ledger = () => {
     const [billsHistory, setBillsHistory] = useState([]);
     const [historyParty, setHistoryParty] = useState('');
     const [historyFirm, setHistoryFirm] = useState('');
+    const [historyStartDate, setHistoryStartDate] = useState('');
+    const [historyEndDate, setHistoryEndDate] = useState('');
 
     // Invoice View State
     const [showInvoice, setShowInvoice] = useState(false);
@@ -151,6 +153,8 @@ const Ledger = () => {
     const filteredHistoryBills = billsHistory.filter(b => {
         if (historyParty && b.firm?.contact?.id !== Number(historyParty) && b.firm?.contact !== Number(historyParty)) return false;
         if (historyFirm && b.firm?.id !== Number(historyFirm)) return false;
+        if (historyStartDate && b.billDate < historyStartDate) return false;
+        if (historyEndDate && b.billDate > historyEndDate) return false;
         return true;
     });
 
@@ -925,8 +929,13 @@ const Ledger = () => {
                                 <h2 className="font-bold text-gray-700 uppercase tracking-wider text-sm flex items-center gap-2">
                                     <span>📜</span> {t('All Generated Invoices', 'सभी बिल')}
                                 </h2>
-                                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-                                    <select value={historyParty} onChange={e => { setHistoryParty(e.target.value); setHistoryFirm(''); }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary">
+                                <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+                                    <div className="flex items-center gap-2">
+                                        <input type="date" value={historyStartDate} onChange={e => setHistoryStartDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary" title={t('From Date', 'प्रारंभ तिथि')} />
+                                        <span className="text-gray-400 text-xs font-bold">{t('to', 'से')}</span>
+                                        <input type="date" value={historyEndDate} onChange={e => setHistoryEndDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary" title={t('To Date', 'अंत तिथि')} />
+                                    </div>
+                                    <select value={historyParty} onChange={e => { setHistoryParty(e.target.value); setHistoryFirm(''); }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary min-w-[120px]">
                                         <option value="">-- {t('All Parties', 'सभी पार्टियां')} --</option>
                                         {contacts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                     </select>
@@ -937,14 +946,14 @@ const Ledger = () => {
                                             const found = firms.find(f => f.id === Number(val));
                                             if (found?.contact) setHistoryParty(String(found.contact.id || found.contact));
                                         }
-                                    }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary">
+                                    }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary min-w-[120px]">
                                         <option value="">-- {t('All Firms', 'सभी फर्म')} --</option>
                                         {filteredHistoryFirms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                                     </select>
-                                    <button onClick={handlePrintAllFirmBills} className="bg-primary text-white hover:bg-red-800 transition-colors px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm ml-auto">
+                                    <button onClick={handlePrintAllFirmBills} className="bg-primary text-white hover:bg-red-800 transition-colors px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm ml-auto whitespace-nowrap">
                                         <span>🖨️</span> {t('Print Bills', 'बिल प्रिंट')}
                                     </button>
-                                    <button onClick={handlePrint} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm">
+                                    <button onClick={handlePrint} className="bg-white border border-gray-200 hover:bg-gray-50 transition-colors text-gray-700 px-3 py-2 rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm whitespace-nowrap">
                                         <span>⎙</span> {t('Print List', 'प्रिंट सूची')}
                                     </button>
                                 </div>

@@ -10,8 +10,61 @@ export const safeFileName = (value, fallback = 'invoice') => {
 };
 
 /**
- * Captures an HTML element as a high-quality canvas, then slices it into
- * clean A4 pages with no row cutting. Each page gets its own canvas slice.
+ * Find safe page break points by detecting table row boundaries.
+ * Returns an array of Y-positions (in DOM pixels) where we can safely break.
+ */
+const findRowBreakPoints = (element) => {
+    const breakPoints = new Set();
+    const containerRect = element.getBoundingClientRect();
+    const containerTop = containerRect.top + window.scrollY;
+
+    // Find all table rows and major block elements
+    const rows = element.querySelectorAll('tr, .invoice-row, [style*="page-break"]');
+    rows.forEach(row => {
+        const rect = row.getBoundingClientRect();
+        const rowTop = rect.top + window.scrollY - containerTop;
+        const rowBottom = rowTop + rect.height;
+        breakPoints.add(Math.round(rowBottom));
+    });
+
+    // Also add div boundaries for non-table content
+    const divs = element.querySelectorAll(':scope > div, :scope > div > div');
+    divs.forEach(div => {
+        const rect = div.getBoundingClientRect();
+        const divBottom = rect.top + window.scrollY - containerTop + rect.height;
+        breakPoints.add(Math.round(divBottom));
+    });
+
+    return Array.from(breakPoints).sort((a, b) => a - b);
+};
+
+/**
+ * Given the max height for a page slice, find the best break point
+ * that doesn't cut through a row.
+ */
+const findBestBreak = (breakPoints, startY, maxSliceHeight, totalHeight) => {
+    const idealEnd = startY + maxSliceHeight;
+    
+    // If we can fit everything remaining, just take it all
+    if (idealEnd >= totalHeight) return totalHeight;
+
+    // Find the last break point that fits within the page
+    let bestBreak = startY + maxSliceHeight * 0.5; // fallback: at least half page
+    for (const bp of breakPoints) {
+        if (bp <= startY) continue;
+        if (bp <= idealEnd) {
+            bestBreak = bp; // this row fits, take it
+        } else {
+            break; // past the page, stop
+        }
+    }
+
+    return bestBreak;
+};
+
+/**
+ * Captures an HTML element and creates a professional multi-page A4 PDF
+ * with smart page breaks that never cut through table rows.
  */
 const elementToPdfBlob = async (element, fileName) => {
     if (!element) throw new Error('Element not found for PDF export.');
@@ -19,6 +72,9 @@ const elementToPdfBlob = async (element, fileName) => {
     // Wait for fonts and a render tick
     if (document.fonts?.ready) await document.fonts.ready;
     await new Promise(r => setTimeout(r, 300));
+
+    // --- Find row break points BEFORE modifying the element ---
+    const breakPoints = findRowBreakPoints(element);
 
     // --- Prepare element for capture ---
     const hiddenEls = element.querySelectorAll('[class*="print:hidden"], .print\\:hidden');
@@ -37,10 +93,14 @@ const elementToPdfBlob = async (element, fileName) => {
     element.style.width = '780px';
     element.style.overflow = 'visible';
 
+    // Small delay for layout to settle after style changes
+    await new Promise(r => setTimeout(r, 100));
+
+    const SCALE = 2;
     let fullCanvas;
     try {
         fullCanvas = await html2canvas(element, {
-            scale: 2,
+            scale: SCALE,
             useCORS: true,
             allowTaint: true,
             logging: false,
@@ -50,7 +110,6 @@ const elementToPdfBlob = async (element, fileName) => {
             backgroundColor: '#ffffff',
         });
     } finally {
-        // Restore original styles
         Object.assign(element.style, origStyles);
         hiddenEls.forEach((el, i) => {
             el.style.display = origDisplays[i];
@@ -59,56 +118,67 @@ const elementToPdfBlob = async (element, fileName) => {
 
     // --- PDF dimensions ---
     const MARGIN_MM = 8;
-    const PAGE_W_MM = 210;                          // A4 width
-    const PAGE_H_MM = 297;                          // A4 height
-    const CONTENT_W_MM = PAGE_W_MM - MARGIN_MM * 2; // printable width
-    const CONTENT_H_MM = PAGE_H_MM - MARGIN_MM * 2; // printable height
+    const PAGE_W_MM = 210;
+    const PAGE_H_MM = 297;
+    const CONTENT_W_MM = PAGE_W_MM - MARGIN_MM * 2;
+    const CONTENT_H_MM = PAGE_H_MM - MARGIN_MM * 2;
 
-    // Pixels per mm at the canvas scale
     const canvasW = fullCanvas.width;
     const canvasH = fullCanvas.height;
-    const pxPerMm = canvasW / CONTENT_W_MM;
-    const sliceHeightPx = Math.floor(CONTENT_H_MM * pxPerMm); // px height per page
+    
+    // DOM pixels per mm (before canvas scale)
+    const domWidth = canvasW / SCALE;
+    const domPxPerMm = domWidth / CONTENT_W_MM;
+    const maxSliceHeightDom = CONTENT_H_MM * domPxPerMm; // max DOM px per page
+    const totalHeightDom = canvasH / SCALE;
 
-    const totalPages = Math.ceil(canvasH / sliceHeightPx);
     const pdf = new jsPDF('portrait', 'mm', 'a4');
+    let currentY = 0; // in DOM pixels
+    let pageNum = 0;
 
-    for (let page = 0; page < totalPages; page++) {
-        if (page > 0) pdf.addPage();
+    while (currentY < totalHeightDom - 1) {
+        if (pageNum > 0) pdf.addPage();
 
-        const srcY = page * sliceHeightPx;
-        const srcH = Math.min(sliceHeightPx, canvasH - srcY);
+        // Find smart break point (in DOM pixels)
+        const nextBreak = findBestBreak(breakPoints, currentY, maxSliceHeightDom, totalHeightDom);
+        const sliceHeightDom = nextBreak - currentY;
 
-        // Create a clean slice canvas for this page
+        // Convert to canvas pixels
+        const srcY = Math.round(currentY * SCALE);
+        const srcH = Math.round(sliceHeightDom * SCALE);
+        const actualSrcH = Math.min(srcH, canvasH - srcY);
+
+        // Create a clean slice canvas
         const sliceCanvas = document.createElement('canvas');
         sliceCanvas.width = canvasW;
-        sliceCanvas.height = srcH;
+        sliceCanvas.height = actualSrcH;
         const ctx = sliceCanvas.getContext('2d');
 
         // White background
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvasW, srcH);
+        ctx.fillRect(0, 0, canvasW, actualSrcH);
 
-        // Draw the slice from the full canvas
+        // Copy this page's portion
         ctx.drawImage(
             fullCanvas,
-            0, srcY,       // source x, y
-            canvasW, srcH,  // source width, height
-            0, 0,           // dest x, y
-            canvasW, srcH   // dest width, height
+            0, srcY, canvasW, actualSrcH,
+            0, 0, canvasW, actualSrcH
         );
 
         const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
-        const sliceHeightMm = (srcH / pxPerMm);
+        const sliceHeightMm = sliceHeightDom / domPxPerMm;
 
         pdf.addImage(
-            sliceImgData,
-            'JPEG',
-            MARGIN_MM,          // x
-            MARGIN_MM,          // y
-            CONTENT_W_MM,       // width in mm
-            sliceHeightMm       // height in mm
+            sliceImgData, 'JPEG',
+            MARGIN_MM, MARGIN_MM,
+            CONTENT_W_MM, sliceHeightMm
         );
+
+        currentY = nextBreak;
+        pageNum++;
+
+        // Safety: prevent infinite loops
+        if (pageNum > 50) break;
     }
 
     const resolvedName = `${safeFileName(fileName)}.pdf`;

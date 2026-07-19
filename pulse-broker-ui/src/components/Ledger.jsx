@@ -16,6 +16,19 @@ const Ledger = () => {
     const { addToast } = useToast();
     const [activeTab, setActiveTab] = useState('generate'); // 'generate' or 'history'
 
+    const financialYears = React.useMemo(() => {
+        const currentYear = new Date().getFullYear();
+        const currentMonth = new Date().getMonth();
+        // FY starts in April (0-indexed month 3)
+        const currentFyStart = currentMonth >= 3 ? currentYear : currentYear - 1;
+        return [
+            { label: `${currentFyStart}-${(currentFyStart + 1).toString().slice(-2)}`, start: `${currentFyStart}-04-01`, end: `${currentFyStart + 1}-03-31` },
+            { label: `${currentFyStart - 1}-${currentFyStart.toString().slice(-2)}`, start: `${currentFyStart - 1}-04-01`, end: `${currentFyStart}-03-31` },
+            { label: `${currentFyStart - 2}-${(currentFyStart - 1).toString().slice(-2)}`, start: `${currentFyStart - 2}-04-01`, end: `${currentFyStart - 1}-03-31` },
+            { label: `${currentFyStart - 3}-${(currentFyStart - 2).toString().slice(-2)}`, start: `${currentFyStart - 3}-04-01`, end: `${currentFyStart - 2}-03-31` },
+        ];
+    }, []);
+
     // Generate Bill State
     const [firms, setFirms] = useState([]);
     const [contacts, setContacts] = useState([]);
@@ -931,9 +944,28 @@ const Ledger = () => {
                                 </h2>
                                 <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
                                     <div className="flex items-center gap-2">
-                                        <input type="date" value={historyStartDate} onChange={e => setHistoryStartDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary" title={t('From Date', 'प्रारंभ तिथि')} />
+                                        <select 
+                                            onChange={e => {
+                                                if (!e.target.value) {
+                                                    setHistoryStartDate('');
+                                                    setHistoryEndDate('');
+                                                    return;
+                                                }
+                                                const [start, end] = e.target.value.split('|');
+                                                setHistoryStartDate(start);
+                                                setHistoryEndDate(end);
+                                            }}
+                                            className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs font-bold outline-none focus:border-primary text-gray-500"
+                                            title={t('Financial Year', 'वित्तीय वर्ष')}
+                                        >
+                                            <option value="">{t('FY', 'वित्तीय वर्ष')}</option>
+                                            {financialYears.map(fy => (
+                                                <option key={fy.label} value={`${fy.start}|${fy.end}`}>{fy.label}</option>
+                                            ))}
+                                        </select>
+                                        <input type="date" value={historyStartDate} onChange={e => setHistoryStartDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs font-bold outline-none focus:border-primary" title={t('From Date', 'प्रारंभ तिथि')} />
                                         <span className="text-gray-400 text-xs font-bold">{t('to', 'से')}</span>
-                                        <input type="date" value={historyEndDate} onChange={e => setHistoryEndDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary" title={t('To Date', 'अंत तिथि')} />
+                                        <input type="date" value={historyEndDate} onChange={e => setHistoryEndDate(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg px-2 py-2 text-xs font-bold outline-none focus:border-primary" title={t('To Date', 'अंत तिथि')} />
                                     </div>
                                     <select value={historyParty} onChange={e => { setHistoryParty(e.target.value); setHistoryFirm(''); }} className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-primary min-w-[120px]">
                                         <option value="">-- {t('All Parties', 'सभी पार्टियां')} --</option>

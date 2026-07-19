@@ -765,7 +765,7 @@ const Ledger = () => {
                                 <h2 className="font-bold text-primary uppercase tracking-widest mb-6 text-sm flex items-center gap-2">
                                     <span>🔍</span> {t('Filter & Generate Bill for Firm', 'फर्म के लिए बिल फ़िल्टर करें')}
                                 </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end relative z-10">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 items-end relative z-10">
                                     <div>
                                         <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Select Party', 'पार्टी चुनें')}</label>
                                         <select value={filterParty} onChange={e => { setFilterParty(e.target.value); setFilterFirm(''); }} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
@@ -785,6 +785,27 @@ const Ledger = () => {
                                         }} className="w-full bg-white border-2 border-gray-200 rounded-lg px-4 py-3 text-textMain font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm">
                                             <option value="">-- {t('Select Firm', 'फर्म चुनें')} --</option>
                                             {filteredGenerateFirms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">{t('Financial Year', 'वित्तीय वर्ष')}</label>
+                                        <select 
+                                            onChange={e => {
+                                                if (!e.target.value) {
+                                                    setFromDate('');
+                                                    setToDate('');
+                                                    return;
+                                                }
+                                                const [start, end] = e.target.value.split('|');
+                                                setFromDate(start);
+                                                setToDate(end);
+                                            }}
+                                            className="w-full bg-white border-2 border-gray-200 rounded-lg px-3 py-3 text-gray-500 font-bold focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none shadow-sm"
+                                        >
+                                            <option value="">{t('Select FY', 'FY चुनें')}</option>
+                                            {financialYears.map(fy => (
+                                                <option key={fy.label} value={`${fy.start}|${fy.end}`}>{fy.label}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>

@@ -33,8 +33,8 @@ const findRowBreakPoints = (element) => {
         breakPoints.add(Math.round(bottom));
     };
 
-    // 1. Table rows
-    element.querySelectorAll('tr').forEach(addRect);
+    // 1. Table rows (exclude sub-rows so main row + sub row are kept together)
+    element.querySelectorAll('tr:not(.sub-row)').forEach(addRect);
 
     // 2. All main blocks inside the invoice (headers, footers, tables)
     element.querySelectorAll('.invoice-preview > div').forEach(addRect);

@@ -87,10 +87,7 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     if (document.fonts?.ready) await document.fonts.ready;
     await new Promise(r => setTimeout(r, 300));
 
-    // --- Find row break points BEFORE modifying the element ---
-    const breakPoints = findRowBreakPoints(element);
-
-    // --- Prepare element for capture ---
+    // --- Prepare element for capture (resize FIRST, then measure) ---
     const hiddenEls = element.querySelectorAll('[class*="print:hidden"], .print\\:hidden');
     const origDisplays = [];
     hiddenEls.forEach(el => {
@@ -107,8 +104,11 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     element.style.width = '780px';
     element.style.overflow = 'visible';
 
-    // Small delay for layout to settle after style changes
-    await new Promise(r => setTimeout(r, 100));
+    // Wait for layout to settle AFTER resize
+    await new Promise(r => setTimeout(r, 150));
+
+    // --- Find row break points AFTER resize so positions match the 780px layout ---
+    const breakPoints = findRowBreakPoints(element);
 
     const SCALE = 2;
     let fullCanvas;

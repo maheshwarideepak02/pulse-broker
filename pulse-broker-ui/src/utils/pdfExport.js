@@ -11,28 +11,35 @@ export const safeFileName = (value, fallback = 'invoice') => {
 
 /**
  * Find safe page break points by detecting table row boundaries.
- * Returns an array of Y-positions (in DOM pixels) where we can safely break.
+ * We use the TOP of each row as the break point — this means we break
+ * BEFORE a row starts, guaranteeing the row above is fully captured
+ * and the row below starts cleanly on the next page.
+ *
+ * A small SAFETY_PAD is added so the slice always captures a few
+ * extra pixels below the last visible row's bottom edge, preventing
+ * the bottom border/text from being clipped due to rounding.
  */
+const SAFETY_PAD = 4; // extra px below last row to prevent clipping
+
 const findRowBreakPoints = (element) => {
     const breakPoints = new Set();
     const containerRect = element.getBoundingClientRect();
     const containerTop = containerRect.top + window.scrollY;
 
-    // Find all table rows and major block elements
+    // Collect the TOP of every table row — these are "safe to break BEFORE" positions
     const rows = element.querySelectorAll('tr, .invoice-row, [style*="page-break"]');
     rows.forEach(row => {
         const rect = row.getBoundingClientRect();
         const rowTop = rect.top + window.scrollY - containerTop;
-        const rowBottom = rowTop + rect.height;
-        breakPoints.add(Math.round(rowBottom));
+        breakPoints.add(Math.round(rowTop));
     });
 
-    // Also add div boundaries for non-table content
+    // Also add div boundaries for non-table content (header, footer sections)
     const divs = element.querySelectorAll(':scope > div, :scope > div > div');
     divs.forEach(div => {
         const rect = div.getBoundingClientRect();
-        const divBottom = rect.top + window.scrollY - containerTop + rect.height;
-        breakPoints.add(Math.round(divBottom));
+        const divTop = rect.top + window.scrollY - containerTop;
+        breakPoints.add(Math.round(divTop));
     });
 
     return Array.from(breakPoints).sort((a, b) => a - b);
@@ -41,21 +48,26 @@ const findRowBreakPoints = (element) => {
 /**
  * Given the max height for a page slice, find the best break point
  * that doesn't cut through a row.
+ *
+ * Strategy: find the last row-top that starts within the available
+ * page height. We break at that row-top, meaning the previous row
+ * is fully included (with SAFETY_PAD extra pixels for borders).
  */
 const findBestBreak = (breakPoints, startY, maxSliceHeight, totalHeight) => {
     const idealEnd = startY + maxSliceHeight;
     
-    // If we can fit everything remaining, just take it all
-    if (idealEnd >= totalHeight) return totalHeight;
+    // If we can fit everything remaining (with padding), just take it all
+    if (idealEnd + SAFETY_PAD >= totalHeight) return totalHeight;
 
-    // Find the last break point that fits within the page
+    // Find the last row-top that fits within the page.
+    // Breaking at a row-top means the row ABOVE is fully included.
     let bestBreak = startY + maxSliceHeight * 0.5; // fallback: at least half page
     for (const bp of breakPoints) {
-        if (bp <= startY) continue;
-        if (bp <= idealEnd) {
-            bestBreak = bp; // this row fits, take it
+        if (bp <= startY + SAFETY_PAD) continue; // skip rows that are at/above current start
+        if (bp <= idealEnd - SAFETY_PAD) {
+            bestBreak = bp; // break here — everything above is safe
         } else {
-            break; // past the page, stop
+            break; // this row starts past the page, stop
         }
     }
 

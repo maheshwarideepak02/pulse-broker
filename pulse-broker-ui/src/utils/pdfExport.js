@@ -156,12 +156,16 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
             ? (CONTENT_H_MM - FOOTER_H_MM) * domPxPerMm
             : (CONTENT_H_MM - HEADER_H_MM - FOOTER_H_MM) * domPxPerMm;
         const nextBreak = findBestBreak(breakPoints, tempY, availableH, totalHeightDom);
-        pageBreaks.push(nextBreak);
-        tempY = nextBreak;
+        
+        // Safety: ensure we always make forward progress (at least 10px)
+        const safeNext = nextBreak <= tempY ? Math.min(tempY + availableH, totalHeightDom) : nextBreak;
+        
+        pageBreaks.push(safeNext);
+        tempY = safeNext;
         tempPage++;
         if (tempPage > 50) break;
     }
-    const totalPages = tempPage;
+    const totalPages = Math.max(tempPage, 1); // at least 1 page
 
     // Second pass: render pages
     const pdf = new jsPDF('portrait', 'mm', 'a4');
@@ -169,9 +173,9 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     for (let page = 0; page < totalPages; page++) {
         if (page > 0) pdf.addPage();
 
-        const startY = pageBreaks[page];
-        const endY = pageBreaks[page + 1];
-        const sliceHeightDom = endY - startY;
+        const startY = pageBreaks[page] || 0;
+        const endY = pageBreaks[page + 1] || totalHeightDom;
+        const sliceHeightDom = Math.max(endY - startY, 1); // at least 1px to avoid zero-height canvas
 
         // Where to place the image on this page
         const imgTopMm = page === 0 ? MARGIN_MM : (MARGIN_MM + HEADER_H_MM);
@@ -179,31 +183,39 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
         // Convert to canvas pixels
         const srcY = Math.round(startY * SCALE);
         const srcH = Math.round(sliceHeightDom * SCALE);
-        const actualSrcH = Math.min(srcH, canvasH - srcY);
+        const actualSrcH = Math.max(Math.min(srcH, canvasH - srcY), 1); // at least 1px
+
+        // Skip if source position is beyond canvas
+        if (srcY >= canvasH) continue;
 
         // Create a clean slice canvas
-        const sliceCanvas = document.createElement('canvas');
-        sliceCanvas.width = canvasW;
-        sliceCanvas.height = actualSrcH;
-        const ctx = sliceCanvas.getContext('2d');
+        try {
+            const sliceCanvas = document.createElement('canvas');
+            sliceCanvas.width = canvasW;
+            sliceCanvas.height = actualSrcH;
+            const ctx = sliceCanvas.getContext('2d');
 
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(0, 0, canvasW, actualSrcH);
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvasW, actualSrcH);
 
-        ctx.drawImage(
-            fullCanvas,
-            0, srcY, canvasW, actualSrcH,
-            0, 0, canvasW, actualSrcH
-        );
+            ctx.drawImage(
+                fullCanvas,
+                0, srcY, canvasW, actualSrcH,
+                0, 0, canvasW, actualSrcH
+            );
 
-        const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
-        const sliceHeightMm = sliceHeightDom / domPxPerMm;
+            const sliceImgData = sliceCanvas.toDataURL('image/jpeg', 0.92);
+            const sliceHeightMm = sliceHeightDom / domPxPerMm;
 
-        pdf.addImage(
-            sliceImgData, 'JPEG',
-            MARGIN_MM, imgTopMm,
-            CONTENT_W_MM, sliceHeightMm
-        );
+            pdf.addImage(
+                sliceImgData, 'JPEG',
+                MARGIN_MM, imgTopMm,
+                CONTENT_W_MM, sliceHeightMm
+            );
+        } catch (sliceErr) {
+            console.warn(`[PDF] Skipping page ${page + 1} due to canvas error:`, sliceErr);
+            continue;
+        }
 
         // --- Continuation header on page 2+ ---
         if (page > 0 && firmName) {

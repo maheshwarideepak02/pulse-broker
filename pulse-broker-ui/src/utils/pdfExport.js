@@ -105,7 +105,7 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     element.style.overflow = 'visible';
 
     // Wait for layout to settle AFTER resize
-    await new Promise(r => setTimeout(r, 150));
+    await new Promise(r => setTimeout(r, 500));
 
     // --- Find row break points AFTER resize so positions match the 780px layout ---
     const breakPoints = findRowBreakPoints(element);

@@ -209,6 +209,9 @@ table tbody tr { transition: background-color .16s ease; }
 .invoice-preview tr.sub-row td {
     border-top: none;
     padding-top: 0;
+    padding-bottom: 2px;
+    font-size: 11px;
+    line-height: 1.1;
 }
 
 /* Page Transition Animation */

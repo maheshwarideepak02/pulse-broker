@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail, getContacts } from '../api';
+import { downloadInvoicePdf, shareInvoice } from '../utils/pdfExport';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
@@ -65,7 +66,6 @@ const Ledger = () => {
     const handlePdfDownload = async () => {
         setIsExporting(true);
         try {
-            const { downloadInvoicePdf } = await import('../utils/pdfExport');
             await downloadInvoicePdf(invoiceRef.current, invoiceFileName(), invoiceData?.firmName);
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
         } catch (error) {
@@ -79,7 +79,6 @@ const Ledger = () => {
     const handleInvoiceShare = async () => {
         setIsExporting(true);
         try {
-            const { shareInvoice } = await import('../utils/pdfExport');
             const total = Number(invoiceData?.totalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 });
             const result = await shareInvoice({
                 element: invoiceRef.current,
@@ -111,7 +110,6 @@ const Ledger = () => {
     const handleMultiPdfDownload = async () => {
         setIsExporting(true);
         try {
-            const { downloadInvoicePdf } = await import('../utils/pdfExport');
             const party = contacts.find(c => c.id === Number(historyParty));
             await downloadInvoicePdf(multiInvoiceRef.current, multiInvoiceFileName(), party?.name || '');
             addToast(t('PDF downloaded successfully', 'पीडीएफ सफलतापूर्वक डाउनलोड हो गया'), 'success');
@@ -126,7 +124,6 @@ const Ledger = () => {
     const handleMultiInvoiceShare = async () => {
         setIsExporting(true);
         try {
-            const { shareInvoice } = await import('../utils/pdfExport');
             const party = contacts.find(c => c.id === Number(historyParty));
             const total = multiInvoiceData.reduce((sum, inv) => sum + (Number(inv.totalAmount) || 0), 0);
             const result = await shareInvoice({

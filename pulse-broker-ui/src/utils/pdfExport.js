@@ -19,56 +19,61 @@ export const safeFileName = (value, fallback = 'invoice') => {
  * extra pixels below the last visible row's bottom edge, preventing
  * the bottom border/text from being clipped due to rounding.
  */
-const SAFETY_PAD = 4; // extra px below last row to prevent clipping
-
 const findRowBreakPoints = (element) => {
     const breakPoints = new Set();
     const containerRect = element.getBoundingClientRect();
     const containerTop = containerRect.top + window.scrollY;
 
-    // Collect the TOP of every table row — these are "safe to break BEFORE" positions
-    const rows = element.querySelectorAll('tr, .invoice-row, [style*="page-break"]');
-    rows.forEach(row => {
-        const rect = row.getBoundingClientRect();
-        const rowTop = rect.top + window.scrollY - containerTop;
-        breakPoints.add(Math.round(rowTop));
-    });
+    const addRect = (el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.height === 0) return;
+        const top = rect.top + window.scrollY - containerTop;
+        const bottom = top + rect.height;
+        breakPoints.add(Math.round(top));
+        breakPoints.add(Math.round(bottom));
+    };
 
-    // Also add div boundaries for non-table content (header, footer sections)
-    const divs = element.querySelectorAll(':scope > div, :scope > div > div');
-    divs.forEach(div => {
-        const rect = div.getBoundingClientRect();
-        const divTop = rect.top + window.scrollY - containerTop;
-        breakPoints.add(Math.round(divTop));
-    });
+    // 1. Table rows
+    element.querySelectorAll('tr').forEach(addRect);
+
+    // 2. All main blocks inside the invoice (headers, footers, tables)
+    element.querySelectorAll('.invoice-preview > div').forEach(addRect);
+
+    // 3. Invoice container boundaries
+    element.querySelectorAll('.invoice-preview').forEach(addRect);
+
+    // Add 0 and the total height to be safe
+    breakPoints.add(0);
+    breakPoints.add(Math.round(containerRect.height));
 
     return Array.from(breakPoints).sort((a, b) => a - b);
 };
 
 /**
  * Given the max height for a page slice, find the best break point
- * that doesn't cut through a row.
- *
- * Strategy: find the last row-top that starts within the available
- * page height. We break at that row-top, meaning the previous row
- * is fully included (with SAFETY_PAD extra pixels for borders).
+ * that doesn't cut through a row or text block.
  */
 const findBestBreak = (breakPoints, startY, maxSliceHeight, totalHeight) => {
     const idealEnd = startY + maxSliceHeight;
     
-    // If we can fit everything remaining (with padding), just take it all
-    if (idealEnd + SAFETY_PAD >= totalHeight) return totalHeight;
+    if (idealEnd >= totalHeight) return totalHeight;
 
-    // Find the last row-top that fits within the page.
-    // Breaking at a row-top means the row ABOVE is fully included.
-    let bestBreak = startY + maxSliceHeight * 0.5; // fallback: at least half page
+    // Find the largest break point that fits within the page
+    let bestBreak = -1;
     for (const bp of breakPoints) {
-        if (bp <= startY + SAFETY_PAD) continue; // skip rows that are at/above current start
-        if (bp <= idealEnd - SAFETY_PAD) {
-            bestBreak = bp; // break here — everything above is safe
+        if (bp <= startY + 5) continue; // skip break points too close to start
+        if (bp <= idealEnd) {
+            bestBreak = bp;
         } else {
-            break; // this row starts past the page, stop
+            break;
         }
+    }
+
+    // If no break point found within the slice, we MUST fall back to idealEnd
+    // to prevent infinite loops, but with the new breakPoints logic this should 
+    // almost never happen unless a single div is taller than an entire A4 page.
+    if (bestBreak === -1) {
+        bestBreak = idealEnd;
     }
 
     return bestBreak;
@@ -85,7 +90,6 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
 
     // Wait for fonts and a render tick
     if (document.fonts?.ready) await document.fonts.ready;
-    await new Promise(r => setTimeout(r, 300));
 
     // --- Prepare element for capture (resize FIRST, then measure) ---
     const hiddenEls = element.querySelectorAll('[class*="print:hidden"], .print\\:hidden');
@@ -104,8 +108,8 @@ const elementToPdfBlob = async (element, fileName, firmName = '') => {
     element.style.width = '780px';
     element.style.overflow = 'visible';
 
-    // Wait for layout to settle AFTER resize
-    await new Promise(r => setTimeout(r, 500));
+    // Wait for layout to settle AFTER resize (minimal delay to keep user gesture alive)
+    await new Promise(r => setTimeout(r, 50));
 
     // --- Find row break points AFTER resize so positions match the 780px layout ---
     const breakPoints = findRowBreakPoints(element);

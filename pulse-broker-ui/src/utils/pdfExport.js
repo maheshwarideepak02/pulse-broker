@@ -24,7 +24,14 @@ const findRowBreakPoints = (element) => {
     const containerRect = element.getBoundingClientRect();
     const containerTop = containerRect.top + window.scrollY;
 
-    const addRect = (el) => {
+    const addRectTop = (el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.height === 0) return;
+        const top = rect.top + window.scrollY - containerTop;
+        breakPoints.add(Math.round(top));
+    };
+
+    const addRectTopAndBottom = (el) => {
         const rect = el.getBoundingClientRect();
         if (rect.height === 0) return;
         const top = rect.top + window.scrollY - containerTop;
@@ -34,13 +41,15 @@ const findRowBreakPoints = (element) => {
     };
 
     // 1. Table rows (exclude sub-rows so main row + sub row are kept together)
-    element.querySelectorAll('tr:not(.sub-row)').forEach(addRect);
+    // ONLY add the top of the main row. Do not add the bottom, because the bottom of
+    // the main row is the exact top of the sub-row (which has 0 padding and cuts text).
+    element.querySelectorAll('tr:not(.sub-row)').forEach(addRectTop);
 
     // 2. All main blocks inside the invoice (headers, footers, tables)
-    element.querySelectorAll('.invoice-preview > div').forEach(addRect);
+    element.querySelectorAll('.invoice-preview > div').forEach(addRectTopAndBottom);
 
     // 3. Invoice container boundaries
-    element.querySelectorAll('.invoice-preview').forEach(addRect);
+    element.querySelectorAll('.invoice-preview').forEach(addRectTopAndBottom);
 
     // Add 0 and the total height to be safe
     breakPoints.add(0);

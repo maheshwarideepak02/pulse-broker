@@ -53,6 +53,11 @@ public class BillController {
         return billingService.clearBill(billId, clearanceDate, discountAmount);
     }
 
+    @PostMapping("/{billId}/unclear")
+    public Bill unclearBill(@PathVariable Long billId) {
+        return billingService.unclearBill(billId);
+    }
+
     @Autowired
     private com.pulsebroker.pulse_broker_api.repository.DealRepository dealRepository;
 

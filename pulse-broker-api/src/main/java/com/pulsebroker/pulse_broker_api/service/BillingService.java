@@ -143,6 +143,18 @@ public class BillingService {
         return billRepository.save(bill);
     }
 
+    @Transactional
+    public Bill unclearBill(Long billId) {
+        Bill bill = billRepository.findById(billId).orElseThrow(() -> new RuntimeException("Bill not found"));
+        if (bill.getStatus() != BillStatus.PAID) {
+            throw new IllegalArgumentException("Bill is not cleared yet.");
+        }
+        bill.setStatus(BillStatus.UNPAID);
+        bill.setClearanceDate(null);
+        bill.setDiscountAmount(null);
+        return billRepository.save(bill);
+    }
+
     /**
      * Retrieve full detail of a locked/generated bill including all its deal line items.
      */

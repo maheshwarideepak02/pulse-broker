@@ -54,7 +54,7 @@ const Ledger = () => {
     const [showMultiInvoice, setShowMultiInvoice] = useState(false);
     const [multiInvoiceData, setMultiInvoiceData] = useState([]);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' });
-    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '' });
+    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '', isExtra: false });
     const [isExporting, setIsExporting] = useState(false);
     const invoiceRef = useRef(null);
     const multiInvoiceRef = useRef(null);
@@ -348,16 +348,18 @@ const Ledger = () => {
             isOpen: true,
             id: billId,
             clearanceDate: getLocalTodayDateString(),
-            discountAmount: ''
+            discountAmount: '',
+            isExtra: false
         });
     };
 
     const executeClearBill = async () => {
         setIsProcessing(true);
-        const { id, clearanceDate, discountAmount } = clearBillDialog;
-        setClearBillDialog({ isOpen: false, id: null, clearanceDate: '', discountAmount: '' });
+        const { id, clearanceDate, discountAmount, isExtra } = clearBillDialog;
+        setClearBillDialog({ isOpen: false, id: null, clearanceDate: '', discountAmount: '', isExtra: false });
         try {
-            await clearBill(id, clearanceDate, discountAmount || null);
+            const finalDiscount = discountAmount ? (isExtra ? -Math.abs(Number(discountAmount)) : Math.abs(Number(discountAmount))) : null;
+            await clearBill(id, clearanceDate, finalDiscount);
             addToast('Bill marked as Cleared successfully!', 'success');
             loadHistory(); // refresh list
         } catch (e) {
@@ -1061,6 +1063,7 @@ const Ledger = () => {
                                                             <div className="flex flex-col items-end mr-2 text-xs">
                                                                 <span className="text-gray-400 font-bold">{b.clearanceDate}</span>
                                                                 {b.discountAmount > 0 && <span className="text-red-500 font-bold bg-red-50 px-1 mt-0.5 rounded border border-red-100">{t('Kasar', 'कसर')}: ₹{b.discountAmount}</span>}
+                                                                {b.discountAmount < 0 && <span className="text-green-600 font-bold bg-green-50 px-1 mt-0.5 rounded border border-green-100">{t('Extra', 'अतिरिक्त')}: ₹{Math.abs(b.discountAmount)}</span>}
                                                             </div>
                                                         )}
                                                         {b.status === 'UNPAID' && (
@@ -1113,6 +1116,9 @@ const Ledger = () => {
                                                 {b.status === 'PAID' && b.discountAmount > 0 && (
                                                     <span className="text-[10px] text-red-500 font-bold bg-red-50 px-1.5 py-0.5 rounded border border-red-100 inline-block w-max">{t('Kasar', 'कसर')}: ₹{b.discountAmount}</span>
                                                 )}
+                                                {b.status === 'PAID' && b.discountAmount < 0 && (
+                                                    <span className="text-[10px] text-green-600 font-bold bg-green-50 px-1.5 py-0.5 rounded border border-green-100 inline-block w-max">{t('Extra', 'अतिरिक्त')}: ₹{Math.abs(b.discountAmount)}</span>
+                                                )}
                                             </div>
                                             <div className="flex gap-2">
                                                 <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">👁️</button>
@@ -1151,8 +1157,24 @@ const Ledger = () => {
                                         <input type="date" value={clearBillDialog.clearanceDate} onChange={e => setClearBillDialog({ ...clearBillDialog, clearanceDate: e.target.value })} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">{t('Kasar / Discount (₹)', 'कसर / छूट (₹)')}</label>
-                                        <input type="number" placeholder={t('Optional', 'वैकल्पिक')} value={clearBillDialog.discountAmount} onChange={e => setClearBillDialog({ ...clearBillDialog, discountAmount: e.target.value })} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" min="0" step="0.01" />
+                                        <div className="flex justify-between items-center mb-2">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase">{t('Difference Amount (₹)', 'अंतर राशि (₹)')}</label>
+                                            <div className="flex bg-gray-100 rounded-lg p-0.5">
+                                                <button 
+                                                    onClick={() => setClearBillDialog({ ...clearBillDialog, isExtra: false })}
+                                                    className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${!clearBillDialog.isExtra ? 'bg-white shadow-sm text-red-600' : 'text-gray-500'}`}
+                                                >
+                                                    {t('Kasar', 'कसर')}
+                                                </button>
+                                                <button 
+                                                    onClick={() => setClearBillDialog({ ...clearBillDialog, isExtra: true })}
+                                                    className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${clearBillDialog.isExtra ? 'bg-white shadow-sm text-green-600' : 'text-gray-500'}`}
+                                                >
+                                                    {t('Extra', 'अतिरिक्त')}
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input type="number" placeholder={t('Optional', 'वैकल्पिक')} value={clearBillDialog.discountAmount} onChange={e => setClearBillDialog({ ...clearBillDialog, discountAmount: e.target.value })} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
                                     </div>
                                 </div>
 

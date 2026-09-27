@@ -13,7 +13,7 @@ const safeFileName = (value, fallback = 'invoice') => {
     return cleaned || fallback;
 };
 
-const UPI_ID = '9837052398@paytm'; // Replace with actual UPI ID
+const UPI_ID = '9837052398@ybl'; // Replace with actual UPI ID
 const PAYEE_NAME = 'Sanjeev Kumar Maheshwari'; // Replace with actual Payee Name
 
 const Ledger = () => {

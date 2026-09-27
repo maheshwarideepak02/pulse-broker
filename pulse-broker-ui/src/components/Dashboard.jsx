@@ -81,8 +81,15 @@ const Dashboard = () => {
     const groupedMap = new Map();
     rawLoadedDeals.forEach(d => {
         const key = d.parentDeal ? d.parentDeal.id : d.id;
+        const isBilled = d.status === 'BILLED' || d.purchaserBill || d.sellerBill;
         if (!groupedMap.has(key)) {
-            groupedMap.set(key, { ...d, _childIds: [d.id], _allLoadDates: d.loadDate ? d.loadDate.split(',').map(s=>s.trim()) : [] });
+            groupedMap.set(key, { 
+                ...d, 
+                _childIds: [d.id], 
+                _allLoadDates: d.loadDate ? d.loadDate.split(',').map(s=>s.trim()) : [],
+                _hasBilledChild: isBilled,
+                _allBilled: isBilled
+            });
         } else {
             const existing = groupedMap.get(key);
             existing.weight = parseFloat(existing.weight) + parseFloat(d.weight);
@@ -94,6 +101,8 @@ const Dashboard = () => {
                 });
             }
             existing._childIds.push(d.id);
+            if (isBilled) existing._hasBilledChild = true;
+            if (!isBilled) existing._allBilled = false;
         }
     });
 
@@ -301,8 +310,12 @@ const Dashboard = () => {
                                         <td className="px-6 py-4 text-right text-secondary font-bold">₹{deal.rate}</td>
 
                                         <td className="px-4 py-4 text-center">
-                                            {deal.status === 'LOADED' && (
-                                                <button onClick={() => handleRevertDeal(deal)} className="text-gray-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200 ml-auto flex items-center gap-1 text-xs font-bold" title="Undo Load">
+                                            {deal._hasBilledChild ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 text-[10px] font-bold rounded border border-green-200 uppercase tracking-wide ml-auto" title={t('Already Billed', 'बिल बन चुका है')}>
+                                                    ✅ {deal._allBilled ? t('Billed', 'बिल') : t('Partial Billed', 'आंशिक बिल')}
+                                                </span>
+                                            ) : (
+                                                <button onClick={() => handleRevertDeal(deal)} className="text-gray-400 hover:text-red-500 transition-colors bg-white px-2 py-1 rounded shadow-sm border border-gray-200 ml-auto flex items-center gap-1 text-xs font-bold" title={t('Undo Load', 'लोड पूर्ववत करें')}>
                                                     ↩️ {t('Undo', 'पूर्ववत')}
                                                 </button>
                                             )}
@@ -367,7 +380,7 @@ const Dashboard = () => {
                                             <span>{formatDate(deal.dealDate)}</span>
                                         )}
                                     </span>
-                                    {deal.loadDate && deal.status === 'LOADED' && (
+                                    {deal.loadDate && (
                                         <span className="font-medium flex flex-col items-center">
                                             <span className="text-[10px] text-gray-400 uppercase">{t('Load Date', 'लोडिंग')}</span>
                                             {formatDate(deal.loadDate)}
@@ -379,8 +392,14 @@ const Dashboard = () => {
                                     </span>
                                 </div>
 
-                                {deal.status === 'LOADED' && (
-                                    <div className="flex justify-end pt-3 mt-2">
+                                {deal._hasBilledChild ? (
+                                    <div className="flex justify-end pt-3 mt-2 border-t border-gray-100">
+                                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 text-[11px] font-bold rounded-md border border-green-200 uppercase tracking-wide shadow-sm">
+                                            ✅ {deal._allBilled ? t('Billed', 'बिल') : t('Partial Billed', 'आंशिक बिल')}
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <div className="flex justify-end pt-3 mt-2 border-t border-gray-100">
                                         <button onClick={() => handleRevertDeal(deal)} className="text-[11px] font-bold text-gray-500 hover:text-red-600 flex items-center gap-1.5 bg-white border border-gray-200 shadow-sm px-3 py-1.5 rounded-lg active:scale-95 transition-all">
                                             ↩️ {t('Undo Load', 'लोड पूर्ववत करें')}
                                         </button>

@@ -3,6 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
 import { getFirms, previewBill, generateBill, getAllBills, clearBill, unclearBill, deleteBill, revertDeal, getBillDetail, getContacts } from '../api';
 import { downloadInvoicePdf, shareInvoice } from '../utils/pdfExport';
+import { QRCodeSVG } from 'qrcode.react';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
 import { formatDate, getLocalTodayDateString } from '../utils/dateUtils';
@@ -11,6 +12,9 @@ const safeFileName = (value, fallback = 'invoice') => {
     const cleaned = String(value || fallback).trim().replace(/[^a-zA-Z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
     return cleaned || fallback;
 };
+
+const UPI_ID = '9837052398@paytm'; // Replace with actual UPI ID
+const PAYEE_NAME = 'Sanjeev Kumar Maheshwari'; // Replace with actual Payee Name
 
 const Ledger = () => {
     const { t } = useLanguage();
@@ -570,6 +574,10 @@ const Ledger = () => {
                             </div>
                         )}
                         <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '15px', minHeight: '80px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, padding: '4px', border: '1px solid #eee', borderRadius: '6px', background: '#fff' }}>
+                                <QRCodeSVG value={`upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${invoiceData?.totalAmount?.toFixed(2) ?? ''}&cu=INR`} size={70} />
+                                <span style={{ fontSize: '9px', fontWeight: 'bold', marginTop: '4px', color: '#9e1b22' }}>UPI Pay</span>
+                            </div>
                             <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', flex: '1' }}>
                                 <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
                                 <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>
@@ -696,6 +704,10 @@ const Ledger = () => {
                                     </div>
                                 )}
                                 <div style={{ marginTop: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '15px', minHeight: '80px' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, padding: '4px', border: '1px solid #eee', borderRadius: '6px', background: '#fff' }}>
+                                        <QRCodeSVG value={`upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${inv.totalAmount?.toFixed(2) ?? ''}&cu=INR`} size={70} />
+                                        <span style={{ fontSize: '9px', fontWeight: 'bold', marginTop: '4px', color: '#9e1b22' }}>UPI Pay</span>
+                                    </div>
                                     <div style={{ textAlign: 'center', fontSize: '13px', fontWeight: 'bold', flex: '1' }}>
                                         <div style={{ marginBottom: '2px' }}>कार्यालय एवं निवास</div>
                                         <div>कमला मेन्सन, फ्लेट नं. 104, अलखनाथ मन्दिर रोड, निकट गंगा मन्दिर, बरेली (उ.प्र.) - 243003</div>

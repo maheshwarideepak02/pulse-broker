@@ -134,9 +134,7 @@ public class BillingService {
         bill.setStatus(BillStatus.PAID);
         bill.setClearanceDate(clearanceDate != null ? clearanceDate : LocalDate.now());
         if (discountAmount != null) {
-            if (discountAmount.compareTo(BigDecimal.ZERO) < 0) {
-                throw new IllegalArgumentException("Discount amount cannot be negative.");
-            }
+            // Negative discount means extra amount was received (e.g. honesty overpayment)
             if (discountAmount.compareTo(bill.getTotalAmount()) > 0) {
                 throw new IllegalArgumentException("Discount amount cannot exceed total bill amount.");
             }

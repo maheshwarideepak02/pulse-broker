@@ -81,6 +81,7 @@ export const clearBill = (billId, clearanceDate, discountAmount) => {
     if (discountAmount != null && discountAmount !== '') params.append('discountAmount', discountAmount);
     return api.post(`/billing/${billId}/clear?${params.toString()}`).then(res => res.data);
 };
+export const unclearBill = (billId) => api.post(`/billing/${billId}/unclear`).then(res => res.data);
 
 export const deleteContact = (id) => api.delete(`/contacts/${id}`);
 export const deleteFirm = (id) => api.delete(`/firms/${id}`);

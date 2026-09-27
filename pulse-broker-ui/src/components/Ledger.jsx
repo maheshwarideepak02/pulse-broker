@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useToast } from '../context/ToastContext';
-import { getFirms, previewBill, generateBill, getAllBills, clearBill, deleteBill, revertDeal, getBillDetail, getContacts } from '../api';
+import { getFirms, previewBill, generateBill, getAllBills, clearBill, unclearBill, deleteBill, revertDeal, getBillDetail, getContacts } from '../api';
 import { downloadInvoicePdf, shareInvoice } from '../utils/pdfExport';
 import DateInput from './DateInput';
 import ConfirmModal from './ConfirmModal';
@@ -54,7 +54,7 @@ const Ledger = () => {
     const [showMultiInvoice, setShowMultiInvoice] = useState(false);
     const [multiInvoiceData, setMultiInvoiceData] = useState([]);
     const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, type: '', id: null, message: '' });
-    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), discountAmount: '', isExtra: false });
+    const [clearBillDialog, setClearBillDialog] = useState({ isOpen: false, id: null, clearanceDate: getLocalTodayDateString(), receivedAmount: '', totalAmount: 0 });
     const [isExporting, setIsExporting] = useState(false);
     const invoiceRef = useRef(null);
     const multiInvoiceRef = useRef(null);
@@ -343,28 +343,49 @@ const Ledger = () => {
         }
     };
 
-    const handleClearBill = (billId) => {
+    const handleClearBill = (billId, totalAmount) => {
         setClearBillDialog({
             isOpen: true,
             id: billId,
             clearanceDate: getLocalTodayDateString(),
-            discountAmount: '',
-            isExtra: false
+            receivedAmount: totalAmount || 0,
+            totalAmount: totalAmount || 0
         });
     };
 
     const executeClearBill = async () => {
         setIsProcessing(true);
-        const { id, clearanceDate, discountAmount, isExtra } = clearBillDialog;
-        setClearBillDialog({ isOpen: false, id: null, clearanceDate: '', discountAmount: '', isExtra: false });
+        const { id, clearanceDate, receivedAmount, totalAmount } = clearBillDialog;
+        setClearBillDialog({ isOpen: false, id: null, clearanceDate: '', receivedAmount: '', totalAmount: 0 });
         try {
-            const finalDiscount = discountAmount ? (isExtra ? -Math.abs(Number(discountAmount)) : Math.abs(Number(discountAmount))) : null;
+            let finalDiscount = null;
+            if (receivedAmount !== '' && receivedAmount !== null) {
+                const rAmt = Number(receivedAmount);
+                const diff = totalAmount - rAmt; // Kasar if diff > 0, Extra if diff < 0
+                if (Math.abs(diff) > 0.001) {
+                    finalDiscount = diff;
+                }
+            }
             await clearBill(id, clearanceDate, finalDiscount);
             addToast('Bill marked as Cleared successfully!', 'success');
             loadHistory(); // refresh list
         } catch (e) {
             console.error(e);
             addToast(e.response?.data?.message || 'Failed to clear bill', 'error');
+        } finally {
+            setIsProcessing(false);
+        }
+    };
+
+    const handleUnclearBill = async (billId) => {
+        setIsProcessing(true);
+        try {
+            await unclearBill(billId);
+            addToast(t('Bill marked as Unpaid successfully!', 'बिल को सफलतापूर्वक बकाया के रूप में चिह्नित किया गया!'), 'success');
+            loadHistory(); // refresh list
+        } catch (e) {
+            console.error(e);
+            addToast(e.response?.data?.message || 'Failed to undo bill clearance', 'error');
         } finally {
             setIsProcessing(false);
         }
@@ -1053,18 +1074,27 @@ const Ledger = () => {
                                                         {b.status === 'UNPAID' && (
                                                             <button
                                                                 data-testid="clear-bill-btn"
-                                                                onClick={() => handleClearBill(b.id)}
+                                                                onClick={() => handleClearBill(b.id, b.totalAmount)}
                                                                 className="bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white transition-colors px-3 py-1 rounded-md text-xs font-bold shadow-sm"
                                                             >
                                                                 {t('Mark Cleared', 'भुगतान प्राप्त')}
                                                             </button>
                                                         )}
                                                         {b.status === 'PAID' && (
-                                                            <div className="flex flex-col items-end mr-2 text-xs">
-                                                                <span className="text-gray-400 font-bold">{b.clearanceDate}</span>
-                                                                {b.discountAmount > 0 && <span className="text-red-500 font-bold bg-red-50 px-1 mt-0.5 rounded border border-red-100">{t('Kasar', 'कसर')}: ₹{b.discountAmount}</span>}
-                                                                {b.discountAmount < 0 && <span className="text-green-600 font-bold bg-green-50 px-1 mt-0.5 rounded border border-green-100">{t('Extra', 'अतिरिक्त')}: ₹{Math.abs(b.discountAmount)}</span>}
-                                                            </div>
+                                                            <>
+                                                                <div className="flex flex-col items-end mr-2 text-xs">
+                                                                    <span className="text-gray-400 font-bold">{b.clearanceDate}</span>
+                                                                    {b.discountAmount > 0 && <span className="text-red-500 font-bold bg-red-50 px-1 mt-0.5 rounded border border-red-100">{t('Kasar', 'कसर')}: ₹{b.discountAmount}</span>}
+                                                                    {b.discountAmount < 0 && <span className="text-green-600 font-bold bg-green-50 px-1 mt-0.5 rounded border border-green-100">{t('Extra', 'अतिरिक्त')}: ₹{Math.abs(b.discountAmount)}</span>}
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleUnclearBill(b.id)}
+                                                                    className="bg-white border-2 border-orange-200 text-orange-500 hover:bg-orange-50 hover:border-orange-300 transition-colors px-2 py-1 rounded-md text-xs font-bold shadow-sm"
+                                                                    title={t('Undo Clear', 'भुगतान रद्द करें')}
+                                                                >
+                                                                    ↩️
+                                                                </button>
+                                                            </>
                                                         )}
                                                         {b.status === 'UNPAID' && (
                                                             <button
@@ -1122,9 +1152,12 @@ const Ledger = () => {
                                             </div>
                                             <div className="flex gap-2">
                                                 <button onClick={() => handleViewBillDetail(b.id)} className="bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">👁️</button>
+                                                {b.status === 'PAID' && (
+                                                    <button onClick={() => handleUnclearBill(b.id)} className="bg-white border border-orange-200 text-orange-500 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all" title={t('Undo Clear', 'भुगतान रद्द करें')}>↩️</button>
+                                                )}
                                                 {b.status === 'UNPAID' && (
                                                     <>
-                                                        <button data-testid="clear-bill-btn" onClick={() => handleClearBill(b.id)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">✓ {t('Pay', 'भुगतान')}</button>
+                                                        <button data-testid="clear-bill-btn" onClick={() => handleClearBill(b.id, b.totalAmount)} className="bg-white border border-primary text-primary px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">✓ {t('Pay', 'भुगतान')}</button>
                                                         <button onClick={() => handleDeleteBill(b.id)} className="bg-white border border-red-200 text-red-600 px-3 py-1.5 rounded-md text-xs font-bold shadow-sm active:scale-95 transition-all">🗑️</button>
                                                     </>
                                                 )}
@@ -1157,24 +1190,35 @@ const Ledger = () => {
                                         <input type="date" value={clearBillDialog.clearanceDate} onChange={e => setClearBillDialog({ ...clearBillDialog, clearanceDate: e.target.value })} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required />
                                     </div>
                                     <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <label className="block text-xs font-bold text-gray-500 uppercase">{t('Difference Amount (₹)', 'अंतर राशि (₹)')}</label>
-                                            <div className="flex bg-gray-100 rounded-lg p-0.5">
-                                                <button 
-                                                    onClick={() => setClearBillDialog({ ...clearBillDialog, isExtra: false })}
-                                                    className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${!clearBillDialog.isExtra ? 'bg-white shadow-sm text-red-600' : 'text-gray-500'}`}
-                                                >
-                                                    {t('Kasar', 'कसर')}
-                                                </button>
-                                                <button 
-                                                    onClick={() => setClearBillDialog({ ...clearBillDialog, isExtra: true })}
-                                                    className={`px-2 py-1 text-[10px] font-bold rounded-md transition-colors ${clearBillDialog.isExtra ? 'bg-white shadow-sm text-green-600' : 'text-gray-500'}`}
-                                                >
-                                                    {t('Extra', 'अतिरिक्त')}
-                                                </button>
-                                            </div>
+                                        <div className="flex justify-between items-end mb-2">
+                                            <label className="block text-xs font-bold text-gray-500 uppercase">{t('Final Received Amount (₹)', 'अंतिम प्राप्त राशि (₹)')}</label>
+                                            {(() => {
+                                                if (clearBillDialog.receivedAmount === '' || clearBillDialog.receivedAmount === null) return null;
+                                                const diff = clearBillDialog.totalAmount - Number(clearBillDialog.receivedAmount);
+                                                if (Math.abs(diff) < 0.001) return null;
+                                                return diff > 0 ? (
+                                                    <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                                                        {t('Kasar', 'कसर')}: ₹{diff.toFixed(2)}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                                                        {t('Extra', 'अतिरिक्त')}: ₹{Math.abs(diff).toFixed(2)}
+                                                    </span>
+                                                );
+                                            })()}
                                         </div>
-                                        <input type="number" placeholder={t('Optional', 'वैकल्पिक')} value={clearBillDialog.discountAmount} onChange={e => setClearBillDialog({ ...clearBillDialog, discountAmount: e.target.value })} className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none" min="0" step="0.01" />
+                                        <input 
+                                            type="number" 
+                                            placeholder={t('Enter amount received', 'प्राप्त राशि दर्ज करें')} 
+                                            value={clearBillDialog.receivedAmount} 
+                                            onChange={e => setClearBillDialog({ ...clearBillDialog, receivedAmount: e.target.value })} 
+                                            className="w-full border-2 border-gray-200 p-2.5 rounded-lg focus:ring-2 focus:ring-primary outline-none text-lg font-bold text-gray-800" 
+                                            min="0" 
+                                            step="0.01" 
+                                        />
+                                        <div className="text-right mt-1 text-[10px] text-gray-400 font-bold uppercase tracking-wide">
+                                            {t('Bill Total', 'कुल बिल')}: ₹{clearBillDialog.totalAmount?.toFixed(2)}
+                                        </div>
                                     </div>
                                 </div>
 
